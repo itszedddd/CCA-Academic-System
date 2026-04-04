@@ -23,8 +23,14 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @aesms_router.get("/students/", response_model=List[schemas.Student])
 def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Administrator", "Teacher", "Registrar", "Cashier"]:
-        # Students can only see themselves
+    if current_user.role == "Teacher":
+        # Teachers only see students in their assigned section
+        assigned = getattr(current_user, 'section', None)
+        if not assigned:
+            return []  # No section assigned — show nothing (secure default)
+        return db.query(models.Student).filter(models.Student.section == assigned).all()
+    if current_user.role not in ["Administrator", "Registrar", "Cashier"]:
+        # Students/Parents see only themselves
         return db.query(models.Student).filter(models.Student.id == current_user.student_id).all()
     return db.query(models.Student).offset(skip).limit(limit).all()
 
@@ -103,6 +109,14 @@ async def upload_student_image(
 def create_academic_record(record: schemas.AcademicRecordCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Administrator", "Teacher", "Registrar"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
+    # Teachers can only add grades for students in their assigned section
+    if current_user.role == "Teacher":
+        assigned = getattr(current_user, 'section', None)
+        if not assigned:
+            raise HTTPException(status_code=403, detail="No section assigned to your account")
+        student = db.query(models.Student).filter(models.Student.id == record.student_id).first()
+        if not student or student.section != assigned:
+            raise HTTPException(status_code=403, detail="Student is not in your assigned section")
     db_record = models.AcademicRecord(**record.model_dump())
     db.add(db_record)
     db.commit()
@@ -110,10 +124,16 @@ def create_academic_record(record: schemas.AcademicRecordCreate, db: Session = D
     return db_record
 
 @aesms_router.put("/academic_records/{record_id}", response_model=schemas.AcademicRecord)
-def update_academic_record(record_id: int, record_update: schemas.AcademicRecordBase, db: Session = Depends(get_db)):
+def update_academic_record(record_id: int, record_update: schemas.AcademicRecordBase, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     record = db.query(models.AcademicRecord).filter(models.AcademicRecord.id == record_id).first()
     if not record:
         raise HTTPException(status_code=404, detail="Record not found")
+    # Teachers can only edit grades for students in their section
+    if current_user.role == "Teacher":
+        assigned = getattr(current_user, 'section', None)
+        student = db.query(models.Student).filter(models.Student.id == record.student_id).first()
+        if not assigned or not student or student.section != assigned:
+            raise HTTPException(status_code=403, detail="Student is not in your assigned section")
     for key, value in record_update.model_dump().items():
         setattr(record, key, value)
     db.commit()
@@ -487,6 +507,8 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current
         username=user.username,
         role=user.role,
         student_id=user.student_id,
+        is_active=getattr(user, 'is_active', 1),
+        section=getattr(user, 'section', None),
         hashed_password=get_password_hash(user.password)
     )
     db.add(db_user)
@@ -512,6 +534,7 @@ def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(ge
     db_user.role = user.role
     db_user.is_active = user.is_active
     db_user.student_id = user.student_id
+    db_user.section = getattr(user, 'section', None)
     
     if user.password and str(user.password).strip() != "":
         db_user.hashed_password = get_password_hash(str(user.password).strip())

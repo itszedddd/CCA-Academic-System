@@ -113,6 +113,7 @@ class UserBase(BaseModel):
     role: str           # Administrator, Teacher, Parent, Student
     student_id: Optional[int] = None
     is_active: Optional[int] = 1
+    section: Optional[str] = None  # Assigned section for Teacher role
 
 class UserCreate(UserBase):
     password: str

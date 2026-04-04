@@ -6,7 +6,7 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1 });
+  const [formData, setFormData] = useState({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1, section: '' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function UserManagement({ authFetch, currentRole }) {
 
   const openAddModal = () => {
     setEditingUser(null);
-    setFormData({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1 });
+    setFormData({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1, section: '' });
     setShowModal(true);
   };
 
@@ -32,10 +32,11 @@ export default function UserManagement({ authFetch, currentRole }) {
     setEditingUser(user);
     setFormData({ 
       username: user.username, 
-      password: '', // leave blank unless changing 
+      password: '', 
       role: user.role, 
       student_id: user.student_id || '', 
-      is_active: user.is_active 
+      is_active: user.is_active,
+      section: user.section || ''
     });
     setShowModal(true);
   };
@@ -52,7 +53,8 @@ export default function UserManagement({ authFetch, currentRole }) {
     const payload = { 
       ...formData, 
       student_id: formData.student_id ? parseInt(formData.student_id) : null,
-      is_active: parseInt(formData.is_active)
+      is_active: parseInt(formData.is_active),
+      section: formData.role === 'Teacher' ? (formData.section || null) : null
     };
     
     if (editingUser) {
@@ -109,6 +111,7 @@ export default function UserManagement({ authFetch, currentRole }) {
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Username</th>
                 <th className="px-6 py-4">Role Clearance</th>
+                <th className="px-6 py-4">Assigned Section</th>
                 <th className="px-6 py-4">Student Link</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
@@ -129,6 +132,13 @@ export default function UserManagement({ authFetch, currentRole }) {
                     }`}>
                       {u.role}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {u.role === 'Teacher' ? (
+                      u.section 
+                        ? <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-md text-xs font-bold">{u.section}</span>
+                        : <span className="text-slate-400 italic text-xs">No section</span>
+                    ) : '—'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-medium">
                     {u.student_id ? `Linked (ID: ${u.student_id})` : '—'}
@@ -180,6 +190,17 @@ export default function UserManagement({ authFetch, currentRole }) {
                 </select>
               </div>
               
+              {formData.role === 'Teacher' && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    Assigned Section
+                  </label>
+                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} placeholder="e.g. Faith, Hope, Grace" />
+                  <p className="text-xs text-slate-400 mt-1">Must match a section name used on student profiles.</p>
+                </div>
+              )}
+
               {formData.role === 'Student' && (
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Link to Student ID</label>

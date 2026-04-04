@@ -80,3 +80,4 @@ class User(Base):
     role = Column(String)  # Administrator, Teacher, Parent, Student
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)  # Link for Student/Parent roles
     is_active = Column(Integer, default=1)
+    section = Column(String, nullable=True)  # For Teacher role: restricts visible students to this section
