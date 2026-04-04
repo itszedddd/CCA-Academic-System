@@ -235,7 +235,7 @@ def get_resource_recommendations(student_id: int, db: Session = Depends(get_db))
 
 @aesms_router.get("/tuition/", response_model=List[schemas.TuitionPayment])
 def get_tuition(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Administrator", "Teacher"]:
+    if current_user.role not in ["Administrator", "Teacher", "Cashier"]:
         return db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == current_user.student_id).all()
     return db.query(models.TuitionPayment).all()
 
@@ -366,7 +366,18 @@ def verify_form(form_id: int, db: Session = Depends(get_db)):
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
+        
     form.status = "Success"
+    
+    if form.student_id:
+        student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
+        if student and student.enrollment_status == "Pending Validation":
+            student.enrollment_status = "Enrolled"
+            
+        user = db.query(models.User).filter(models.User.student_id == form.student_id).first()
+        if user and hasattr(user, 'is_active') and user.is_active == 0:
+            user.is_active = 1
+            
     db.commit()
     db.refresh(form)
     return form
@@ -376,11 +387,87 @@ def verify_form(form_id: int, db: Session = Depends(get_db)):
 # Users & Auth
 # ---------------------------------------------------------------------------
 
+@aesms_router.post("/auth/register")
+async def register_student(
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    grade_level: str = Form(...),
+    section: str = Form(None),
+    contact_email: str = Form(None),
+    username: str = Form(...),
+    password: str = Form(...),
+    profile_picture: UploadFile = File(None),
+    enrollment_form: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    import time
+    existing = db.query(models.User).filter(models.User.username == username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already taken")
+        
+    profile_url = None
+    if profile_picture and profile_picture.filename:
+        ext = os.path.splitext(profile_picture.filename)[1]
+        pic_name = f"pf_{int(time.time())}{ext}"
+        pic_path = os.path.join(UPLOAD_DIR, pic_name)
+        with open(pic_path, "wb") as buffer:
+            shutil.copyfileobj(profile_picture.file, buffer)
+        profile_url = f"/uploads/{pic_name}"
+        
+    student = models.Student(
+        first_name=first_name,
+        last_name=last_name,
+        grade_level=grade_level,
+        section=section,
+        contact_email=contact_email,
+        profile_image=profile_url,
+        enrollment_status="Pending Validation"
+    )
+    db.add(student)
+    db.flush()
+    
+    hashed = get_password_hash(password)
+    user = models.User(
+        username=username,
+        role="Student",
+        student_id=student.id,
+        is_active=0,
+        hashed_password=hashed
+    )
+    db.add(user)
+    db.flush()
+    
+    form_path = os.path.join(UPLOAD_DIR, f"form_{int(time.time())}_{enrollment_form.filename}")
+    with open(form_path, "wb") as buffer:
+        shutil.copyfileobj(enrollment_form.file, buffer)
+        
+    with open(form_path, "rb") as f:
+        file_bytes = f.read()
+        
+    extracted_text = extract_text_from_image(file_bytes)
+    status = "Needs Review" if "ERROR" in extracted_text else "Success"
+    if not extracted_text:
+        status = "Failed Extraction"
+        
+    db_form = models.EnrollmentForm(
+        student_id=student.id,
+        form_type="Pre-Registration Application",
+        file_path=form_path,
+        extracted_text=extracted_text,
+        status=status
+    )
+    db.add(db_form)
+    db.commit()
+    return {"detail": "Application submitted successfully", "status": "Pending"}
+
 @aesms_router.post("/auth/login")
 def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
+        
+    if getattr(user, 'is_active', 1) == 0:
+        raise HTTPException(status_code=403, detail="Account pending Registrar verification")
     
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
