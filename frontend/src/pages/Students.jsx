@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const GRADES = ['Kindergarten','Grade 1','Grade 2','Grade 3','Grade 4','Grade 5','Grade 6','Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'];
+const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
 const API = '/api';
 
 export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch }) {
@@ -15,7 +15,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [sectionFilter, setSectionFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
   const [recommendations, setRecommendations] = useState([]);
-  const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Grade 7', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled' });
+  const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled' });
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Grading' });
 
   const [newStudentFile, setNewStudentFile] = useState(null);

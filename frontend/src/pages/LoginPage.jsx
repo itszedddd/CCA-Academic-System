@@ -11,7 +11,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
 
   // Registration state
   const [regData, setRegData] = useState({
-    first_name: '', last_name: '', grade_level: 'Grade 7',
+    first_name: '', last_name: '', grade_level: 'Pre-Kinder',
     section: '', contact_email: '', username: '', password: ''
   });
   const [regProfilePic, setRegProfilePic] = useState(null);
@@ -185,7 +185,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Grade Level</label>
                   <select className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/50 text-sm mt-1" value={regData.grade_level} onChange={e => setRegData({...regData, grade_level:e.target.value})}>
-                    {['Grade 7','Grade 8','Grade 9','Grade 10','Grade 11','Grade 12'].map(g => <option key={g}>{g}</option>)}
+                    {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
                   </select>
                 </div>
                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Section</label><input className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500/50 text-sm mt-1" value={regData.section} onChange={e => setRegData({...regData, section:e.target.value})} placeholder="Optional" /></div>
