@@ -1,0 +1,94 @@
+=== HARDWARE ===
+Hardware Requirements:
+Computers/laptops (admin use)
+Mobile devices (optional access)
+Stable internet connection
+Server/cloud storage
+PROCESS (AGILE MODEL)
+Phase 1: Plan
+Identify system problems (manual encoding, scattered data)
+Define objectives (automation, centralization, AI integration)
+Determine system scope and features
+Phase 2: Requirements Gathering
+Collect data from school staff and registrar
+Analyze current enrollment and monitoring process
+Identify inefficiencies and user needs
+Phase 3: Design
+Design system architecture and database
+Create UI/UX for users (admin, staff)
+Plan AI features (OCR, prediction, early warning system)
+Phase 4: Develop
+Build student information module
+Develop enrollment automation with OCR
+Integrate AI (ML prediction & monitoring system)
+Phase 5: Test
+Conduct system testing (functionality & usability)
+Validate AI predictions and OCR accuracy
+Fix bugs and improve performance
+Phase 6: Deploy & Improve
+Deploy system in school environment
+Monitor system performance
+Continuously update and improve features
+OUTPUT
+“WEB-BASED AI-ASSISTED STUDENT INFORMATION AND ACADEMIC MONITORING SYSTEM”
+Centralized and secure student information system
+Faster enrollment process (reduced repetitive encoding)
+Automated report generation (seconds instead of hours)
+Early warning system for declining academic performance
+Improved administrative efficiency and reduced workload
+Accurate, organized, and easily accessible records
+The IPO diagram of the Web-Based AI-Assisted Student Information and Academic Monitoring System for Calvary Christian Academy explains how the system improves data management, enhances academic monitoring, and reduces administrative workload while ensuring secure and centralized record handling. The inputs include student personal information, academic records such as grades and attendance, including enrollment documents processed through Optical Character Recognition (OCR). The system also relies on computers or devices used by school 
+
+=== SOFTWARE ===
+Software Requirements:
+Web-based system platform
+Database management system (cloud-based)
+OCR (Optical Character Recognition) software
+Machine Learning algorithms
+Report generation module
+Hardware Requirements:
+Computers/laptops (admin use)
+Mobile devices (optional access)
+Stable internet connection
+Server/cloud storage
+
+
+=== SDLC ===
+PROCESS (AGILE MODEL)
+Phase 1: Plan
+Identify system problems (manual encoding, scattered data)
+Define objectives (automation, centralization, AI integration)
+Determine system scope and features
+Phase 2: Requirements Gathering
+Collect data from school staff and registrar
+Analyze current enrollment and monitoring process
+Identify inefficiencies and user needs
+Phase 3: Design
+Design system architecture and database
+Create UI/UX for users (admin, staff)
+Plan AI features (OCR, prediction, early warning system)
+Phase 4: Develop
+Build student information module
+Develop enrollment automation with OCR
+Integrate AI (ML prediction & monitoring system)
+Phase 5: Test
+Conduct system testing (functionality & usability)
+Validate AI predictions and OCR accuracy
+Fix bugs and improve performance
+Phase 6: Deploy & Improve
+Deploy system in school environment
+Monitor system performance
+Continuously update and improve features
+OUTPUT
+“WEB-BASED AI-ASSISTED STUDENT INFORMATION AND ACADEMIC MONITORING SYSTEM”
+Centralized and secure student information system
+Faster enrollment process (reduced repetitive encoding)
+Automated report generation (seconds instead of hours)
+Early warning system for declining academic performance
+Improved administrative efficiency and reduced workload
+Accurate, organized, and easily accessible records
+The IPO diagram of the Web-Based AI-Assisted Student Information and Academic Monitoring System for Calvary Christian Academy explains how the system improves data management, enhances academic monitoring, and reduces administrative workload while ensuring secure and centralized record handling. The inputs include student personal information, academic records such as grades and attendance, including enrollment documents processed through Optical Character Recognition (OCR). The system also relies on computers or devices used by school staff, a stable internet connection, a web-based AI platform, and a cloud-based database to efficiently store, access, and process all
+
+=== TIMETABLE ===
+Timetable not found
+

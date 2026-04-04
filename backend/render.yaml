@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: hop-backend
+    runtime: docker
+    plan: free
+    region: singapore
+    envVars:
+      - key: PORT
+        value: 8000
+    disk:
+      name: hop-data
+      mountPath: /app/data
+      sizeGB: 1

@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env
+*.env
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads
+backend/uploads/
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# Logs
+*.log
+ngrok.log
+output.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Zip
+*.zip
+thesis_contents/

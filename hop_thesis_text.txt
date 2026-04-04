@@ -1,0 +1,514 @@
+AI-Integrated Management System with SMS Reminder for House of Puppies Veterinary Clinic & Grooming Salon – Ascoville
+A Thesis Proposal
+Presented to the Faculty of 
+College of Computer Studies
+Immaculada Concepcion College
+In Partial Fulfillment of the Requirements for 
+System Analysis and Design
+Bachelor of Science in Computer Science
+ 
+CORONEL, KENT KENJI BANGSOY, JOHN LUIZ TOBIAS, CEDRICK JAY TUMALOM, JOHN LOYD
+TURREDA, KOBE BRYAN
+March 2026
+TABLE OF CONTENTS
+   Page
+TITLE PAGE i 
+TABLE OF CONTENTS ii
+LIST OF TABLES iii
+LIST OF FIGURES iv
+Chapter 1
+INTRODUCTION 2
+Background of the Study  2
+Related Literature and Studies 2
+Foreign Literature 3
+Local Literature 3
+Foreign Studies 3
+Local Studies  3
+Related Systems 3
+Statement of the Problem 2
+General Problem 3
+Specific Problems 3
+Objectives of the Study 2
+General Objectives 3
+Specific Objectives 3
+Theoretical Framework 2
+Conceptual Framework 2
+Definition of Terms 2
+Chapter 2
+System Analysis 5
+Requirements Documentation 6
+Current System Utilized 6
+The New System (System Design) 5
+Requirement Analysis 6
+Research Design & Methodology 6
+Instrument Used in the Study 6
+Statistical Treatment of Data 6
+Ethical Consideration 6
+Information Model (Conceptual Design) 6
+Context Diagram Level 0 (Physical Design) 6
+DFD Level 1 (Physical Design) 6
+Entity Relationship Diagram 6
+Flowchart 6
+Architecture Design (UI) 6
+Algorithm Design (UX) 6
+LIST OF FIGURES
+   Page
+Figure 1  X
+LIST OF TABLES
+   Page
+Table 1  X
+CHAPTER 1INTRODUCTION
+Background of the Study
+House of Puppies Veterinary Clinic & Grooming was established by Dr. Analiza P. Yorac, DVM, and is located at 149 Malaria Road, Barangay 185 Malaria, North Caloocan City, Metro Manila 1428. The clinic operates seven days a week, from Monday to Sunday, between 9:00 AM and 5:00 PM, providing veterinary and grooming services for pets in the local community. The 85-square-meter establishment offers routine medical check-ups, vaccinations, laboratory examinations, prescription management, and pet grooming services. The clinic aims to ensure the health and well-being of pets while providing convenient and high-quality services to pet owners.
+ 
+Despite providing essential veterinary and grooming services, the clinic currently relies entirely on a manual, paper-based record-keeping system. All patient information is recorded using paper logbooks and printed forms, which include client and owner details, pet information, the purpose of the visit such as check-ups, vaccinations, or grooming, and the pet’s chief complaints such as vomiting or diarrhea. Prescriptions are also written manually, and there is no automated system that links prescriptions directly to a client’s record. In addition, reminders for vaccinations, laboratory check-ups, and follow-up visits are tracked manually by the clinic staff.
+ 
+The reliance on manual documentation has resulted in several operational challenges. A major incident occurred when a typhoon destroyed patient records stored in the clinic, leading to permanent loss of important medical histories. As a result, the clinic staff were forced to manually recreate patient records from scratch, which caused significant disruption to daily operations and highlighted the vulnerability of physical record storage to environmental hazards. Furthermore, because the clinic is required to retain client records for at least three years, the continued use of paper-based records makes storage difficult and increases the risk of damage, loss, and misplacement of important documents.
+ 
+The manual system also causes inefficiencies in record retrieval and organization. Staff members spend approximately four to seven minutes locating a single patient record due to the absence of alphabetical sorting and proper filing structure. Records are often misplaced, making it difficult to retrieve patient information immediately when needed. Since the logbooks rely primarily on the pet owner's name as a reference, searching for older records requires manually flipping through pages, which consumes valuable time during clinic operations.
+ 
+Prescription management is another area affected by the manual system. Writing and recording a single prescription can take between fifteen to thirty minutes, particularly when staff must manually link the prescription to the corresponding patient's record. Handwritten prescriptions may also be difficult to read, which can increase the risk of treatment errors. In some cases, prescription records are misplaced or lost, and retrieving past prescription history can take between one to five minutes. Considering that the clinic handles approximately ten to fifteen prescriptions per day, manual prescription documentation consumes a significant portion of staff time.
+ 
+Client follow-up and reminder management are also handled manually. A staff member spends approximately thirty minutes each day sending text messages to remind pet owners about scheduled vaccinations, follow-up consultations, or laboratory examinations. Despite these efforts, the clinic still experiences an average of ten missed follow-up appointments or vaccinations each month. Managing approximately thirty to forty weekly follow-ups manually makes the process difficult and less efficient.
+ 
+These operational challenges contribute to increased staff workload and service delays. Staff members rated the workload caused by manual documentation as very heavy, with an average rating of four out of five. Additionally, manual documentation contributes to one to two hours of service delays per day, particularly during peak hours. Compliance with record retention policies also becomes challenging due to limited physical storage space.
+ 
+To address these challenges, this study proposes the development of a Web-Based Artificial Intelligence (AI)-Integrated Management System with Short Message Service (SMS) reminders for House of Puppies Veterinary Clinic & Grooming. The proposed system aims to digitize and securely store patient records, automate follow up reminders and vaccination scheduled reminders through SMS, generate and link prescriptions directly to patient records, and allow clinic staff to easily search, retrieve, and export client information when needed. By implementing this system, the clinic can reduce the risk of data loss, improve workflow efficiency, minimize staff workload, and ensure continuity of care for pets.
+ 
+Review of Related Literature, Studies, and Systems
+Review of Related Literature
+Foreign Literature
+The Artificial Intelligence Management System (AIMS) emphasizes the need for Artificial Intelligent (AI) systems to be accountable, meaning that there should be mechanisms in place for tracing decisions back to the organizations and individuals responsible. AIMS framework emphasizes the importance of ethical considerations in AI management. It provides a structured approach to integrating ethical principles, such as fairness and accountability into AI systems. Transparency is achieved through clear documentation, open communication, and stakeholder engagement, ensuring that AI operations are understandable and accessible to all relevant parties. This approach ensures that AI technologies evolve in response to emerging challenges and opportunities, maintaining their alignment with ethical standards and organizational objectives. It ensures that AI systems are developed and deployed with a consistent focus on ethical use, transparency, and accountability (Peters, 2025).
+Theoretical Anchors: ISSM and TAM
+The necessity of such systems is theoretically anchored in the Information Systems Success Model (ISSM), which asserts that the utility of an information system is determined by the convergence of system quality, information quality, and service quality (Peters, 2025). In the specific case of veterinary clinics, system quality refers to the security and availability of cloud-based storage, which acts as a safeguard against the permanent data loss associated with paper records (VETport, 2025). Information quality is realized through the organization and digitization of records, ensuring they are searchable and retrievable in real-time (Peters, 2025).
+The Technology Acceptance Model (TAM) provides a complementary perspective by focusing on user adoption (DLSU, 2022). TAM posits that the actual use of a system is a direct function of the users' behavioral intention, which is influenced by two primary factors: perceived usefulness and perceived ease of use (Peters, 2025). For the staff at House of Puppies, the perceived usefulness of the system will be tied to its ability to automate reminders and simplify prescription management, while ease of use will depend on the intuitiveness of the user interface (Rao & Srinivasan, 2023).
+Deep Learning and Clinical Decision Support
+Advancements in Deep Learning (DL), a subfield of artificial intelligence, have introduced algorithms that simulate the problem-solving capabilities of the human mind (Frontiers in Veterinary Science, 2025). The literature describes how Convolutional Neural Networks (CNNs) have become the gold standard for image analysis in veterinary medicine, excelling at identifying hierarchies of spatial features in radiographs and pathology slides (Frontiers in Veterinary Science, 2025). These systems are increasingly proficient in recognizing and classifying cell types, demonstrating versatility across diagnostic modalities (Frontiers in Veterinary Science, 2025).
+Parallel to DL, the literature on digital Clinical Decision Support (CDS) tools highlights their role in promoting evidence-based therapeutic decisions (Frontiers in Veterinary Science, 2024). These tools emulate the veterinarian's thought process by integrating patient-specific data with broader clinical knowledge, which is particularly vital for antimicrobial stewardship (Frontiers in Veterinary Science, 2024). By providing pop-up reminders and automated data entry, CDS tools reduce the cognitive load on practitioners, thereby decreasing the likelihood of medical errors (Frontiers in Veterinary Science, 2024). 
+Ethical Principles in Non-Human Patient AI
+The ethics of veterinary AI are unique due to the "client-patient-practitioner" relationship (AI & Society, 2024). Literature identifies nine distinct ethical issues, including data security, trust, and the moral status of the animal patient (AI & Society, 2024). Because animals lack the same legal protections as humans, they are potentially more exposed to algorithmic harms (AI & Society, 2024). The "Four Rs" principles—Reduction, Refinement, Replacement, and Responsibility—are often cited as a guide for ethical decision-making in animal experiments and are being adapted for digital contexts (MDPI, 2022).
+Data Governance and Privacy
+The governance of health data is a global concern. International guidelines emphasize the need for privacy protection while allowing for the mining of data for research purposes (OECD, 2021). This is particularly relevant as AI systems require vast amounts of high-quality data for training (Al-Badrani et al., 2024). In a veterinary context, this involves balancing the clinic's need for diagnostic accuracy with the owner's right to data confidentiality (Al-Badrani et al., 2024).
+Health and Automated Communication
+The concept of mobile health (mHealth) has redefined the client-practitioner interface (BMJ Global Health, 2021). SMS reminders have demonstrated a positive impact on attrition-prone healthcare services, such as vaccination schedules and follow-up check-ups (MDPI, 2024). Literature indicates that caregivers often delay or miss appointments due to a lack of awareness regarding due dates, a challenge that is effectively mitigated by the global availability of mobile phones (PLOS Global Public Health, 2024).
+Global Trends in Digitalization
+The categorization of digital technologies provides a taxonomy for the current technological shift (Zaki, 2019). Literature sources define digital transformation as the extent to which a firm utilizes digital technologies to develop new value-adding business models (Verhoef et al., 2021). In the veterinary sector, this manifests as a transition from reactive care to proactive, data-driven health management (Al-Badrani et al., 2024).
+Local Literature
+MSME Digitalization and Pandemic Recovery
+According to official statistics, MSMEs comprise 99.5% of the total number of businesses in the country (Government of the Philippines, 2023). Reports highlighted that a significant 70.6% of these businesses were forced to temporarily shut down during the early months of the pandemic because they were unable to cope with the business-related impacts of COVID-19 (BMU, 2024). This crisis catalyzed a mandatory shift toward digitalization, as firms adopted social media and e-commerce platforms to remain competitive (Verhoef et al., 2021).
+Literature from economic development banks indicates that internet or e-commerce use did not lead to immediate positive outcomes in 2020, but by 2021, a clear positive impact emerged as firms developed the "digital maturity" necessary to harness these tools (ADB, 2021). This delayed impact suggests that for House of Puppies, the implementation of a management system must be accompanied by a period of organizational learning and staff training (Oikawa, 2025).
+Legal and Regulatory Frameworks
+The Philippine government has implemented regulations to enhance animal health and welfare, primarily through the Animal Welfare Act (Philippine Congress, 1998). This legislation mandates that veterinary establishments comply with standards for facility licensing and record-keeping (Shubham, 2025). The adoption of veterinary software is promoted as a means to support compliance and accurate documentation, thereby encouraging clinics to integrate modern technologies for better patient care (Shubham, 2025).
+Furthermore, the Philippine Development Plan 2023-2028 specifies digital transformation as an underlying theme to make the country "globally competitive" (Government of the Philippines, 2023). The goal is to bridge the "digital divide" in a nation where 40% of the population still lacks reliable internet access (Government of the Philippines, 2023). Reports have indicated over 114.6 million mobile connections, suggesting that SMS remains the most accessible channel for client communication (PGH, 2021).
+Cultural Shift in Pet Ownership
+A substantial cultural shift has occurred in the Philippines, where pets are no longer viewed solely as working animals but as cherished family members (Abao et al., 2024). This holistic approach to pet care has fueled the demand for professional services, including grooming and advanced medical care (Abao et al., 2024). However, pet owners continue to experience "pain points" in accessing professional veterinary services and accurate medical information (Abao et al., 2024). Local literature suggests that there is a clear "market fit" for digital platforms that offer a centralized location for pet health records and service booking (Abao et al., 2024).
+Enterprise Resilience and Disaster Recovery
+Resilience is defined as the ability to resist, absorb, and recover from the effects of a hazard efficiently (UNISDR, 2020). For Philippine businesses, this involves "emergency preparedness" and "crisis planning" (Sanchis et al., 2020). Literature specifically addressing micro-enterprises notes that while many businesses are knowledgeable about disaster risks, they often lack the technical infrastructure to ensure business continuity (Dales et al., 2020). The use of cloud-based systems is identified as a critical "gain creator" for these businesses, allowing them to bounce back quickly after a disruptive event (Lufyagila et al., 2022).
+Digital Adoption Barriers
+Despite the clear benefits, several barriers to digital adoption persist in the Philippines. These include cultural resistance, a lack of technical expertise, and financial constraints (Quimba & Calizo, 2019). Small firms frequently struggle with the cost and complexity of digital tools (Philippine Institute for Development Studies, 2019). Regional areas are even more constrained by infrastructure and regulatory issues, creating a "digital divide" between urban and rural settings (Quimba & Calizo, 2019).The Impact of Telehealth Implementation
+Local literature on telehealth has demonstrated its effectiveness during the pandemic as an alternative to in-person consultations (DLSU, 2022). The outpatient services utilized virtual triage through phone calls and SMS to manage outpatient flows, highlighting areas for improvement such as the lack of protocols for documenting electronic medical records (DLSU, 2022). These findings underscore the need for the proposed House of Puppies system to include a robust "Notification Module" and systematic "Client/Patient" records (Bartolome et al., 2023).
+Review of Related Studies
+Foreign Studies
+Systematic Review of Deep Learning in Diagnostics
+A systematic review utilized the PRISMA guidelines to analyze the intersection of deep learning and veterinary medicine, identifying 422 relevant research articles (Frontiers in Veterinary Science, 2025). The study found that AI models are frequently "at least as good" as human healthcare experts in specific diagnostic tasks (Frontiers in Veterinary Science, 2025). The technology's proficiency in recognizing and counting cell types on microscope slides suggests it can significantly augment the diagnostic capabilities of small clinics like House of Puppies (Frontiers in Veterinary Science, 2025).
+Efficacy of SMS Reminders in Rabies Control
+Research conducted in rural Kenya evaluated the efficacy of SMS reminders in improving adherence to the five-dose rabies Post-Exposure Prophylaxis (PEP) regimen (Masika et al., 2022). The study involved a field trial comparing a control group with an intervention group that received SMS reminders one day before their scheduled doses (Washington State University, 2022). The results showed that the odds of PEP completion were 3.37 times higher among those who received the SMS reminder (Masika et al., 2022). Furthermore, the intervention group had better compliance with the scheduled dates, with a mean deviation of only 0.18 days compared to 0.79 days for the control (Masika et al., 2022).
+Performance of AI-Driven Clinical Decision Support
+A study on the Veterinary Hospital Management System (VHMS) using an AI-integrated advisory found that rule-based decision-making systems effectively analyze symptoms and history to suggest potential diagnoses (Rao & Srinivasan, 2023). This feature is particularly useful for reducing diagnostic errors and supporting junior physicians (Rao & Srinivasan, 2023). The architecture allows for the incremental addition of machine learning algorithms based on historical treatment records to enhance its suggestions over time (Rao & Srinivasan, 2023).VET PROMPT Notification Satisfaction
+A study evaluated the satisfaction of pet owners using the "VET PROMPT" notification system via mobile applications (PMC, 2025). The statistical analysis yielded a "High" level of satisfaction, with an overall mean score of 4.16 (PMC, 2025). Specific metrics highlighted the system's "Ease of use" (4.25) and "Ease of understanding" (4.20) (PMC, 2025). Notably, the system's reliability was confirmed with a Cronbach's Alpha of 0.97, indicating exceptional consistency across its components (PMC, 2025).
+Systematic Meta-Analysis of Vaccination Uptake
+A meta-analysis of 25 studies evaluated the effectiveness of Mobile Phone Text Message Reminders (MPTMRs) on vaccination coverage. The evidence supports the use of MPTMRs for improving vaccination uptake compared to usual care, with a risk ratio of 1.09. The study concluded that intervention characteristics and country setting had no bearing on the effectiveness, suggesting that SMS reminders are a universally applicable tool for veterinary wellness programs. (MDPI, 2023).
+AI Adoptions in the Veterinary Sector
+A descriptive analysis of 812 published works up to March 2023 categorized the major areas of AI implications in the veterinary field. The largest category was "Diagnostic Studies" (192 studies), followed by animal production, epidemiology, and health and welfare. The analysis showed that machine learning (ML), CNNs, and deep learning (DL) were the primary methodologies, with DL being referred to 46.83% of the time. (MDPI, 2023).
+SMS Feasibility for Chronic Care
+Research in rural Haiti found that while inconsistent cellular signals and lack of phone access were barriers, 22.2% of patients reported they would not have attended their visits without the SMS reminder. This feasibility study demonstrated that manual or automated SMS composing is acceptable to patients and can increase appointment attendance rates in diverse clinical settings. (PLOS Global Public Health, 2024).
+Cloud Computing and Coordination
+Studies on e-health cloud computing systems highlight their ability to decrease healthcare service costs while augmenting services through real-time data sharing between departments. Cloud systems are particularly praised for their "agility" and "portability," allowing for clinical patient data from various sources (medication records, lab data, claims) to be centralized for collaborative care. (VETport, 2025).
+AI vs. Human Experts in Image Interpretation
+Research indicates that AI tools for diagnostic imaging are often 100 times faster in providing results compared to humans. Digital pathology is noted as being more accurate than humans when evaluating high-resolution slides. However, veterinarians still play a critical role in linking AI findings to the patient's holistic clinical background before making final decisions. (MDPI, 2023).
+IoT and Remote Monitoring Success
+The integration of IoT with AI models has been shown to predict health issues early. For example, odor sensors can predict ketosis in dairy cattle, while motion and sound sensors can detect mastitis and foot-and-mouth disease. In companion animals, smart collars have been used to generate "overall health scores," providing clinicians with continuous data for evaluation. (Al-Badrani et al., 2024).
+Local Studies
+Telehealth Evaluation in Metro Manila and Regions III/IV-A
+A significant local study evaluated five commonly used telehealth applications: KonsultaMD, Medifi, NowServing, EzConsult, and DocKoTo. The research utilized the Telehealth Usability Questionnaire (TUQ) and found that KonsultaMD was the only application that exceeded the population mean in every usability factor. The findings revealed no significant difference between the gender of respondents and their ratings, though female participants generally gave slightly higher scores. (DLSU, 2022).
+Groom Master: Web-Based App Evaluation
+The "Groom Master" study evaluated a web-based pet grooming appointment scheduling and inventory management system. Developed using the Agile SDLC, the system centralizes online booking, inventory tracking for supplies like shampoos and conditioners, and customer preference records. The study found that the iterative development process, based on user feedback from groomers and receptionists, significantly improved modules like pet profiles and scheduling alerts. (Coronel et al., 2025).
+SMS and MMR Immunization in Rural Philippines
+A comparative descriptive study was conducted to determine the effectiveness of text messages in improving Measles, Mumps, and Rubella (MMR) immunization compliance in rural areas of the Philippines. The study found that text messaging, with or without pictures, is a feasible and useful tool. Parents who received text reminders brought their children for immunization on a "timelier basis" compared to those who received verbal reminders alone. (ResearchGate, 2022).
+SMS Reminders for GDM Postpartum Care at PGH
+A single-blind randomized controlled trial at the Philippine General Hospital (PGH) compared SMS reminders to usual care for Gestational Diabetes Mellitus (GDM) patients. The study reported a follow-up rate of 71.6% among those who received persistent SMS reminders. This study highlighted that given the low cost of text messaging in the Philippines (approximately PHP 1.00), a text-based system is a highly culture-appropriate and effective strategy for ensuring continuity of care. (PGH, 2021).
+Automation of Iris Veterinary Clinic
+A study focused on the Iris Veterinary Clinic in Cavite City examined the transition from manual to automated patient information management. The researchers found that the manual system led to inefficiencies in searching patient records and monitoring inventory. The proposed automated system successfully demonstrated the ability to generate accurate sales reports and maintain updated inventory levels, thereby increasing competitive advantage. (Valencia, 2023). 
+CityVets Animal Clinic System Evaluation
+Research presented to the Polytechnic University of the Philippines (PUP) discussed the development of a computerized management system for CityVets Animal Clinic. The study addressed the limitations of manual processes that relied on index cards and logbooks. The "Notification Module" was evaluated as a key feature that allowed the clinic to notify customers automatically via SMS based on established pet protocols. (Bartolome et al., 2023).
+Palawan Pet Owner Pain Points Survey
+A study in Puerto Princesa City, Palawan, characterized pet owners' pain points in sourcing products and accessing professional services. The survey of 100 pet owners revealed that 93.0% faced information-seeking barriers. The findings provided a basis for the introduction of "PawPrintConnect," a digital platform that owners prioritizing health, medical care, and grooming expressed a willingness to pay for. (Abao et al., 2024).
+Priority Scheduling in the I-Vet Management System
+The I-Vet system study explored the use of a "Priority Scheduling Technique" to address problems with manual appointment systems. The technique assigns priority levels based on the severity of a pet's injury, ensuring that those in critical need are treated first. The system was found to facilitate better time management for both staff and pet owners. (Hamid, 2020).Camacho Veterinary Clinic Online Ordering Evaluation
+A capstone project evaluated an online ordering and appointment system for the Camacho Veterinary Clinic. The study aimed to manage appointment requests and solve queries related to product availability. The researchers used a modified waterfall model and found that the integrated system effectively managed order details and pickup schedules. (Carias et al., 2023).
+Digital Innovation impact on MSME success 
+A mixed-methods study examined how digital innovation helps the entrepreneurial success of Philippine MSMEs. The study identified that cultural resistance and a lack of technical expertise were leading obstacles. However, the research suggested that when structural barriers are removed, digital tools significantly enhance the resilience and competitiveness of small firms. (Quimba & Calizo, 2019).
+Review of Related Systems
+Foreign Systems
+Figure 1. Provet Cloud User Interface (UI)
+Provet Cloud: Comprehensive Asian Support
+Provet Cloud is a cloud-based practice management solution designed for clinics of all sizes and specialties. Its primary differentiation is its "user-friendliness" and a comprehensive suite of features including client communications, digital whiteboards, and business intelligence reporting. Users highlight its simple and reliable interface as one of the best in the market, particularly praising the responsive and knowledgeable customer support. (Provet Cloud, 2025).
+ezyVet (by IDEXX): Next Generation Workflows (Foreign RRSys)
+As a division of IDEXX, ezyVet is a robust, cloud-based platform popular among general practices and specialty referral hospitals. It is "jam-packed" with tools for optimizing workflows, collecting and processing data, and capturing charges automatically. Its integration with IDEXX VetConnect PLUS provides a unified platform for diagnostics, reducing manual entry and errors. (IDEXX, 2025).
+IDEXX Neo: Simplicity and Speed (Foreign RRSys)
+IDEXX Neo is designed specifically for ease of use and accessibility, making it an excellent choice for startups or clinics aiming to minimize IT overhead. The interface ensures that team members can get up to speed quickly, with built-in training that claims to make common tasks five times faster. Its strength lies in its tight integration with the broader IDEXX ecosystem. (IDEXX, 2025).
+Shepherd Veterinary Software: AI-Powered Joy (Foreign RRSys)
+Shepherd is an AI-powered cloud-based system designed by veterinarians specifically for veterinarians. It leverages "TranscribeAI," a medical record transcription tool that listens to live conversations and auto-fills SOAP notes in real-time, intelligently filtering out noise. This focus on reducing administrative burnout makes it a favorite among practices seeking a straightforward solution. (Shepherd Vet, 2026).
+Digitail: Modern AI Assistant (Foreign RRSys)
+Digitail is a cloud-based platform with a focus on AI-enabled tools and client experience. Its "Tails AI" virtual assistant automatically creates patient summaries and SOAP notes, and assists with record navigation. The platform includes a client-facing mobile app that enhances engagement and satisfaction through easy booking and chat features. (Digitail, 2026).
+Covetrus Pulse: The Veterinary Operating System (Foreign RRSys)
+Formerly eVetPractice, Covetrus Pulse aims to unify all aspects of clinic operations. Its "Covetrus AI" acts like a scribe, capturing client discussions and saving teams six or more hours per week on administrative work. The system is highly customizable via an API connected to Covetrus's broader ecosystem of distribution and inventory services. (IDEXX, 2025).AcuroVet: Superior User Experience (Foreign RRSys)
+AcuroVet is marketed as the top choice for its intuitive interface and end-to-end integration. It prioritizes bank-grade security and compliance with international data protection regulations like HIPAA and GDPR. Its location-based support allows for centralized management of multi-branch operations, making it ideal for growing networks of clinics. (AcuroVet, 2025).
+Vetspire: Adaptable Corporate Management (Foreign RRSys)
+Vetspire is a cloud-based solution that "lets veterinarians be veterinarians". It is popular among corporate groups due to its powerful reporting tools and ability to adapt based on the needs of particular practices. Its slick interface and intuitive design make it a top choice for high-volume environments. (Vetspire, 2025).
+Cornerstone (IDEXX): Packed with Features (Foreign RRSys)
+IDEXX Cornerstone is one of the most widely used practice management systems, offering a full suite of features for billing, inventory, and appointment management. It integrates smoothly with IDEXX diagnostic tools and is known for providing excellent training resources and technical support.  (IDEXX, 2025).
+DaySmart Vet: Manage from Anywhere (Foreign RRSys)
+DaySmart Vet is designed for remote management, allowing clinicians to run their business from any internet-connected device. Its tools include online booking, automated reminders, and cloud-based record-keeping. It is praised for its reliability and wide variety of customizations that make operations smooth. (Provet Cloud, 2025).
+Local Systems
+Kreloses: The Asian Backbone (Local RRSys)
+Kreloses is a cloud-based management system built in Asia, for Asia. Since 2020, it has supported the digital transformation of clinics like Hope Veterinary Clinic and Visayas State University (VSU). It manages appointments, patient records (EMR), and inventory with localized support that understands the specific tax and health regulations of the region. A key feature is its integration with Zoetis blood test machines, allowing results to flow directly into the system.  (Kreloses, 2026).
+PetPal Haven IMS: Google-Integrated Tools (Local RRSys)
+The PetPal Haven proposal for a salon in SJDM, Bulacan, utilizes Google Calendar for grooming appointments and AppSheet for live inventory tracking. This system addresses the manual booking issues associated with notebooks and whiteboard schedules. It is designed to educate employees on data privacy in alignment with the Philippine Data Privacy Act. (PetPal Haven, 2023).
+BOOP: Pet-Care and Adoption Platform (Local RRSys)
+BOOP is a multifunctional mobile application providing pet care services and an adoption platform to stray animals in the Philippines. It addresses the risk of pet abandonment by providing easy access to boarding, sitting, and grooming services. Through surveys, the researchers found these services were most desired by pet owners looking for reliable care. (Philippine EJournals, 2024).
+I-Vet: Cloud-Based Records Handling (Local RRSys)
+The I-Vet management system, explored in several local contexts, performs record handling for pet information, medical histories, and vaccines. It provides a fast and accurate system for medicine inventory and generates reports for monitoring needs. The cloud-based architecture allows for ease in tracking patient records and client waiting times across different clinic branches. (Sarguilla et al., 2023).
+Camacho Veterinary Clinic Online System (Local RRSys)
+The online ordering and appointment system developed for the Camacho Veterinary Clinic allows customers to view products and book requests for doctor approval. The system generates order details and schedules, utilizing a database to manage basic inventory and available stocks effectively. (Carias et al., 2023).
+Iris Veterinary Clinic Automated System (Local RRSys)
+Designed for a clinic in Cavite City, this system manages patient, medication, and transactional data. It replaces manual logbooks with an easy-to-search digital database, ensuring that previous records are not lost and that sales results are accurately supported. (Valencia, 2023).
+CityVets Animal Clinic Notification System (Local RRSys)
+This system computerizes manual processes by uniting patient, inventory, and sales records. A specific module for "Notification" helps notify customers via SMS depending on the clinical protocol for their pets, which is a significant advancement over their previous paper-based index cards. (Bartolome et al., 2023).
+St. Jude Veterinary Management System (Local RRSys)
+The St. Jude system focuses on streamlining the operations of a veterinary clinic by providing a tool to manage the workflow of a veterinarian. It includes basic features like animal and owner registration, service maintenance, and management of consults. (St. Jude Veterinary Management System, 2023).
+Oikos Animal Clinic Sales and Inventory (Local RRSys)
+This specialized system focuses on the financial and stock management of the Oikos Animal Clinic. By automating the sales recording process, it reduces the administrative burden on the owner and staff, allowing them to focus more on treats and grooming services. (Carias et al., 2023).
+Bethlehem Animal Clinic Barcode Integration (Local RRSys)
+The Bethlehem system utilizes barcode scanning for sales and inventory management, making it one of the more technically advanced local prototypes. It includes appointment scheduling, aiming to improve business productivity and growth for the small enterprise. (Carias et al., 2023).
+Statement of the Problem
+House of Puppies Veterinary Clinic & Grooming currently relies on a manual, paper-based system to manage patient records, prescriptions, and appointment reminders. This has caused inefficiencies, high staff workload, service delays, and increased the risk of losing important medical records.
+General Problem
+The clinic cannot securely store, efficiently manage, or quickly retrieve patient records, prescriptions, and reminders due to its paper-based system. This leads to workflow inefficiencies, increased staff workload, and missed follow-ups, affecting the quality and continuity of pet care.
+Specific Problems
+ // Entire records were destroyed during a typhoon, forcing staff to manually recreate patient history. About 100% of patient records are at risk of being lost due to the lack of secure storage.
+Retrieving patient information takes 4–7 minutes due to disorganized logbooks, slowing service delivery.
+Documentation tasks consume 1–2 hours per day per staff member, with one staff member spending 30 minutes daily sending reminders manually.
+100% of prescriptions are recorded manually, with 10–15% often lost or illegible, and each prescription takes 15–30 minutes to process.
+About 25% of scheduled follow-ups or vaccinations are missed due to manual tracking of reminders.
+Objectives of the Study
+General Objective
+To develop a web-based AI-integrated management system with SMS reminders that will securely store, efficiently manage, and quickly retrieve patient records, prescriptions, and follow-up reminders, improving workflow efficiency, reducing staff workload, and ensuring timely care for pets.
+Specific Objectives
+To implement secure cloud-based storage with automatic backups to ensure 100% of patient data is protected.
+To reduce retrieval time so that 90% of patient records can be accessed in under 1 minute.
+To Minimize manual tracking tasks and decrease time spent on documentation and reminders by 50%.
+To ensure 100% of prescriptions are automatically generated, linked to client records, and exported as PDFs, reducing lost or unreadable prescriptions to less than 5%.
+To reduce missed follow-ups from 25% to under 5% through SMS notifications for vaccinations, follow-ups, and laboratory examinations.
+Theoretical Framework
+Figure 1. Information Systems Success Model (ISSM) &
+Technology Acceptance Model (TAM)
+This study is anchored on the Information Systems Success Model (ISSM) developed by DeLone and McLean (1992; updated in 2003) and the Technology Acceptance Model (TAM) proposed by Davis (1989). These complementary models provide a robust foundation for evaluating both the effectiveness of the proposed AI-integrated management system and its acceptance among clinic staff. According to ISSM, the success of an information system depends on three quality dimensions: System Quality, Information Quality, and Service Quality. In the context of House of Puppies Veterinary Clinic & Grooming Salon, System Quality refers to the system’s technical performance, including fast and reliable operation, secure cloud-based storage, and automatic backup mechanisms that prevent permanent data loss. Information Quality emphasizes the accuracy, completeness, and timely availability of digitized patient records, vaccination schedules, prescription histories, and medical data, ensuring staff have reliable information for decision-making. Service Quality reflects the system’s user-friendly interface, automated prescription generation, SMS reminders for pet owners, and ongoing technical support, which enhance usability and operational efficiency.
+While ISSM explains how system quality drives organizational outcomes, TAM addresses how users accept and adopt new technology. TAM proposes that two key perceptions—Perceived Ease of Use and Perceived Usefulness—influence user adoption. In this study, Perceived Ease of Use refers to clinic staff’s perception that the system is intuitive, easy to navigate, and requires minimal training, while Perceived Usefulness reflects their belief that the system improves job performance by reducing manual documentation, speeding up record retrieval, and streamlining processes such as appointment scheduling, prescription management, and follow-up reminders. Perceived Ease of Use positively influences Perceived Usefulness, and both constructs impact Actual System Use, which in turn affects User Satisfaction. Staff who perceive the system as both useful and easy to use are more likely to adopt it in daily operations, leading to improved workflow and more efficient service delivery.
+By integrating ISSM and TAM, this study presents a comprehensive framework linking system inputs, processes, and outputs as illustrated in the IPO diagram. Improvements in system, information, and service quality are expected to enhance staff perceptions of ease of use and usefulness, driving consistent system utilization, higher user satisfaction, and measurable organizational benefits such as reduced errors, faster record retrieval, secure patient data, and enhanced continuity of pet care. Feedback from system use and user satisfaction further supports continuous refinement of the AI-integrated system, ensuring it becomes increasingly reliable, responsive, and tailored to the clinic’s evolving needs, thereby sustaining both system effectiveness and user adoption over time.
+AGILE MODELPHASE 1: PlanIdentify problems (manual records, data loss, slow retrieval, missed follow-ups)Define objectives (digitization, automation, AI integration, SMS reminders)Determine system scope (patient records, prescriptions, reminders, reporting)PHASE 2: Requirement s GatheringCollect data from clinic staff and operationsAnalyze current manual processes (recording, retrieval, prescriptions, reminders)Identify inefficiencies (delays, errors, data loss risks)PHASE 3: DesignDesign system architecture and centralized databaseCreate user interface for clinic staffPlan system features (patient records, e-prescriptions, SMS reminders, AI tools)PHASE 4: DevelopDesign system architecture and centralized databaseCreate user interface for clinic staffPlan system features (patient records, e-prescriptions, SMS reminders, AI tools)PHASE 5: TestConduct system testing (functionality and usability)Test SMS notification accuracy and timingValidate data storage, retrieval, and linking of recordsFix errors and improve system performancePHASE 6: Deploy & ImproveDeploy system in clinic environmentMonitor system usage and performanceContinuously update features and improve reliabilityAGILE MODELPHASE 1: PlanIdentify problems (manual records, data loss, slow retrieval, missed follow-ups)Define objectives (digitization, automation, AI integration, SMS reminders)Determine system scope (patient records, prescriptions, reminders, reporting)PHASE 2: Requirement s GatheringCollect data from clinic staff and operationsAnalyze current manual processes (recording, retrieval, prescriptions, reminders)Identify inefficiencies (delays, errors, data loss risks)PHASE 3: DesignDesign system architecture and centralized databaseCreate user interface for clinic staffPlan system features (patient records, e-prescriptions, SMS reminders, AI tools)PHASE 4: DevelopDesign system architecture and centralized databaseCreate user interface for clinic staffPlan system features (patient records, e-prescriptions, SMS reminders, AI tools)PHASE 5: TestConduct system testing (functionality and usability)Test SMS notification accuracy and timingValidate data storage, retrieval, and linking of recordsFix errors and improve system performancePHASE 6: Deploy & ImproveDeploy system in clinic environmentMonitor system usage and performanceContinuously update features and improve reliabilityConceptual FrameworkOUTPUTOUTPUT“WEB-BASED AI-ASSISTED MANAGEMENT SYSTEM WITH SMS”Secure digital patient record systemFaster record retrieval (seconds instead of minutes)Automated SMS reminders for vaccinations and follow-upsElectronic prescription management linked to patient recordsReduced data loss and improved record securityImproved workflow efficiency and reduced staff workloadAccurate, organized, and easily accessible clinic dataReduced missed appointments and improved continuity of pet care“WEB-BASED AI-ASSISTED MANAGEMENT SYSTEM WITH SMS”Secure digital patient record systemFaster record retrieval (seconds instead of minutes)Automated SMS reminders for vaccinations and follow-upsElectronic prescription management linked to patient recordsReduced data loss and improved record securityImproved workflow efficiency and reduced staff workloadAccurate, organized, and easily accessible clinic dataReduced missed appointments and improved continuity of pet carePROCESSPROCESSINPUTINPUTKNOWLEDGEREQUIREMENTS:Next.js (React 19)Prisma with SQLiteNextAuth.jsRadix UILucide ReactShadcn UITailwind CSSTypeScriptPrisma Schema LanguageCSSSQLJSONMarkdownSOFTWARE REQUIREMENTS:Windows 11 Operating SystemHARDWARE REQUIREMENTSComputers/laptops (clinic staff use)Modem/RouterPrinterKNOWLEDGEREQUIREMENTS:Next.js (React 19)Prisma with SQLiteNextAuth.jsRadix UILucide ReactShadcn UITailwind CSSTypeScriptPrisma Schema LanguageCSSSQLJSONMarkdownSOFTWARE REQUIREMENTS:Windows 11 Operating SystemHARDWARE REQUIREMENTSComputers/laptops (clinic staff use)Modem/RouterPrinter
+AGILE MODEL
+PHASE 1: Plan
+Identify problems (manual records, data loss, slow retrieval, missed follow-ups)
+Define objectives (digitization, automation, AI integration, SMS reminders)
+Determine system scope (patient records, prescriptions, reminders, reporting)
+PHASE 2: Requirement s Gathering
+Collect data from clinic staff and operations
+Analyze current manual processes (recording, retrieval, prescriptions, reminders)
+Identify inefficiencies (delays, errors, data loss risks)
+PHASE 3: Design
+Design system architecture and centralized database
+Create user interface for clinic staff
+Plan system features (patient records, e-prescriptions, SMS reminders, AI tools)
+PHASE 4: Develop
+Design system architecture and centralized database
+Create user interface for clinic staff
+Plan system features (patient records, e-prescriptions, SMS reminders, AI tools)
+PHASE 5: Test
+Conduct system testing (functionality and usability)
+Test SMS notification accuracy and timing
+Validate data storage, retrieval, and linking of records
+Fix errors and improve system performance
+PHASE 6: Deploy & Improve
+Deploy system in clinic environment
+Monitor system usage and performance
+Continuously update features and improve reliability
+AGILE MODEL
+PHASE 1: Plan
+Identify problems (manual records, data loss, slow retrieval, missed follow-ups)
+Define objectives (digitization, automation, AI integration, SMS reminders)
+Determine system scope (patient records, prescriptions, reminders, reporting)
+PHASE 2: Requirement s Gathering
+Collect data from clinic staff and operations
+Analyze current manual processes (recording, retrieval, prescriptions, reminders)
+Identify inefficiencies (delays, errors, data loss risks)
+PHASE 3: Design
+Design system architecture and centralized database
+Create user interface for clinic staff
+Plan system features (patient records, e-prescriptions, SMS reminders, AI tools)
+PHASE 4: Develop
+Design system architecture and centralized database
+Create user interface for clinic staff
+Plan system features (patient records, e-prescriptions, SMS reminders, AI tools)
+PHASE 5: Test
+Conduct system testing (functionality and usability)
+Test SMS notification accuracy and timing
+Validate data storage, retrieval, and linking of records
+Fix errors and improve system performance
+PHASE 6: Deploy & Improve
+Deploy system in clinic environment
+Monitor system usage and performance
+Continuously update features and improve reliability
+OUTPUT
+OUTPUT
+“WEB-BASED AI-ASSISTED MANAGEMENT SYSTEM WITH SMS”
+Secure digital patient record system
+Faster record retrieval (seconds instead of minutes)
+Automated SMS reminders for vaccinations and follow-ups
+Electronic prescription management linked to patient records
+Reduced data loss and improved record security
+Improved workflow efficiency and reduced staff workload
+Accurate, organized, and easily accessible clinic data
+Reduced missed appointments and improved continuity of pet care
+“WEB-BASED AI-ASSISTED MANAGEMENT SYSTEM WITH SMS”
+Secure digital patient record system
+Faster record retrieval (seconds instead of minutes)
+Automated SMS reminders for vaccinations and follow-ups
+Electronic prescription management linked to patient records
+Reduced data loss and improved record security
+Improved workflow efficiency and reduced staff workload
+Accurate, organized, and easily accessible clinic data
+Reduced missed appointments and improved continuity of pet care
+PROCESS
+PROCESS
+INPUT
+INPUT
+KNOWLEDGE
+REQUIREMENTS:
+Next.js (React 19)
+Prisma with SQLite
+NextAuth.js
+Radix UI
+Lucide React
+Shadcn UI
+Tailwind CSS
+TypeScript
+Prisma Schema Language
+CSS
+SQL
+JSON
+Markdown
+SOFTWARE REQUIREMENTS:
+Windows 11 Operating System
+HARDWARE REQUIREMENTS
+Computers/laptops (clinic staff use)
+Modem/Router
+Printer
+KNOWLEDGE
+REQUIREMENTS:
+Next.js (React 19)
+Prisma with SQLite
+NextAuth.js
+Radix UI
+Lucide React
+Shadcn UI
+Tailwind CSS
+TypeScript
+Prisma Schema Language
+CSS
+SQL
+JSON
+Markdown
+SOFTWARE REQUIREMENTS:
+Windows 11 Operating System
+HARDWARE REQUIREMENTS
+Computers/laptops (clinic staff use)
+Modem/Router
+Printer
+FEEDBACKFEEDBACK
+FEEDBACK
+FEEDBACK
+Figure 2. Input Process Output (IPO) Chart.
+The IPO diagram of the AI-Integrated Management System for House of Puppies Veterinary Clinic & Grooming Salon explains how the system improves patient care, reduces staff workload, and ensures secure record management. The inputs include pet owner information, pet details, visit purposes, prescription records, and service data such as medical history, vaccination schedules, and inventory of medicines and grooming supplies. The system also relies on computers or devices used by staff, an internet connection, a web-based AI platform, and a cloud-based database to store and process these inputs efficiently.
+During the process, the system manages data by registering and authenticating clients and pets, validating and updating medical and grooming records, and linking prescriptions automatically to client profiles. The AI component ensures accurate monitoring of appointments, vaccination schedules, and laboratory check-ups, while SMS reminders alert owners of upcoming visits. Service processing also includes recording treatments, monitoring inventory, and generating operational reports, which improves workflow and supports decision-making. All data is securely stored and continuously updated, minimizing errors and preventing data loss.
+The outputs focus on enhanced care, operational efficiency, and convenience. Pet owners benefit from accessible digital records, prescription histories, and timely reminders for follow-ups and vaccinations. Clinic staff gain secure, organized, and easily retrievable patient records, automated reports, and a reduction in manual workload. Overall, the system prevents data loss, improves workflow efficiency, and ensures continuity of care for pets. Feedback from the outputs allows the AI system to refine processes over time, making it more reliable and responsive.
+Scope and Delimitation of the Study
+Scope of the study
+The study focuses on the design and development of a Web-Based AI-Integrated Management System with SMS Reminder functionality for House of Puppies Veterinary Clinic & Grooming Salon located at 149 Malaria Rd., Brgy. 185 Malaria, North Caloocan City, Metro Manila 1428.
+The system aims to digitize and organize clinic records within the veterinary clinic, including pet owner information, pet profiles, medical history, vaccination records, treatment details, and prescription history to ensure accurate and well-managed documentation.
+Allows clinic staff to register, update, and manage client and pet information using a secure digital database.
+Enables veterinary staff to record and update pet medical information, vaccination schedules, and treatment history for easier monitoring and retrieval.
+Allows veterinary staff to create digital prescriptions that are directly linked to the pet and client profiles, with the option to save and export the prescriptions as a PDF file.
+automatically sends notifications to pet owners regarding vaccination schedules, follow-up visits, and laboratory check-ups to improve appointment compliance and continuity of pet care.
+Enables clinic staff to quickly search, access, and retrieve patient records and prescription histories to support efficient clinic operations.
+Allows the system to generate reports related to prescriptions, client profiles, and patient records to assist clinic staff in monitoring clinic activities.
+Will be conducted within House of Puppies Veterinary Clinic & Grooming Salon to assess the system’s functionality, usability, reliability, and effectiveness in improving record management and reducing manual workload.
+Limitation of the Study
+The system focuses only on patient record management and administrative functions and does not provide medical diagnosis, treatment recommendations, or AI-based clinical decision-making.
+The SMS reminder feature depends on cellular network connectivity, and message delivery may be delayed in areas with weak or unstable mobile signals. (elaborate)
+The system is designed for internal clinic use only. Access to patient records and medical information is limited to authorized clinic staff, and the system does not currently provide an external portal for pet owners to view or manage records.
+The system is designed specifically for the operational workflow of House of Puppies Veterinary Clinic & Grooming Salon, and integration with other veterinary clinics or multi-branch systems is beyond the scope of this study.
+The system requires stable internet connectivity for database access and system operation; interruptions in internet service may temporarily affect system availability.
+Significance of the Study
+Contribution to Knowledge
+This study is important for several groups, including owners, admin, staff, customers, technology developers, and future researchers.
+By making the AI-Integrated Management System with SMS Reminder, the research aims to establish a system that streamlines appointment scheduling, client communication, and record management.
+Beneficiaries of the Study
+Owner and Administration: The system enhances efficiency and decision-making by providing organized records and automated reminders, reducing missed appointments, and improving overall business performance.
+Staff: It minimizes manual workload and scheduling errors, allowing staff to focus more on delivering quality veterinary and grooming services.
+Customers: It ensures timely care for pets through SMS reminders for vaccinations, grooming, and check-ups, while improving convenience and strengthening trust in the clinic's services.
+Other Veterinary Clinics & Grooming Salon: Provides a model for improving clinic operations through an AI-Integrated Management System with SMS reminders. It can help similar businesses enhance appointment management, client communication, record keeping, and overall service efficiency.
+Technology Developers: The project serves as a practical case study for integrating AI and SMS technology into small-to-medium enterprises, offering a framework that can be adapted to other industries.
+Students: The study serves as a practical reference for students in developing AI-integrated systems with SMS features, enhancing their technical skills and understanding of real-world system implementation.
+Future Researchers: This study contributes to academic literature by demonstrating the application of AI-driven management systems in specialized service sectors, providing a foundation for further exploration and innovation.
+Future Developers: This study provides a practical framework for designing and implementing an AI-Integrated Management System with SMS reminders in small-to-medium service businesses. It can serve as a reference for developing similar systems, improving automation, client communication, and AI-driven features in future projects.
+Definition of Terms
+Actual System Use  The extent to which users actively utilize the proposed system for managing records, scheduling appointments, sending SMS reminders, and performing clinic operations.
+Admin The authorized personnel who manages the system, maintains client and pet records, schedules appointments, sends SMS reminders, and generates reports.
+Artificial Intelligence (AI) A system feature that processes clinic data, automates appointment scheduling, and supports SMS reminder generation and reporting.
+Artificial Intelligence-Integrated A system configuration that incorporates Artificial Intelligence features to automate scheduling, manage records, and enhance clinic operations.
+Artificial Intelligence Management System (AIMS) The proposed system developed in this study that manages clinic records, automates scheduling, and generates SMS reminders for veterinary and grooming services.
+Automate The system process of performing tasks such as scheduling and reminder sending without manual intervention.
+Behavioral Intention The users’ willingness to use the proposed system for managing clinic operations and appointments.
+Centralized System A system structure where clinic data and records are stored and managed in one unified platform.
+Cloud-Based A system setup where clinic data is stored and accessed through an online server instead of local storage.
+Developer The individual or team responsible for designing, building, and maintaining the proposed system.
+Digitize The process of converting manual clinic records into digital format within the system.
+Framework The structured model used to guide the development and evaluation of the proposed system.
+Interface The visual layout of the system where users interact to manage records, appointments, and services.
+Information Quality The accuracy, relevance, and reliability of data generated and stored by the system.
+Information System The digital platform used to manage clinic records, appointments, and service monitoring.
+Information Systems Success Model (ISSM) The evaluation model used in this study to measure system quality, information quality, service quality, user satisfaction, and net benefits.
+Net Benefits The overall improvements in efficiency, service delivery, and record management gained from using the system.
+Web-Based A system accessible through a web browser using an internet connection.
+Perceived Ease of Use The degree to which users believe the system is easy to operate and navigate.
+Perceived Usefulness The degree to which users believe the system enhances clinic performance and efficiency.
+Portable Document Format (PDF) The file format used by the system to generate downloadable and printable reports.
+Service Quality The level of support and assistance provided by the system to meet clinic operational needs.
+Short Message Service (SMS) The text messaging feature used by the system to send appointment reminders to clients.
+System Quality The performance, reliability, and functionality of the proposed system.
+Technology Acceptance Model (TAM) The theoretical framework used in this study to evaluate users’ acceptance of the system based on perceived usefulness and ease of use.
+User-Friendly The system design that allows users to easily understand and operate its features.
+Users The authorized clinic personnel who interact with the system to manage records and services.
+User Satisfaction The level of contentment experienced by users after utilizing the system.
+CHAPTER 2METHODOLOGY
+This chapter outlines the methods used to analyze, design, and develop the proposed Web-Based AI-Integrated Management System with SMS Reminders for House of Puppies Veterinary Clinic & Grooming. It includes an assessment of the clinic’s current record management practices, the proposed technological solution, and the technical components involved in building the system. The methodology followed in this study ensures that the system is designed to meet the specific operational needs of the clinic, particularly in managing patient records, prescriptions, and follow-up reminders efficiently.
+System Analysis
+Requirements Documentation
+The main problem addressed by this study is the inefficient management of patient records, prescriptions, and follow-up reminders at House of Puppies Veterinary Clinic & Grooming, where all records are documented manually using logbooks and printed forms. This traditional record-keeping method has resulted in several operational issues, including slow retrieval of patient records, increased staff workload, misplaced prescriptions, and missed follow-up appointments. The clinic also previously experienced the loss of important patient records due to a typhoon, which highlighted the vulnerability of paper-based documentation to environmental hazards and the need for a more secure and reliable record management system.
+To address these challenges, the study proposes the development of a Web-Based AI-Integrated Management System with SMS Reminders. The proposed system aims to digitize patient records, automate prescription management, and send automated reminders to pet owners regarding vaccinations and follow-up visits. By implementing these features, the system is expected to improve the efficiency of clinic operations, reduce the workload of clinic staff, and ensure better continuity of care for pets by maintaining accurate and accessible medical records.
+To better understand the current situation and determine the need for a technological solution, the researchers conducted an initial investigation and feasibility study. This process involved analyzing the clinic’s existing workflow and evaluating the limitations of the manual documentation system currently being used. The results of the investigation indicated that a web-based digital management system could significantly improve the organization and retrieval of patient records, minimize the risk of data loss, and streamline the clinic’s daily administrative and medical documentation processes.
+ 
+To gather the necessary data for the study, the researchers utilized interviews, questionnaires, and direct observations at the clinic. These data-gathering methods allowed the researchers to understand the daily responsibilities of the clinic staff and identify the specific challenges they encounter when managing patient records manually. Interviews were conducted with six staff members, consisting of two veterinarians, three veterinary assistants, and one groomer, to obtain detailed insights into their experiences with record documentation, prescription writing, and follow-up reminder management.
+ 
+During the observation process, it was noted that all patient records are documented using logbooks and printed forms, which include pet owner information, pet profile and identification details, purpose of visit (such as check-ups, vaccinations, or grooming), chief complaints, laboratory test waivers, sedation consent forms for grooming, surgery consent forms, and clinical records with treatment history. Questionnaires distributed to the six staff members further revealed that documentation tasks require approximately one to two hours per day, while retrieving a patient record takes four to seven minutes due to the lack of a structured filing system. The data collected from these interviews, observations, and questionnaires were essential in identifying the weaknesses of the current manual system and in defining the functional features needed for the proposed AI-integrated management system.
+Current System Utilized
+Currently, House of Puppies Veterinary Clinic & Grooming utilizes a manual paper-based record management system to document patient information and manage clinic operations. This method has been used since the clinic was established and remains the primary system for recording patient visits, prescriptions, and medical history.
+Under this system, clinic staff manually record all patient information in logbooks and printed forms during each visit. These records include the pet owner’s information, the pet’s details, the reason for the visit, and the clinical findings recorded by the veterinarian. Additional documents such as laboratory test waivers, grooming sedation consent forms, and surgery consent forms are also filled out manually and stored physically in the clinic.
+Prescriptions are written by hand by the attending veterinarian and attached to the patient’s record. To retrieve previous prescriptions or clinical records, staff members must manually search through logbooks and stored documents, which often requires four to seven minutes for a single record.
+Follow-up reminders for vaccinations, consultations, and laboratory tests are also handled manually. A staff member sends individual SMS reminders to pet owners, which usually takes approximately thirty minutes per day. Despite these efforts, the clinic still experiences missed follow-up appointments due to the absence of an automated reminder system.
+Although the manual system allows the clinic to document patient information and maintain basic records, it presents several operational challenges:
+Slow Record Retrieval
+Patient records are not digitally organized, requiring staff to manually search through logbooks and files, which slows down the service process.
+Risk of Data Loss
+Paper records are vulnerable to environmental hazards. A previous typhoon destroyed several patient records, resulting in the permanent loss of important medical histories.
+High Staff Workload
+Manual documentation, prescription writing, and reminder tracking consume a significant portion of staff time, reducing efficiency during clinic operations.
+Prescription Management Issues
+Handwritten prescriptions can sometimes be difficult to read or misplaced, which may lead to potential treatment errors.
+Missed Follow-Up Appointments
+Since reminders are sent manually, some pet owners fail to receive timely notifications, resulting in missed vaccinations and follow-up consultations.
+Despite these limitations, the clinic has continued using the manual system because it is familiar to staff and does not require additional technical resources or software investment. However, as the number of patients continues to grow, the limitations of the manual system have become more evident.
+These challenges highlight the need for a digital management system that can securely store records, automate reminders, and allow clinic staff to quickly retrieve patient information. The proposed Web-Based AI-Integrated Management System with SMS reminders is intended to address these limitations and significantly improve the efficiency and reliability of clinic operations.
+The New System (System Design)
+Current System Utilized
+Content Here
+Requirement Analysis
+Content Here
+Research Design and Methodology
+*Agile SSDLC – Security is incorporated iteratively within sprints, often using DevSecOps practices.
+Instrument Used in the Study (ISO 25010)
+Content Here
+Statistical Treatment of Data
+Content Here
+Research Design and Methodology
+Content Here
+Ethical Consideration
+Content Here
+Information Model (Conceptual Design)
+Figure 3. Information Model.
+This information model illustrates the current manual workflow used by House of Puppies Veterinary Clinic & Grooming Salon in providing veterinary and grooming services to pet owners. The process begins when a client brings their pet to the clinic and communicates the required service to the front desk officer. The staff manually determines whether the pet requires veterinary care or grooming services. If the pet requires veterinary services, the veterinarian performs medical procedures such as consultation, vaccination, laboratory examinations, and prescription writing. After the veterinary process, the veterinarian determines whether the pet requires follow-up consultations or vaccinations. If follow-up care is needed, a staff member manually sends SMS reminders to the pet owner regarding the scheduled visit. If the service is completed, the records are manually documented and stored in logbooks. Similarly, if the pet requires grooming services, the groomer performs the grooming procedure and confirms whether the service is completed. All completed services and related information are recorded manually by the clinic staff. The entire workflow relies heavily on manual documentation, manual record retrieval, and manual reminder sending, which increases staff workload and makes the clinic vulnerable to record loss, delays in retrieving patient information, and inefficiencies in managing pet medical histories. This manual process highlights the need for a digital system that can automate record management, improve data storage security, and streamline clinic operations.
+Context Diagram Level 0 (Physical Design)
+DFD Level 1 (Physical Design)
+Entity Relationship Diagram / Database configuration
+Figure 4. Entity Relationship Diagram.
+The Entity Relationship Diagram (ERD) for the House of Puppies Veterinary Clinic & Grooming database illustrates the logical structure of how patient records, prescriptions, appointments, staff roles, and related data are organized and interconnected. This design reflects the clinic’s operational workflow and addresses the challenges of their previous manual, paper-based system. The core entities include Pet Owner Information and Pet Information, which store essential client and animal details. Each pet is linked to its owner, establishing a clear relationship that supports efficient data retrieval. The Clinical Record entity captures visit details, including the purpose of visits such as grooming, check-ups, surgeries, or lab tests, and is linked to the specific pet and the staff member responsible for creating the record. This entity is central, connecting to Prescription Records, where all medication details and dosage instructions are securely stored and linked to the corresponding clinical visit.
+Supporting entities such as SMS Reminder and Inventory enable automated notifications and supply management, respectively. The SMS Reminder entity tracks scheduled follow-ups, vaccinations, laboratory check-ups, and grooming reminders to reduce missed appointments and enhance client communication. The Staff entity incorporates roles like staff, veterinarian admin, and super admin, managing access control and permissions within the system. Additionally, Forms such as waivers and consent documents are linked to pets, ensuring all necessary legal and procedural documentation is digitally stored and easily accessible. This structured database schema is designed to improve workflow efficiency, reduce data loss risks, and support automated processes in line with the clinic’s objectives to modernize patient care and service delivery.
+Flowchart
+Architecture Design (UI)
+Algorithm Desigm (UX)
+REFERENCES
+Peters, S. (2025). What is an AI Management System (AIMS)? https://www.isms.online/iso-42001/
+Sanchis, R., et al. (2020). Enterprise resilience: preparedness and recovery capabilities. http://buscompress.com/uploads/3/4/9/8/34980536/riber_15-1_14_h24-071_208-225.pdf
+AVMA Journals. (2025). Demystifying artificial intelligence for veterinary professionals: practical applications and future potential. https://avmajournals.avma.org/view/journals/ajvr/86/S1/ajvr.24.09.0275.xml
+VETport. (2025). Advantages of Cloud Veterinary Software: Coordination and Clinical Data Assignment. https://www.vetport.com/veterinary-practice-management-software-Cloud-vs-server
+Rao, A., & Srinivasan, V. (2023). Veterinary Hospital Management System Using AI Integrated Advisory. https://www.ijset.in/wp-content/uploads/IJSET_V13_issue2_485.pdf
+Frontiers in Veterinary Science. (2025). Systematic Review of Deep Learning in Veterinary Medicine. https://www.frontiersin.org/journals/veterinary-science/articles/10.3389/fvets.2025.1511522/full
+Frontiers in Veterinary Science. (2024). Digital clinical decision support (CDS) tools for evidence-based diagnostic and therapeutic decisions. https://www.frontiersin.org/journals/veterinary-science/articles/10.3389/fvets.2024.1349188/full
+AI & Society. (2024). Ethical issues raised by veterinary AI: The client–patient–practitioner triad. https://www.scribd.com/document/927453649/s00146-023-01686-1
+MDPI. (2022). Ethical Committees' adoption of the 'four Rs' principles as a guide for digital contexts. https://pmc.ncbi.nlm.nih.gov/articles/PMC9710398/
+OECD. (2021). Health Data Governance: Privacy protection and Mining for Research. https://one.oecd.org/document/DCD(2021)15/en/pdf
+Al-Badrani, B. A., et al. (2024). Artificial Intelligence in Veterinary Care: A Review of Applications for Animal Health. https://www.researchgate.net/publication/378769065_Artificial_Intelligence_in_Veterinary_Care_A_Review_of_Applications_for_Animal_Health
+BMJ Global Health. (2021). Effectiveness of SMS reminders on childhood immunisation coverage and timeliness in LMICs. https://gh.bmj.com/content/6/7/e005035
+PLOS Global Public Health. (2024). Barriers to receiving SMS reminders for NCD patients in rural Haiti. https://journals.plos.org/globalpublichealth/article?id=10.1371/journal.pgph.0004376
+Verhoef, P. C., et al. (2021). Digital transformation: A multi-disciplinary reflection and research agenda. http://buscompress.com/uploads/3/4/9/8/34980536/riber_15-2_41_t25-141_615-628.pdf
+Philippine Statistics Authority (PSA). (2024). MSME Statistics and Animal Production Establishments in the Philippines. https://carijournals.org/journals/IJDCS/article/download/3030/3420/8363
+Asian Development Bank (ADB). (2021). Unintended Consequences of Business Digitalization Among MSMEs in the Philippines. https://www.adb.org/publications/business-digitalization-msmes-philippines
+Oikawa, K. (2025). Unintended consequences of business digitalization during the pandemic: The case of the Philippines. https://www.econbiz.de/Record/unintended-consequences-of-business-digitalization-among-msmes-during-the-covid-19-pandemic-the-case-of-the-philippines-oikawa-keita/10015191555?sid=1318747262
+Philippine Congress. (1998/2013). Animal Welfare Act (Republic Act No. 8485, as amended by RA 10631). https://www.kenresearch.com/philippines-veterinary-software-market
+Government of the Philippines. (2023). Philippine Development Plan (PDP) 2023-2028: Digital Transformation and Economy. https://www.trade.gov/country-commercial-guides/philippines-digital-economy
+Philippine General Hospital (PGH). (2021). Effectiveness of SMS reminders in improving follow-up among GDM patients in Manila. https://pmc.ncbi.nlm.nih.gov/articles/PMC7784162/
+Abao, et al. (2024). Pet Owners' Pain Points as Basis for an Introduction of a Digital Pet Care Platform in Palawan. https://www.researchgate.net/publication/393740358_Pet_Owners'_Pain_Points_as_Basis_for_an_Introduction_of_a_Digital_Pet_Care_Platform_in_Palawan
+Expat Focus. (2023). Cultural shift from utilitarian assets to family members in the Philippines. https://www.researchgate.net/publication/393740358_Pet_Owners'_Pain_Points_as_Basis_for_an_Introduction_of_a_Digital_Pet_Care_Platform_in_Palawan
+United Nations International Strategy for Disaster Reduction (UNISDR). (2020). Resilience of micro-enterprises in disaster-prone areas of Malaybalay City. https://www.idrimjournal.com/article/134062-resilience-of-micro-enterprises-in-disaster-prone-areas.pdf
+Lufyagila, et al. (2022). IoT-integrated systems for enhancing swine husbandry efficiency and animal welfare. https://www.researchgate.net/publication/387754194_Harnessing_precision_and_innovation_A_systematic_review_of_precision_livestock_farming_and_IoT_technologies_in_the_Philippines
+Quimba, F. M., & Calizo, S. C. (2019). Determinants of e-commerce adoption of Philippine businesses. https://rsisinternational.org/journals/ijrias/uploads/vol10-iss10-pg1331-1340-202511_pdf.pdf
+Coronel, K. K., et al. (2025). Groom Master: A Web-Based Pet Grooming Appointment Scheduling & Inventory Manager. https://rsisinternational.org/journals/ijrias/uploads/vol10-iss10-pg1331-1340-202511_pdf.pdf
+De La Salle University (DLSU). (2022). Evaluation of the effectiveness and usability of telehealth applications in the Philippines. https://www.dlsu.edu.ph/wp-content/uploads/pdf/conferences/research-congress-proceedings/2022/HCT-12.pdf
+Bartolome, J. J. E., et al. (2023). Veterinary and Pet Shop Management System for CityVets Animal Clinic. https://www.scribd.com/document/520632756/Chapter-1-and-2-Updated
+Masika, et al. (2022). Efficacy of SMS phone texts on adherence to scheduled PEP doses in rural eastern Kenya. https://www.medrxiv.org/content/10.1101/2022.06.16.22276500v1.full-text
+Washington State University. (2022). Phone Text Message Reminders on Compliance With Human Rabies Post-Exposure Prophylaxis. https://clinicaltrials.gov/study/NCT05350735
+PMC. (2025). Advancing pet care through technology: Evaluation of the VET PROMPT notification system. https://pmc.ncbi.nlm.nih.gov/articles/PMC12665327/
+MDPI. (2024). Mobile Phone Text Message Reminders to Improve Vaccination Uptake: A Systematic Review and Meta-Analysis. https://www.mdpi.com/2076-393X/12/10/1151
+MDPI. (2023). Artificial Intelligence adoptions in the veterinary sector: A bibliometric analysis of global trends. https://pmc.ncbi.nlm.nih.gov/articles/PMC10668547/
+ResearchGate. (2022). Using Text Reminder to Improve Childhood Immunization Adherence in the Philippines. https://www.researchgate.net/publication/309827988_Using_Text_Reminder_to_Improve_Childhood_Immunization_Adherence_in_the_Philippines
+Valencia, M. (2023). Automated Pet Clinic Management System for Iris Veterinary Clinic in Cavite City. https://www.scribd.com/doc/301507660/Chapter-1-thesis-sad-sample
+Hamid, N. A. A. (2020). I-Vet Veterinary Clinic Management System using Priority Scheduling. https://www.scribd.com/document/586176229/050705-pdf
+Carias, K. L. Y., et al. (2023). Online Ordering and Appointment System of Camacho Veterinary Clinic. https://www.scribd.com/document/705992028/Pet-Clinic-Online-Ordering-and-Appointment-System
+Provet Cloud. (2025). Top 10 Veterinary Software Solutions and Practitioner Reviews. https://www.provet.com/blog/top-10-veterinary-software-solutions-2025
+Jaffar, N. B. (2023). Veterinary Clinic Management System for V Care Animal Clinic. https://publisher.uthm.edu.my/periodicals/index.php/aitcs/article/view/2339
+IDEXX. (2025). ezyVet and Neo Practice Management Software Comparison and Guided Workflows. https://software.idexx.com/top-veterinary-software-solutions-a-2025-comparison-guide
+IDEXX. (2025). Integrated Diagnostics with ezyVet and VetConnect PLUS. https://www.ezyvet.com/cloud-veterinary-software
+IDEXX. (2025). Cornerstone Practice Management Software for Large Hospitals. https://www.aaha.org/trends-magazine/publications/view-from-the-board-considerations-for-choosing-veterinary-practice-management-software/
+Shepherd Vet. (2026). 8 Best AI-Powered Veterinary Practice Management Software Platforms: TranscribeAI. https://www.shepherd.vet/blog/8-best-ai-powered-veterinary-practice-management-software-platforms-2026-comparison-guide/
+Vetspire. (2025). Cloud-based Practice Management for Corporate Groups and Multi-location Support. https://www.nectarvet.com/post/best-cloud-based-vet-software-prices-reviews
+AcuroVet. (2025). Why AcuroVet is the Best Veterinary Software: Superior User Experience and Security. https://acurovet.com/blog/why-is-acurovet-best-vet-clinic-software-2025
+Kreloses. (2026). Kreloses Veterinary Clinic Management System Pricing and Local Features for Asia. https://www.kreloses.com/home/price
+Kreloses. (2026). Built in Asia for Asia: Local Support and Digital Operation for Vet Clinics. https://www.kreloses.com/vet
+Visayas State University (VSU). (2025). Webinar on Clinic Management and Tech Transformation Hosted by Kreloses. https://cvm.vsu.edu.ph/vsu-fvm-graduating-students-attended-a-webinar-on-clinic-management-hosted-by-kreloses-a-tech-transformation-company/
+PetPal Haven. (2023). Information Management System Proposal for Grooming Salon in SJDM, Bulacan. https://www.scribd.com/document/862114962/PetPal-Haven-IMS-Proposal
+Philippine EJournals. (2024). BOOP: A Multifunctional Mobile Application Providing Pet-Care Services and Adoption. https://ejournals.ph/article.php?id=25414
+Sarguilla, et al. (2023). I-VET: A Cloud-Based Pets Veterinary Clinic Inventory and Record Management. https://www.scribd.com/document/811423839/CasptoneProject-General-predefense1-3-SARGUILLA-LUMALANG-2
+St. Jude Veterinary Management System. (2023). Tool for managing the clinical workflow of a veterinarian. https://www.scribd.com/document/705992028/Pet-Clinic-Online-Ordering-and-Appointment-System
+VETport. (2025). Advantages of Cloud Veterinary Software: Real-time Data Backup and Disaster Recovery. https://www.vetport.com/veterinary-practice-management-software-Cloud-vs-server
+Digitail. (2026). Save 70 minutes per DVM each day with 20+ AI Workflows including AI SOAP Dictation. https://digitail.com/
