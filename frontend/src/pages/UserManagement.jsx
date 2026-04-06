@@ -84,18 +84,20 @@ export default function UserManagement({ authFetch, currentRole }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
-        <div>
-          <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white flex items-center">
-            <svg className="w-6 h-6 mr-3 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            System User Controls
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Master registry of all authenticated accounts in the CCA network.</p>
+      <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-lg border border-brand-800 dark:border-slate-600 text-white">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+          <div>
+            <div className="flex items-center mb-1">
+              <svg className="w-5 h-5 mr-2 text-brand-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+              <h2 className="text-xl font-extrabold font-cinzel tracking-widest text-white">System User Controls</h2>
+            </div>
+            <p className="text-sm text-brand-200 dark:text-slate-400 font-medium">Master registry of all authenticated accounts in the CCA network.</p>
+          </div>
+          <button onClick={openAddModal} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg transition font-bold shadow flex items-center text-sm backdrop-blur-sm">
+            <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            Mint System User
+          </button>
         </div>
-        <button onClick={openAddModal} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow flex items-center text-sm font-bold">
-          <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-          Mint System User
-        </button>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden relative">

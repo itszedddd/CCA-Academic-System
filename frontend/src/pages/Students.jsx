@@ -1,6 +1,13 @@
 import { useState } from 'react';
 
 const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+const SECTIONS = ['Humility', 'Courage', 'Goodwill', 'Persistence'];
+const SECTION_META = {
+  Humility:    { grade: 'Grade 7', color: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-200' },
+  Courage:     { grade: 'Grade 8', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 border-yellow-200' },
+  Goodwill:    { grade: 'Grade 9', color: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-200' },
+  Persistence: { grade: 'Grade 10', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200' },
+};
 const API = '/api';
 
 export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch }) {
@@ -14,6 +21,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
   const [recommendations, setRecommendations] = useState([]);
   const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled' });
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Grading' });
@@ -104,20 +112,88 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       return 0;
     });
 
+
+  // Group by grade for per-grade view
+  const gradeGroups = GRADES.map(g => ({
+    grade: g,
+    students: filteredStudents.filter(s => s.grade_level === g)
+  })).filter(g => g.students.length > 0);
+
+  const StudentTable = ({ students: rows }) => (
+    <table className="w-full text-left">
+      <thead>
+        <tr className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-cinzel">
+          <th className="px-6 py-3 font-medium tracking-widest">ID</th>
+          <th className="px-6 py-3 font-medium tracking-widest">Name</th>
+          <th className="px-6 py-3 font-medium tracking-widest">Grade</th>
+          <th className="px-6 py-3 font-medium tracking-widest">Section</th>
+          <th className="px-6 py-3 font-medium tracking-widest">Status</th>
+          <th className="px-6 py-3 font-medium tracking-widest text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+        {rows.map(s => {
+          const meta = SECTION_META[s.section];
+          const imgSrc = s.profile_image;
+          return (
+            <tr key={s.id} className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors">
+              <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(s.id).padStart(4,'0')}</td>
+              <td className="px-6 py-4">
+                <div className="flex items-center">
+                  {imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={`${s.first_name} ${s.last_name}`}
+                      className="w-8 h-8 rounded-full object-cover mr-3 flex-shrink-0 bg-slate-100 dark:bg-slate-700"
+                      onError={e => { e.target.onerror = null; e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                    />
+                  ) : null}
+                  <div style={{display: imgSrc ? 'none' : 'flex'}} className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 items-center justify-center font-bold text-xs mr-3 flex-shrink-0">{s.first_name?.[0]}{s.last_name?.[0]}</div>
+                  <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{s.grade_level}</td>
+              <td className="px-6 py-4">
+                {s.section ? (
+                  <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${meta?.color || 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}>{s.section}</span>
+                ) : <span className="text-slate-400 text-sm">—</span>}
+              </td>
+              <td className="px-6 py-4">
+                <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+              </td>
+              <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
+                <button onClick={() => handleView(s.id)} className="text-slate-400 hover:text-brand-600 transition">View</button>
+                {currentRole === 'Administrator' && <button onClick={() => { setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition">Edit</button>}
+              </td>
+            </tr>
+          );
+        })}
+        {rows.length === 0 && <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</td></tr>}
+      </tbody>
+    </table>
+  );
+
   return (
     <>
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Student Directory</h3>
+            <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">Student Directory</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage student profiles, academic records, and enrollment.</p>
           </div>
-          {currentRole === 'Administrator' && (
-            <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm">
-              <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-              Register Student
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {/* Overall / Per Grade toggle */}
+            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-bold">
+              <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
+              <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
+            </div>
+            {currentRole === 'Administrator' && (
+              <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm">
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                Register Student
+              </button>
+            )}
+          </div>
         </div>
         
         {/* Filtering & Search Toolbar */}
@@ -153,43 +229,22 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead><tr className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
-              <th className="px-6 py-3 font-medium">ID</th>
-              <th className="px-6 py-3 font-medium">Name</th>
-              <th className="px-6 py-3 font-medium">Grade</th>
-              <th className="px-6 py-3 font-medium">Section</th>
-              <th className="px-6 py-3 font-medium">Status</th>
-              <th className="px-6 py-3 font-medium text-right">Actions</th>
-            </tr></thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-              {filteredStudents.map(s => (
-                <tr key={s.id} className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-brand-600">#{String(s.id).padStart(4,'0')}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center">
-                      {s.profile_image ? (
-                        <img src={s.profile_image} alt={`${s.first_name} ${s.last_name}`} className="w-8 h-8 rounded-full object-cover mr-3 flex-shrink-0 bg-slate-100 dark:bg-slate-700" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs mr-3 flex-shrink-0">{s.first_name[0]}{s.last_name[0]}</div>
-                      )}
-                      <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{s.grade_level}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{s.section || '—'}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                    <button onClick={() => handleView(s.id)} className="text-slate-400 hover:text-brand-600 transition">View</button>
-                    {currentRole === 'Administrator' && <button onClick={() => { setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition">Edit</button>}
-                  </td>
-                </tr>
+          {gradeView === 'overall' ? (
+            <StudentTable students={filteredStudents} currentRole={currentRole} handleView={handleView} setEditingStudent={setEditingStudent} setShowEdit={setShowEdit} />
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {gradeGroups.map(group => (
+                <div key={group.grade}>
+                  <div className="px-6 py-3 bg-slate-50 dark:bg-slate-700/50">
+                    <span className="text-xs font-bold font-cinzel tracking-widest text-brand-700 dark:text-brand-400 uppercase">{group.grade}</span>
+                    <span className="ml-2 text-xs text-slate-400">({group.students.length} students)</span>
+                  </div>
+                  <StudentTable students={group.students} currentRole={currentRole} handleView={handleView} setEditingStudent={setEditingStudent} setShowEdit={setShowEdit} />
+                </div>
               ))}
-              {filteredStudents.length === 0 && <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</td></tr>}
-            </tbody>
-          </table>
+              {gradeGroups.length === 0 && <div className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</div>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -209,7 +264,12 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                   {GRADES.map(g => <option key={g}>{g}</option>)}
                 </select>
               </div>
-              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section (optional)</label><input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section:e.target.value})} placeholder="e.g. St. Joseph" /></div>
+              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
+                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section:e.target.value})}>
+                  <option value="">— None —</option>
+                  {SECTIONS.map(sec => <option key={sec}>{sec}</option>)}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parent Email</label><input type="email" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.contact_email} onChange={e => setNewStudent({...newStudent, contact_email:e.target.value})} placeholder="parent@example.com" /></div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profile Image</label><input type="file" accept="image/*" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" onChange={e => setNewStudentFile(e.target.files[0])} /></div>

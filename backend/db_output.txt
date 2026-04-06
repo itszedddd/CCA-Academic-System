@@ -1,0 +1,54 @@
+
+--- Database: cca.db (65536 bytes) ---
+
+Table: => students <= (Rows: 4)
+  Columns: id, first_name, last_name, grade_level, section, contact_email, profile_image, enrollment_status
+  Row: (1, 'Juan', 'Dela Cruz', 'Grade 10', 'Rizal', 'parent_juan@example.com', 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg', 'Enrolled')
+  Row: (2, 'Maria', 'Clara', 'Grade 10', 'Rizal', 'parent_maria@example.com', 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/La_Bulaquena_by_Juan_Luna.jpg/220px-La_Bulaquena_by_Juan_Luna.jpg', 'Enrolled')
+  Row: (3, 'Andres', 'Bonifacio', 'Grade 9', 'Jacinto', 'parent_andres@example.com', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Andr%C3%A9s_Bonifacio.jpg/220px-Andr%C3%A9s_Bonifacio.jpg', 'Pending')
+
+Table: => academic_records <= (Rows: 5)
+  Columns: id, student_id, subject, score, term
+  Row: (1, 1, 'Math', 88.5, 'Term 1')
+  Row: (2, 1, 'Science', 85.0, 'Term 1')
+  Row: (3, 2, 'Math', 95.0, 'Term 1')
+
+Table: => enrollment_forms <= (Rows: 1)
+  Columns: id, student_id, form_type, file_path, extracted_text, status
+  Row: (1, 4, 'Pre-Registration Application', 'uploads\\form_1775305290_Student Dashboard.png', "ERROR: OCR failed — tesseract is not installed or it's not in your PATH. See README file for more information.", 'Success')
+
+Table: => tuition_payments <= (Rows: 3)
+  Columns: id, student_id, amount_due, amount_paid, term, status, risk_score
+  Row: (1, 1, 35000.0, 35000.0, 'Term 1', 'Paid', 0.1)
+  Row: (2, 2, 35000.0, 15000.0, 'Term 1', 'Pending', 0.5)
+  Row: (3, 3, 35000.0, 0.0, 'Term 1', 'Overdue', 0.8)
+
+Table: => users <= (Rows: 6)
+  Columns: id, username, hashed_password, role, student_id, is_active, section
+  Row: (1, 'admin', '$pbkdf2-sha256$29000$uzem9D6HcC4FYOw9ZwyhtA$jRFULFFLDpSlUdWnBA883zOJHczgCu1Cco9GWBp9a3w', 'Administrator', None, 1, None)
+  Row: (2, 'teacher', '$pbkdf2-sha256$29000$X8s5p5QyBoCQcq6VMgYgpA$/j5Eb0Va4BuvcY00.Z3Qr2CGaexoYXV0slNYDtA.iHc', 'Teacher', None, 1, None)
+  Row: (3, 'cashier', '$pbkdf2-sha256$29000$1Pq/9743RihlTCmlNEaodQ$MEmhHzhJTiQ58UD/.OFMc3YZckaFiMLTbgtbweb0qx0', 'Cashier', None, 1, None)
+
+Table: => attendance <= (Rows: 0)
+
+--- Database: sis.db (61440 bytes) ---
+
+Table: => students <= (Rows: 4)
+  Columns: id, first_name, last_name, grade_level, enrollment_status
+  Row: (1, 'Alice', 'Smith', 'Grade 10', 'Enrolled')
+  Row: (2, 'Bob', 'Jones', 'Grade 10', 'Enrolled')
+  Row: (3, 'Charlie', 'Brown', 'Grade 8', 'Enrolled')
+
+Table: => enrollment_forms <= (Rows: 1)
+  Columns: id, student_id, form_type, file_path, extracted_text, status
+  Row: (1, None, 'Student Registration', 'uploads\\Screenshot 2026-03-05 192658.png', 'ERROR: Tesseract OCR is not installed or not in PATH. Please install Tesseract.', 'Success')
+
+Table: => academic_records <= (Rows: 12)
+  Columns: id, student_id, subject, score, term
+  Row: (1, 1, 'Math', 85.0, 'Term 1')
+  Row: (2, 1, 'Math', 88.0, 'Term 2')
+  Row: (3, 1, 'Math', 90.0, 'Term 3')
+
+Table: => users <= (Rows: 0)
+
+Table: => payments <= (Rows: 0)

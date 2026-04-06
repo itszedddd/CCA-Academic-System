@@ -3,7 +3,7 @@ export default function AcademicWarnings({ warnings, fetchWarnings }) {
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white">AI Early Warning System</h3>
+          <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">AI Early Warning System</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Students flagged by the ML trend analysis engine (Predictive Performance Analytics).</p>
         </div>
         <button onClick={fetchWarnings} className="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg font-medium shadow-sm flex items-center text-sm hover:bg-amber-200 transition">

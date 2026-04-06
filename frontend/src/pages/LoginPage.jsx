@@ -94,7 +94,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
           <div className="inline-flex items-center justify-center w-28 h-28 mb-2 overflow-hidden rounded-3xl">
             <img src={isDarkMode ? "/assets/cca-logo-dark.png" : "/assets/cca-logo-bg.png"} alt="CCA Logo" className={`w-full h-full ${isDarkMode ? 'object-contain' : 'object-cover'}`} />
           </div>
-          <h1 className="text-4xl font-extrabold text-brand-900 dark:text-white tracking-widest font-cinzel leading-tight transition-colors">CCA System</h1>
+          <h1 className="text-4xl font-extrabold text-brand-900 dark:text-white tracking-widest font-cinzel leading-tight transition-colors">CCA PORTAL</h1>
           <p className="text-brand-600 dark:text-slate-400 mt-1 font-bold tracking-wide transition-colors">Calvary Christian Academy</p>
         </div>
 

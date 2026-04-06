@@ -1,0 +1,103 @@
+=== PAGE 1 ===
+CALVARY CHRISTIAN ACADEMY PORTAL [v1.0] 
+USER INTERFACE​
+​
+[IMAGE BLOCK]
+ICON 
+●​ use the ‘Profile Icon [2 Clear]’ in Light Mode 
+●​ use the ‘Profile Icon [1 Clear]’ in Dark Mode  
+​
+THEME 
+[IMAGE BLOCK]
+Make the theme consistent like this 
+●​ Titles of the menu in CINZEL font 
+●​ Titles of the tables in CINZEL font but 0% letter spacing.​
+1.​ SIGN IN PAGE 
+●​ UI Revision (i’ll send design reference)​
+
+=== PAGE 2 ===
+[IMAGE BLOCK]
+TITLE 
+●​ Change CCA SYSTEM to “CCA PORTAL” 
+ICON PHOTO 
+​
+TRY TO USE TRANSPARENT BACKGROUND, 
+●​ Use the ‘Profile Icon [2 Clear]’ in Light Mode 
+●​ Use the ‘Profile Icon [1 Clear]’ in Dark Mode  
+​
+IF NOT, USE WITH BACKGROUND: 
+●​ Use the ‘Profile Icon [1]’ in Light Mode 
+●​ Use the ‘Profile Icon [2]’ in Dark Mode  
+2.​ DASHBOARD PAGE 
+●​ Change Title fonts to ‘CINZEL’​
+[IMAGE BLOCK]
+[IMAGE BLOCK]
+[IMAGE BLOCK]
+●​  “AI-driven analytics and academic health tracking.” reduce font weight.​
+[IMAGE BLOCK]
+●​  Make the color of the Icons and the “View Full Attendance” or “View All” font 
+color lighter to have a contrast. 
+
+=== PAGE 3 ===
+[IMAGE BLOCK]
+3.​ STUDENTS 
+●​ Change Title font to CINZEL 
+[IMAGE BLOCK]
+
+=== PAGE 4 ===
+●​ DARK MODE: ID number not totally readable in dark mode. 
+[IMAGE BLOCK]
+4.​ ATTENDANCE 
+●​ Change title fonts to CINZEL​
+[IMAGE BLOCK]
+[IMAGE BLOCK]
+
+=== PAGE 5 ===
+5.​ ACADEMIC WARNING AI 
+●​ Change title fonts to CINZEL​
+[IMAGE BLOCK]
+6.​ ENROLLMENT OCR 
+●​ Change title fonts to CINZEL 
+[IMAGE BLOCK]
+7.​ USER ACCOUNTS 
+●​ Make the theme consistent like in the TUITION AI TRACKER menu 
+[IMAGE BLOCK]
+
+=== PAGE 6 ===
+FUNCTIONS CONCERNS 
+ADMIN 
+1.​ STUDENTS PAGE 
+●​ Students Profile Photo - Error Loading Photo 
+●​ Try to add at least 20 students in one section (para ma test how the system will 
+handle more students) 
+●​ Add options with “OVERALL STUDENTS” and “PER GRADE LEVEL 
+STUDENTS” 
+●​ Change the sections to:​
+Grade 7 - Humility (color: green/mititary green) 
+Grade 8 - Courage (color: yellow/mustard) 
+Grade 9 - Goodwill (color: red/maroon) 
+Grade 10 - Persistence (color: blue/dark blue)​
+2.​ ENROLLMENT OCR PAGE​
+[IMAGE BLOCK]
+​
+3.​ TUITION AI TRACKER PAGE 
+●​ Students Profile Photo - Error Loading Photo 
+TEACHER 
+●​ Assign a teacher on 1 section with at least 20 Students 
+CASHIER 
+1.​ STUDENTS PAGE 
+●​ Students Profile Photo - Error Loading Photo 
+2.​ TUITION AI TRACKER PAGE 
+
+=== PAGE 7 ===
+●​ Students Profile Photo - Error Loading Photo 
+REGISTRAR 
+1.​ STUDENTS PAGE 
+●​ Students Profile Photo - Error Loading Photo 
+2.​ TUITION AI TRACKER PAGE 
+●​ Students Profile Photo - Error Loading Photo​
+3.​ ENROLLMENT OCR PAGE 
+[IMAGE BLOCK]
+STUDENT 
+1.​ STUDENT PORTAL PAGE 
+●​ Students Profile Photo - Error Loading Photo 

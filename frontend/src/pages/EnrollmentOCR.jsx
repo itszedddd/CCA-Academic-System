@@ -10,7 +10,7 @@ export default function EnrollmentOCR({ forms, fetchForms, uploading, fileInputR
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
       <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-slate-800 dark:text-white">OCR Extraction Engine</h3>
+          <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">OCR Extraction Engine</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Upload physical enrollment forms — AI extracts and indexes the text automatically.</p>
         </div>
         <div>

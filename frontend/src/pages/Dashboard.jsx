@@ -106,7 +106,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest">Institution Overview</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold tracking-wider mt-1 text-sm">AI-driven analytics and academic health tracking.</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">AI-driven analytics and academic health tracking.</p>
           </div>
           {currentRole === 'Administrator' && (
             <button 
@@ -163,7 +163,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               {isStudent ? "My Performance Insights" : "AI Performance Insights"}
             </h3>
-            {!isStudent && <button onClick={() => setActiveTab('Academic Warning AI')} className="text-sm font-medium text-brand-600 hover:text-brand-800">View All →</button>}
+            {!isStudent && <button onClick={() => setActiveTab('Academic Warning AI')} className="text-sm font-medium text-slate-400 hover:text-brand-600 transition">View All →</button>}
           </div>
           <div className="space-y-3">
             {warnings.length === 0 ? (
@@ -216,7 +216,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             ))}
           </div>
           <div className="p-4 border-t border-slate-100 dark:border-slate-700">
-            <button onClick={() => setActiveTab(isStudent ? 'Student Portal' : 'Attendance')} className="w-full py-2 text-sm font-medium text-brand-600 hover:text-brand-800 transition">
+            <button onClick={() => setActiveTab(isStudent ? 'Student Portal' : 'Attendance')} className="w-full py-2 text-sm font-medium text-slate-400 hover:text-brand-600 transition">
               {isStudent ? "View Full Record →" : "View Full Attendance →"}
             </button>
           </div>

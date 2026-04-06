@@ -70,7 +70,7 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Attendance Log</h3>
+              <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">Attendance Log</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Daily attendance records with automated parent alert tracking.</p>
             </div>
             {(currentRole === 'Administrator' || currentRole === 'Teacher') && (
