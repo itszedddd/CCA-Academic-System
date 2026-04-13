@@ -28,6 +28,7 @@ class StudentBase(BaseModel):
     first_name: str
     last_name: str
     grade_level: str
+    school_year: Optional[str] = "2025-2026"
     section: Optional[str] = None
     contact_email: Optional[str] = None
     profile_image: Optional[str] = None
@@ -65,8 +66,24 @@ class Attendance(AttendanceBase):
 
 
 # ---------------------------------------------------------------------------
-# Tuition Payments
+# Tuition Payments & History
 # ---------------------------------------------------------------------------
+class PaymentRecordBase(BaseModel):
+    amount: float
+    or_number: str
+    date_recorded: str
+    recorded_by: Optional[int] = None
+
+class PaymentRecordCreate(PaymentRecordBase):
+    pass
+
+class PaymentRecord(PaymentRecordBase):
+    id: int
+    tuition_id: int
+
+    class Config:
+        from_attributes = True
+
 class TuitionPaymentBase(BaseModel):
     student_id: int
     amount_due: float
@@ -80,6 +97,7 @@ class TuitionPaymentCreate(TuitionPaymentBase):
 
 class TuitionPayment(TuitionPaymentBase):
     id: int
+    payments: List[PaymentRecord] = []
 
     class Config:
         from_attributes = True

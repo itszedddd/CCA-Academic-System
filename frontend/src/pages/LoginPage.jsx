@@ -2,8 +2,8 @@ import { useState, useRef } from 'react';
 
 export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
   const [isRegistering, setIsRegistering] = useState(false);
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -91,26 +91,21 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
 
       <div className={`w-full ${isRegistering ? 'max-w-2xl' : 'max-w-lg'}`}>
         <div className="text-center mb-8 animate-fade-in-down">
-          <div className="inline-flex items-center justify-center w-28 h-28 mb-2 overflow-hidden rounded-3xl">
-            <img src={isDarkMode ? "/assets/cca-logo-dark.png" : "/assets/cca-logo-bg.png"} alt="CCA Logo" className={`w-full h-full ${isDarkMode ? 'object-contain' : 'object-cover'}`} />
+          <div className="inline-flex items-center justify-center w-32 h-32 mb-4 overflow-hidden rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl transition-transform hover:scale-105 duration-500">
+            <img src={isDarkMode ? "/assets/Profile Icon [1 Clear].png" : "/assets/Profile Icon [2 Clear].png"} alt="CCA Logo" className="w-full h-full object-contain p-2" />
           </div>
-          <h1 className="text-4xl font-extrabold text-brand-900 dark:text-white tracking-widest font-cinzel leading-tight transition-colors">CCA PORTAL</h1>
-          <p className="text-brand-600 dark:text-slate-400 mt-1 font-bold tracking-wide transition-colors">Calvary Christian Academy</p>
+          <h1 className="text-5xl font-black text-brand-900 dark:text-white tracking-[0.2em] font-cinzel leading-tight transition-all drop-shadow-sm">CCA PORTAL</h1>
+          <p className="text-brand-600 dark:text-brand-400 mt-2 font-black font-cinzel tracking-[0.3em] uppercase text-xs transition-colors">Calvary Christian Academy</p>
         </div>
 
         <div className="backdrop-blur-2xl border rounded-3xl p-8 md:p-12 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_35px_60px_-15px_rgba(0,0,0,0.6)] animate-zoom-in bg-white/80 dark:bg-white/10 border-white/50 dark:border-white/10 transition-colors">
           
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-white transition-colors">{isRegistering ? 'Student Application' : 'Welcome Back'}</h2>
-            {!isRegistering ? (
-              <button type="button" onClick={() => setIsRegistering(true)} className="text-sm font-bold text-brand-600 dark:text-blue-400 hover:underline">Apply as Student</button>
-            ) : (
-              <button type="button" onClick={() => setIsRegistering(false)} className="text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition">Back to Login</button>
-            )}
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white transition-colors">Welcome Back</h2>
           </div>
           
           <p className="text-slate-500 dark:text-slate-400 mb-8 text-sm transition-colors">
-            {isRegistering ? 'Submit your OCR-ready form alongside your profile details for Registrar verification.' : 'Sign in to manage academic records and AI insights.'}
+            Sign in to manage academic records and AI insights.
           </p>
 
           {successMsg && (

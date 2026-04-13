@@ -85,7 +85,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
   const StatCard = ({ label, value, sub, icon, color }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
-      <div className={`absolute top-0 right-0 p-5 opacity-5 group-hover:opacity-10 transition-opacity`}>
+      <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
         <svg className={`w-24 h-24 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
       </div>
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
@@ -99,11 +99,11 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       {/* Header for Students */}
       {isStudent ? (
         <div className="mb-8">
-          <h2 className="text-2xl font-black text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
-          <p className="text-slate-500 dark:text-slate-400">Here is your personalized academic overview and AI performance tracking.</p>
+          <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
         </div>
       ) : (
-        <div className="mb-8 flex justify-between items-center">
+        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest">Institution Overview</h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">AI-driven analytics and academic health tracking.</p>
@@ -112,7 +112,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <button 
               onClick={handleGenerateReport}
               disabled={loadingReport}
-              className="flex items-center px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white text-sm font-bold font-cinzel tracking-wider rounded-lg transition shadow-[0_4px_10px_-2px_rgba(2,40,104,0.4)] disabled:opacity-70 disabled:pointer-events-none"
+              className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white text-sm font-bold font-cinzel tracking-wider rounded-lg transition shadow-[0_4px_10px_-2px_rgba(2,40,104,0.4)] disabled:opacity-70 disabled:pointer-events-none"
             >
               {loadingReport ? (
                  <svg className="animate-spin h-5 w-5 mr-3 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>

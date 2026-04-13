@@ -150,7 +150,7 @@ def extract_student_data_from_image(image_bytes: bytes) -> str:
         return f"Error extracting text: {e}"
 
 
-def predict_tuition_default(balances: list[float], payments: list[float]) -> dict:
+def predict_tuition_default(balances: list[float], payments: list[float], statuses: list[str] = None) -> dict:
     """
     Analyzes historical payment behavior to predict the risk of default.
     Returns a risk score 0.0 - 1.0.
@@ -161,21 +161,28 @@ def predict_tuition_default(balances: list[float], payments: list[float]) -> dic
     total_due = sum(balances)
     total_paid = sum(payments)
     
-    if total_due == 0:
-        return {"risk_score": 0.0, "message": "No outstanding balance."}
+    if total_due <= 0 or total_paid >= total_due:
+        return {"risk_score": 0.0, "message": "Low Risk. Balance is fully covered."}
     
     payment_ratio = total_paid / total_due
     
-    # Simple heuristic risk:
-    if payment_ratio < 0.5:
-        risk = 0.8
-        msg = "High risk. Student has paid less than 50% of outstanding balance."
-    elif payment_ratio < 0.8:
-        risk = 0.5
-        msg = "Moderate risk."
-    else:
-        risk = 0.1
-        msg = "Low risk."
+    # Compute base risk inversely to payment ratio
+    risk = max(0.0, 1.0 - payment_ratio)
+    
+    # Overdue statuses act as severe multipliers
+    overdue_count = statuses.count("Overdue") if statuses else 0
+    if overdue_count > 0:
+        risk += (overdue_count * 0.2) 
         
-    return {"risk_score": risk, "message": msg}
+    # Cap at 0.95 realistically
+    risk = min(0.95, risk)
+    
+    if risk >= 0.8:
+        msg = "High risk. Very low payment ratio or multiple overdue flags detected."
+    elif risk >= 0.5:
+        msg = "Moderate risk. Balance accumulation detected."
+    else:
+        msg = "Low risk. Payments are stable."
+        
+    return {"risk_score": round(float(risk), 2), "message": msg}
 

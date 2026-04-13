@@ -1,0 +1,632 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="CCA System ERD" id="cca-erd">
+    <mxGraphModel dx="1500" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="900">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: ROLES  |  Position: (40, 40)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ro_hdr" value="ROLES" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ro_r0_l" value="role_id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="70" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ro_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="70" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ro_r1_l" value="role_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="92" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ro_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="92" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: USERS  |  Position: (40, 170)  |  7 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="u_hdr" value="USERS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="170" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="200" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r1_l" value="username" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="222" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="222" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r2_l" value="hashed_password" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="244" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r2_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="244" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r3_l" value="role_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="266" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r3_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="266" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r4_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="288" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r4_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="288" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r5_l" value="is_active" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r5_r" value="INTEGER" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="310" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r6_l" value="section_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="332" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="u_r6_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="332" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: STUDENTS  |  Position: (380, 120)  |  9 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="s_hdr" value="STUDENTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="120" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="150" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="150" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r1_l" value="first_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="172" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="172" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r2_l" value="last_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="194" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r2_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="194" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r3_l" value="grade_level_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="216" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r3_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="216" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r4_l" value="school_year_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="238" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r4_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="238" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r5_l" value="section_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="260" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r5_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="260" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r6_l" value="contact_email" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="282" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r6_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="282" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r7_l" value="profile_image" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="304" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r7_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="304" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r8_l" value="enrollment_status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="326" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="s_r8_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="326" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: GRADE_LEVELS  |  Position: (720, 40)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="gl_hdr" value="GRADE_LEVELS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="40" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="gl_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="70" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="gl_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="70" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="gl_r1_l" value="level_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="92" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="gl_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="92" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: SCHOOL_YEARS  |  Position: (720, 130)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="sy_hdr" value="SCHOOL_YEARS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="130" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="sy_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="160" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sy_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="160" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sy_r1_l" value="year_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="182" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sy_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="182" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: SECTIONS  |  Position: (720, 230)  |  3 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="sec_hdr" value="SECTIONS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="230" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="260" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="260" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r1_l" value="section_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="282" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="282" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r2_l" value="grade_level_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="304" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec_r2_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="304" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: SUBJECTS  |  Position: (1100, 40)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="sub_hdr" value="SUBJECTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="40" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="70" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="70" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub_r1_l" value="subject_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="92" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="sub_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="92" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: ACADEMIC_RECORDS  |  Position: (1100, 160)  |  5 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ar_hdr" value="ACADEMIC_RECORDS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="160" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="190" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="190" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r1_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="212" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="212" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r2_l" value="subject_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="234" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r2_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="234" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r3_l" value="score" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="256" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r3_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="256" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r4_l" value="term" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="278" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ar_r4_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="278" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: ATTENDANCE  |  Position: (40, 450)  |  6 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="at_hdr" value="ATTENDANCE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="450" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="480" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="480" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r1_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="502" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="502" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r2_l" value="date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="524" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r2_r" value="DATE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="524" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r3_l" value="attendance_status_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;fontSize=9;" vertex="1" parent="1">
+          <mxGeometry x="40" y="546" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r3_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="546" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r4_l" value="remarks" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="568" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r4_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="568" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r5_l" value="recorded_by FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="590" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="at_r5_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="590" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: ATTENDANCE_STATUS  |  Position: (40, 670)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="as_hdr" value="ATTENDANCE_STATUS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=11;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="670" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="as_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="700" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="as_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="700" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="as_r1_l" value="status_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="40" y="722" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="as_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="195" y="722" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: ENROLLMENT_FORMS  |  Position: (380, 450)  |  6 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ef_hdr" value="ENROLLMENT_FORMS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=11;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="450" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="480" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="480" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r1_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="502" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="502" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r2_l" value="form_type_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="524" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r2_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="524" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r3_l" value="file_path" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="546" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r3_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="546" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r4_l" value="extracted_text" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="568" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r4_r" value="TEXT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="568" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r5_l" value="status" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="590" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ef_r5_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="590" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: FORM_TYPES  |  Position: (380, 670)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ft_hdr" value="FORM_TYPES" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="670" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ft_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="700" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ft_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="700" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ft_r1_l" value="type_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="380" y="722" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ft_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="535" y="722" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: TUITION_PAYMENTS  |  Position: (720, 450)  |  7 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="tp_hdr" value="TUITION_PAYMENTS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=11;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="450" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="480" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="480" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r1_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="502" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="502" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r2_l" value="amount_due" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="524" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r2_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="524" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r3_l" value="amount_paid" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="546" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r3_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="546" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r4_l" value="term" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="568" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r4_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="568" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r5_l" value="payment_status_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="590" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r5_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="590" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r6_l" value="risk_score" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="612" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="tp_r6_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="612" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: PAYMENT_STATUS  |  Position: (720, 690)  |  2 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ps_hdr" value="PAYMENT_STATUS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=12;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="690" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ps_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="720" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ps_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="720" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ps_r1_l" value="status_name" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="720" y="742" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ps_r1_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="875" y="742" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: AI_ACADEMIC_WARNINGS  |  Position: (1100, 370)  |  7 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="ai_hdr" value="AI_ACADEMIC_WARNINGS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=11;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="370" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="400" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="400" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r1_l" value="student_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="422" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="422" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r2_l" value="subject_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="444" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r2_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="444" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r3_l" value="slope" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="466" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r3_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="466" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r4_l" value="message" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="488" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r4_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="488" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r5_l" value="latest_score" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="510" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r5_r" value="FLOAT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="510" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r6_l" value="warning_date" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="532" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="ai_r6_r" value="DATE" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="532" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- ENTITY: RESOURCE_RECOMMENDATIONS  |  Position: (1100, 610)  |  5 fields -->
+        <!-- ============================================================ -->
+        <mxCell id="rr_hdr" value="RESOURCE_RECOMMENDATIONS" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9D9D9;strokeColor=#000000;strokeWidth=1;fontSize=10;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="610" width="250" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r0_l" value="id PK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="640" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r0_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="640" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r1_l" value="subject_id FK" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="662" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r1_r" value="BIGINT" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="662" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r2_l" value="resource_title" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="684" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r2_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="684" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r3_l" value="resource_url" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="706" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r3_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="706" width="95" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r4_l" value="resource_type" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="728" width="155" height="22" as="geometry"/>
+        </mxCell>
+        <mxCell id="rr_r4_r" value="VARCHAR" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=0.5;fontSize=10;fontColor=#000000;align=left;spacingLeft=5;overflow=hidden;" vertex="1" parent="1">
+          <mxGeometry x="1255" y="728" width="95" height="22" as="geometry"/>
+        </mxCell>
+
+        <!-- ============================================================ -->
+        <!-- RELATIONSHIPS (Red Lines — Crow's Foot Notation) -->
+        <!-- startArrow=ERmany @ FK (many)  |  endArrow=ERone @ PK (one) -->
+        <!-- ============================================================ -->
+
+        <!-- 1. USERS.role_id FK → ROLES.role_id PK (vertical, same column) -->
+        <mxCell id="rel_01" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="u_r3_r" target="ro_r0_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 2. USERS.student_id FK → STUDENTS.id PK (horizontal, right) -->
+        <mxCell id="rel_02" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="u_r4_r" target="s_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 3. STUDENTS.grade_level_id FK → GRADE_LEVELS.id PK -->
+        <mxCell id="rel_03" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s_r3_r" target="gl_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 4. STUDENTS.school_year_id FK → SCHOOL_YEARS.id PK -->
+        <mxCell id="rel_04" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s_r4_r" target="sy_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 5. STUDENTS.section_id FK → SECTIONS.id PK -->
+        <mxCell id="rel_05" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="s_r5_r" target="sec_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 6. SECTIONS.grade_level_id FK → GRADE_LEVELS.id PK -->
+        <mxCell id="rel_06" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sec_r2_l" target="gl_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 7. ACADEMIC_RECORDS.student_id FK → STUDENTS.id PK -->
+        <mxCell id="rel_07" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ar_r1_l" target="s_r1_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 8. ACADEMIC_RECORDS.subject_id FK → SUBJECTS.id PK -->
+        <mxCell id="rel_08" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ar_r2_r" target="sub_r0_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 9. ATTENDANCE.student_id FK → STUDENTS.id PK -->
+        <mxCell id="rel_09" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="at_r1_r" target="s_r8_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 10. ATTENDANCE.attendance_status_id FK → ATTENDANCE_STATUS.id PK -->
+        <mxCell id="rel_10" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="at_r3_r" target="as_r0_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 11. ATTENDANCE.recorded_by FK → USERS.id PK -->
+        <mxCell id="rel_11" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="at_r5_l" target="u_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 12. ENROLLMENT_FORMS.student_id FK → STUDENTS.id PK -->
+        <mxCell id="rel_12" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ef_r1_r" target="s_r8_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 13. ENROLLMENT_FORMS.form_type_id FK → FORM_TYPES.id PK -->
+        <mxCell id="rel_13" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ef_r2_r" target="ft_r0_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 14. TUITION_PAYMENTS.student_id FK → STUDENTS.id PK -->
+        <mxCell id="rel_14" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="tp_r1_l" target="s_r6_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 15. TUITION_PAYMENTS.payment_status_id FK → PAYMENT_STATUS.id PK -->
+        <mxCell id="rel_15" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="tp_r5_r" target="ps_r0_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 16. AI_ACADEMIC_WARNINGS.student_id FK → STUDENTS.id PK -->
+        <mxCell id="rel_16" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ai_r1_l" target="s_r2_r">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 17. AI_ACADEMIC_WARNINGS.subject_id FK → SUBJECTS.id PK -->
+        <mxCell id="rel_17" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ai_r2_l" target="sub_r0_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- 18. RESOURCE_RECOMMENDATIONS.subject_id FK → SUBJECTS.id PK -->
+        <mxCell id="rel_18" style="edgeStyle=orthogonalEdgeStyle;html=1;strokeColor=#CC0000;strokeWidth=1.5;startArrow=ERmany;startFill=0;endArrow=ERone;endFill=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="rr_r1_l" target="sub_r1_l">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

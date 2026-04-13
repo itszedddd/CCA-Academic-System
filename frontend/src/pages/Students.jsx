@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, Fragment } from 'react';
 
 const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
 const SECTIONS = ['Humility', 'Courage', 'Goodwill', 'Persistence'];
@@ -12,9 +12,9 @@ const API = '/api';
 
 export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch }) {
   const [showRegister, setShowRegister] = useState(false);
-  const [showView, setShowView] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
@@ -23,15 +23,18 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [sortOrder, setSortOrder] = useState('asc');
   const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
   const [recommendations, setRecommendations] = useState([]);
-  const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled' });
-  const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Grading' });
+  const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled', username:'', password:'' });
+  const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
   const [newStudentFile, setNewStudentFile] = useState(null);
   const [editingStudentFile, setEditingStudentFile] = useState(null);
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    const res = await authFetch(`${API}/students/`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(newStudent) });
+    const studentPayload = { ...newStudent };
+    delete studentPayload.username;
+    delete studentPayload.password;
+    const res = await authFetch(`${API}/students/`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(studentPayload) });
     if (res?.ok) { 
       const created = await res.json();
       if (newStudentFile) {
@@ -39,19 +42,38 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         fd.append('file', newStudentFile);
         await authFetch(`${API}/students/${created.id}/upload_image`, { method: 'POST', body: fd });
       }
+      
+      if (newStudent.username && newStudent.password) {
+        await authFetch(`${API}/users/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            username: newStudent.username,
+            password: newStudent.password,
+            role: 'Student',
+            student_id: created.id,
+            is_active: 1
+          })
+        });
+      }
+      
       setShowRegister(false); fetchStudents(); 
-      setNewStudent({ first_name:'', last_name:'', grade_level:'Grade 7', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled' }); 
+      setNewStudent({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled', username:'', password:'' }); 
       setNewStudentFile(null);
     }
   };
 
   const handleView = async (id) => {
+    if (expandedStudentId === id) {
+       setExpandedStudentId(null);
+       return;
+    }
     const res = await fetch(`${API}/students/${id}`);
     if (res.ok) {
       setSelectedStudent(await res.json());
       const recRes = await fetch(`${API}/resource_recommendations/${id}`);
       setRecommendations(recRes.ok ? await recRes.json() : []);
-      setShowView(true);
+      setExpandedStudentId(id);
     }
   };
 
@@ -75,7 +97,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       })
     });
     if (res?.ok) {
-      setNewRecord({ subject: '', score: '', term: '1st Grading' });
+      setNewRecord({ subject: '', score: '', term: '1st Quarter' });
       handleView(selectedStudent.id);
       fetchWarnings();
     }
@@ -119,53 +141,178 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
     students: filteredStudents.filter(s => s.grade_level === g)
   })).filter(g => g.students.length > 0);
 
-  const StudentTable = ({ students: rows }) => (
+  const renderStudentTable = (rows) => (
     <table className="w-full text-left">
       <thead>
-        <tr className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-cinzel">
-          <th className="px-6 py-3 font-medium tracking-widest">ID</th>
-          <th className="px-6 py-3 font-medium tracking-widest">Name</th>
-          <th className="px-6 py-3 font-medium tracking-widest">Grade</th>
-          <th className="px-6 py-3 font-medium tracking-widest">Section</th>
-          <th className="px-6 py-3 font-medium tracking-widest">Status</th>
-          <th className="px-6 py-3 font-medium tracking-widest text-right">Actions</th>
+        <tr className="bg-slate-50 dark:bg-slate-700">
+          <th className="px-6 py-3">ID</th>
+          <th className="px-6 py-3">Name</th>
+          <th className="px-6 py-3">Grade</th>
+          <th className="px-6 py-3">Section</th>
+          <th className="px-6 py-3">Status</th>
+          <th className="px-6 py-3 text-right">Actions</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
         {rows.map(s => {
           const meta = SECTION_META[s.section];
           const imgSrc = s.profile_image;
+          const isExpanded = expandedStudentId === s.id && selectedStudent?.id === s.id;
+          
           return (
-            <tr key={s.id} className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors">
-              <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(s.id).padStart(4,'0')}</td>
-              <td className="px-6 py-4">
-                <div className="flex items-center">
-                  {imgSrc ? (
-                    <img
-                      src={imgSrc}
-                      alt={`${s.first_name} ${s.last_name}`}
-                      className="w-8 h-8 rounded-full object-cover mr-3 flex-shrink-0 bg-slate-100 dark:bg-slate-700"
-                      onError={e => { e.target.onerror = null; e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
-                    />
-                  ) : null}
-                  <div style={{display: imgSrc ? 'none' : 'flex'}} className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 items-center justify-center font-bold text-xs mr-3 flex-shrink-0">{s.first_name?.[0]}{s.last_name?.[0]}</div>
-                  <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
-                </div>
-              </td>
-              <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{s.grade_level}</td>
-              <td className="px-6 py-4">
-                {s.section ? (
-                  <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${meta?.color || 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}>{s.section}</span>
-                ) : <span className="text-slate-400 text-sm">—</span>}
-              </td>
-              <td className="px-6 py-4">
-                <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
-              </td>
-              <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                <button onClick={() => handleView(s.id)} className="text-slate-400 hover:text-brand-600 transition">View</button>
-                {currentRole === 'Administrator' && <button onClick={() => { setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition">Edit</button>}
-              </td>
-            </tr>
+            <Fragment key={s.id}>
+              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (currentRole === 'Teacher') handleView(s.id); }}>
+                <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-300">#{String(s.id).padStart(4,'0')}</td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    {imgSrc ? (
+                      <img
+                        src={imgSrc}
+                        alt={`${s.first_name} ${s.last_name}`}
+                        className="w-8 h-8 rounded-full object-cover mr-3 flex-shrink-0 bg-slate-100 dark:bg-slate-700"
+                        onError={e => { e.target.onerror = null; e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+                      />
+                    ) : null}
+                    <div style={{display: imgSrc ? 'none' : 'flex'}} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center mr-3 flex-shrink-0 border border-slate-100 dark:border-slate-700">
+                      <img src="/assets/Profile Icon [2 Clear].png" alt="Default Logo" className="w-5 h-5 object-contain opacity-70" />
+                    </div>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                  {s.grade_level}
+                  <div className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">SY {s.school_year || '2025-2026'}</div>
+                </td>
+                <td className="px-6 py-4">
+                  {s.section ? (
+                    <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${meta?.color || 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}>{s.section}</span>
+                  ) : <span className="text-slate-400 text-sm">—</span>}
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+                </td>
+                <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
+                  {currentRole === 'Teacher' && (
+                    <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
+                  )}
+                  {currentRole === 'Administrator' && <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition">Edit</button>}
+                </td>
+              </tr>
+              {isExpanded && (
+                <tr>
+                  <td colSpan="6" className="p-0 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                    <div className="p-6">
+                      <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card (SF9 Format)</h4>
+                      
+                      <div className="overflow-x-auto mb-6 border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <table className="w-full text-center border-collapse min-w-[600px] bg-white dark:bg-slate-900">
+                          <thead><tr className="bg-slate-100 dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+                            <th className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left w-1/3">Learning Areas</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">1</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">2</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">3</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">4</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-20">Final Grade</th>
+                            <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-20">Remarks</th>
+                          </tr></thead>
+                          <tbody>
+                            {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
+                              <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records found.</td></tr>
+                            ) : (
+                              (() => {
+                                const grouped = {};
+                                selectedStudent.academic_records.forEach(r => {
+                                  if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
+                                  const t = r.term.toLowerCase();
+                                  if (t.includes('1st')) grouped[r.subject].q1 = r;
+                                  else if (t.includes('2nd')) grouped[r.subject].q2 = r;
+                                  else if (t.includes('3rd')) grouped[r.subject].q3 = r;
+                                  else if (t.includes('4th')) grouped[r.subject].q4 = r;
+                                });
+                                
+                                const renderCell = (r) => {
+                                  if (!r) return <span className="text-slate-300">—</span>;
+                                  if (editingGradeId === r.id) return (
+                                    <div className="flex flex-col items-center">
+                                      <input type="number" className="w-14 p-1 text-xs border border-brand-300 rounded outline-none text-center dark:bg-slate-700" value={editingGradeScore} onChange={e=>setEditingGradeScore(e.target.value)} />
+                                      <div className="flex space-x-2 mt-1"><button onClick={()=>handleUpdateGrade(r)} className="text-green-600 text-[10px] font-bold">Save</button><button onClick={()=>setEditingGradeId(null)} className="text-slate-500 text-[10px]">Cancel</button></div>
+                                    </div>
+                                  );
+                                  const isFailing = r.score <= 75;
+                                  return (
+                                    <div className={`flex flex-col items-center group relative h-6 justify-center ${isFailing ? 'text-red-500 font-bold' : ''}`}>
+                                      <span className="text-sm">{r.score}</span>
+                                      {currentRole === 'Teacher' && <button onClick={()=>{setEditingGradeId(r.id); setEditingGradeScore(r.score);}} className="opacity-0 group-hover:opacity-100 absolute -top-5 text-[10px] text-brand-600 font-bold bg-white dark:bg-slate-800 px-1 rounded shadow-sm border border-brand-100 z-10 transition-opacity">Edit</button>}
+                                    </div>
+                                  );
+                                };
+
+                                return Object.values(grouped).map((row, i) => {
+                                  const grades = [row.q1?.score, row.q2?.score, row.q3?.score, row.q4?.score].filter(s => s != null);
+                                  const finalGrade = grades.length === 4 ? Math.round(grades.reduce((a,b)=>a+b,0)/4) : null;
+                                  const remarks = finalGrade ? (finalGrade > 75 ? 'Passed' : 'Failed') : '';
+                                  return (
+                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                      <td className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left font-semibold text-sm text-slate-800 dark:text-white">{row.subject}</td>
+                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q1)}</td>
+                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q2)}</td>
+                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q3)}</td>
+                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q4)}</td>
+                                      <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 font-bold text-sm ${finalGrade > 75 ? 'text-green-600' : (finalGrade ? 'text-red-600' : '')}`}>{finalGrade || ''}</td>
+                                      <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-xs font-bold uppercase ${remarks === 'Passed' ? 'text-green-600' : (remarks === 'Failed' ? 'text-red-600' : '')}`}>{remarks}</td>
+                                    </tr>
+                                  );
+                                });
+                              })()
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Add New Record Row (Teachers only) */}
+                      {currentRole === 'Teacher' && (
+                        <div className="bg-brand-50/50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 mb-6">
+                          <span className="text-sm font-bold text-brand-800 dark:text-brand-300 w-full sm:w-auto">Add Grade:</span>
+                          <select className="text-sm p-2 w-full sm:w-32 border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-slate-800 dark:text-white" value={newRecord.term} onChange={e => setNewRecord({...newRecord, term: e.target.value})}>
+                            <option>1st Quarter</option><option>2nd Quarter</option><option>3rd Quarter</option><option>4th Quarter</option>
+                          </select>
+                          <div className="flex-1 w-full relative">
+                            <input list="ph-subjects" placeholder="Subject Name (e.g. Mathematics)" className="text-sm p-2 w-full border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-slate-800 dark:text-white" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} />
+                            <datalist id="ph-subjects">
+                              <option value="Filipino" /><option value="English" /><option value="Mathematics" /><option value="Science" />
+                              <option value="Araling Panlipunan (AP)" /><option value="Edukasyon sa Pagpapakatao (EsP)" />
+                              <option value="Technology and Livelihood Education (TLE)" /><option value="MAPEH" />
+                            </datalist>
+                          </div>
+                          <input type="number" placeholder="Score" className="text-sm p-2 w-full sm:w-20 border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-center text-slate-800 dark:text-white" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} />
+                          <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="w-full sm:w-auto bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-brand-700 transition">Save</button>
+                        </div>
+                      )}
+
+                      {recommendations.length > 0 && (
+                        <>
+                          <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700 flex items-center mt-6">
+                            <svg className="w-4 h-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            AI Resource Recommendations
+                          </h4>
+                          <div className="space-y-2 mb-4">
+                            {recommendations.map((rec, i) => (
+                              <div key={i} className="p-3 rounded-xl border border-brand-100 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-800 flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{rec.resource_title}</p>
+                                  <p className="text-xs text-slate-500 mt-0.5"><span className="font-medium text-red-500">{rec.subject}</span> · Avg: {rec.average_score}% · <span className="text-brand-600">{rec.resource_type}</span></p>
+                                </div>
+                                <a href={rec.resource_url} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium ml-3 flex-shrink-0">Open →</a>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </Fragment>
           );
         })}
         {rows.length === 0 && <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</td></tr>}
@@ -176,19 +323,19 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   return (
     <>
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">Student Directory</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage student profiles, academic records, and enrollment.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
             {/* Overall / Per Grade toggle */}
             <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-bold">
               <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
               <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
             </div>
-            {currentRole === 'Administrator' && (
-              <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm">
+            {(currentRole === 'Administrator' || currentRole === 'Registrar') && (
+              <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 Register Student
               </button>
@@ -230,7 +377,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
 
         <div className="overflow-x-auto">
           {gradeView === 'overall' ? (
-            <StudentTable students={filteredStudents} currentRole={currentRole} handleView={handleView} setEditingStudent={setEditingStudent} setShowEdit={setShowEdit} />
+            renderStudentTable(filteredStudents)
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {gradeGroups.map(group => (
@@ -239,7 +386,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                     <span className="text-xs font-bold font-cinzel tracking-widest text-brand-700 dark:text-brand-400 uppercase">{group.grade}</span>
                     <span className="ml-2 text-xs text-slate-400">({group.students.length} students)</span>
                   </div>
-                  <StudentTable students={group.students} currentRole={currentRole} handleView={handleView} setEditingStudent={setEditingStudent} setShowEdit={setShowEdit} />
+                  {renderStudentTable(group.students)}
                 </div>
               ))}
               {gradeGroups.length === 0 && <div className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</div>}
@@ -264,15 +411,24 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                   {GRADES.map(g => <option key={g}>{g}</option>)}
                 </select>
               </div>
-              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
-                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section:e.target.value})}>
-                  <option value="">— None —</option>
-                  {SECTIONS.map(sec => <option key={sec}>{sec}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
+                  <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section:e.target.value})}>
+                    <option value="">— None —</option>
+                    {SECTIONS.map(sec => <option key={sec}>{sec}</option>)}
+                  </select>
+                </div>
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
+                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.school_year || '2025-2026'} onChange={e => setNewStudent({...newStudent, school_year:e.target.value})} placeholder="2025-2026" />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parent Email</label><input type="email" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.contact_email} onChange={e => setNewStudent({...newStudent, contact_email:e.target.value})} placeholder="parent@example.com" /></div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profile Image</label><input type="file" accept="image/*" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" onChange={e => setNewStudentFile(e.target.files[0])} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-4 mt-2">
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student Username</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.username} onChange={e => setNewStudent({...newStudent, username:e.target.value})} placeholder="e.g. juan.delacruz" /></div>
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student Password</label><input required type="password" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.password} onChange={e => setNewStudent({...newStudent, password:e.target.value})} placeholder="••••••••" /></div>
               </div>
               <button type="submit" className="w-full py-2.5 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 transition shadow mt-2">Submit Registration</button>
             </form>
@@ -280,100 +436,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         </div>
       )}
 
-      {/* View Modal */}
-      {showView && selectedStudent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
-            <button onClick={() => setShowView(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-            <div className="flex items-center mb-6">
-              {selectedStudent.profile_image ? (
-                <img src={selectedStudent.profile_image} className="w-14 h-14 rounded-full object-cover mr-4 bg-slate-100 dark:bg-slate-700 shadow-sm flex-shrink-0" />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold text-xl mr-4 flex-shrink-0">{selectedStudent.first_name[0]}{selectedStudent.last_name[0]}</div>
-              )}
-              <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{selectedStudent.first_name} {selectedStudent.last_name}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">#{String(selectedStudent.id).padStart(4,'0')} · {selectedStudent.grade_level} {selectedStudent.section && `· ${selectedStudent.section}`} · <span className={selectedStudent.enrollment_status === 'Enrolled' ? 'text-green-600' : 'text-amber-500'}>{selectedStudent.enrollment_status}</span></p>
-              </div>
-            </div>
-
-            <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Academic Records</h4>
-            
-            <table className="w-full text-left mb-6">
-              <thead><tr className="bg-slate-50 dark:bg-slate-700 text-xs uppercase text-slate-500 dark:text-slate-400">
-                <th className="px-4 py-2 font-medium">Term</th><th className="px-4 py-2 font-medium">Subject</th><th className="px-4 py-2 font-medium text-right">Score</th><th className="px-4 py-2 font-medium text-right">Actions</th>
-              </tr></thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                {selectedStudent.academic_records?.map(r => (
-                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-700">
-                    <td className="px-4 py-2 text-sm">{r.term}</td>
-                    <td className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300">{r.subject}</td>
-                    <td className="px-4 py-2 text-sm text-right font-bold">
-                      {editingGradeId === r.id
-                        ? <input type="number" step="0.01" className="w-20 px-2 py-1 text-right border border-brand-300 rounded bg-white dark:bg-slate-700 outline-none" value={editingGradeScore} onChange={e => setEditingGradeScore(e.target.value)} />
-                        : `${r.score}%`
-                      }
-                    </td>
-                    <td className="px-4 py-2 text-sm text-right">
-                      {currentRole === 'Teacher' && (
-                        editingGradeId === r.id
-                          ? <span className="space-x-2"><button onClick={() => handleUpdateGrade(r)} className="text-green-600 hover:text-green-800 text-xs font-medium">Save</button><button onClick={() => setEditingGradeId(null)} className="text-slate-400 hover:text-slate-600 text-xs">Cancel</button></span>
-                          : <button onClick={() => { setEditingGradeId(r.id); setEditingGradeScore(r.score); }} className="text-brand-600 hover:text-brand-800 text-xs font-medium">Edit</button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                
-                {/* Add New Record Row (Teachers only) */}
-                {currentRole === 'Teacher' && (
-                  <tr className="bg-brand-50/50 dark:bg-brand-900/10">
-                    <td className="px-4 py-2">
-                      <select className="text-xs border rounded bg-white dark:bg-slate-700 p-1" value={newRecord.term} onChange={e => setNewRecord({...newRecord, term: e.target.value})}>
-                        <option>1st Grading</option><option>2nd Grading</option><option>3rd Grading</option><option>4th Grading</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-2">
-                      <input placeholder="Subject" className="text-xs border rounded bg-white dark:bg-slate-700 p-1 w-full" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} />
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <input type="number" placeholder="Score" className="text-xs border rounded bg-white dark:bg-slate-700 p-1 w-16 text-right" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} />
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="bg-brand-600 text-white px-3 py-1 rounded text-xs font-bold disabled:opacity-50">Add</button>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-            
-            {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) && currentRole !== 'Teacher' && (
-              <p className="text-slate-500 text-sm mb-4 text-center bg-slate-50 dark:bg-slate-700 p-4 rounded-lg">No academic records found.</p>
-            )}
-
-            {recommendations.length > 0 && (
-              <>
-                <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700 flex items-center mt-6">
-                  <svg className="w-4 h-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                  AI Resource Recommendations
-                </h4>
-                <div className="space-y-2 mb-4">
-                  {recommendations.map((rec, i) => (
-                    <div key={i} className="p-3 rounded-xl border border-brand-100 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-800 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-slate-800 dark:text-white">{rec.resource_title}</p>
-                        <p className="text-xs text-slate-500 mt-0.5"><span className="font-medium text-red-500">{rec.subject}</span> · Avg: {rec.average_score}% · <span className="text-brand-600">{rec.resource_type}</span></p>
-                      </div>
-                      <a href={rec.resource_url} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium ml-3 flex-shrink-0">Open →</a>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-
-            <button onClick={() => setShowView(false)} className="w-full py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg hover:bg-slate-200 transition mt-4">Close</button>
-          </div>
-        </div>
-      )}
+    {/* The View modal was here. Now it is moved to inline sub-row */}
 
       {/* Edit Modal */}
       {showEdit && editingStudent && (
@@ -393,10 +456,15 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                   {GRADES.map(g => <option key={g}>{g}</option>)}
                 </select>
               </div>
-              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
-                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
-                  {['Enrolled','Pending','Dropped','Transferred'].map(s => <option key={s}>{s}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
+                  <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
+                    {['Enrolled','Pending','Dropped','Transferred'].map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
+                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.school_year || '2025-2026'} onChange={e => setEditingStudent({...editingStudent, school_year:e.target.value})} />
+                </div>
               </div>
               <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Upload New Profile Image</label><input type="file" accept="image/*" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" onChange={e => setEditingStudentFile(e.target.files[0])} /></div>
               <div className="flex justify-end space-x-3 pt-2">

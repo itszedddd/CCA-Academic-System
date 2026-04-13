@@ -11,4 +11,12 @@ export default defineConfig({
       '/uploads': 'http://localhost:8000',
     },
   },
+  preview: {
+    port: 5173,
+    allowedHosts: ['rainless-jeremiah-uncogged.ngrok-free.dev'],
+    proxy: {
+      '/api': 'http://localhost:8000',
+      '/uploads': 'http://localhost:8000',
+    },
+  },
 })

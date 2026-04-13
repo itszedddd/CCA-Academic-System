@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models import Base, Student, User, AcademicRecord, Attendance, TuitionPayment, EnrollmentForm
 from app.auth import get_password_hash
+from app.ai_engine import predict_tuition_default
 
 # Must match the URL in database.py
 SQLALCHEMY_DATABASE_URL = "sqlite:///./cca.db"
@@ -114,30 +115,59 @@ def seed_data():
         # Link student user to first student (Juan Dela Cruz)
         student_user.student_id = humility_students[0].id
 
-        # --- Academic Records for Humility section (for AI warning testing) ---
-        subjects = ["Math", "Science", "Filipino", "English", "Social Studies"]
+        # --- Academic Records for Humility section & Others (for AI warning testing) ---
+        subjects = ["Mathematics", "Science", "Filipino", "English", "Araling Panlipunan (AP)", "Edukasyon sa Pagpapakatao (EsP)", "Technology and Livelihood Education (TLE)", "MAPEH"]
         import random
+        from datetime import date, timedelta
         random.seed(42)
         records = []
-        for s in humility_students[:10]:
-            for subj in subjects[:3]:
-                for term, score_range in [("1st Grading", (70, 95)), ("2nd Grading", (60, 85)), ("3rd Grading", (50, 75))]:
-                    records.append(AcademicRecord(student_id=s.id, subject=subj,
-                                                   score=round(random.uniform(*score_range), 1), term=term))
+        for s in humility_students + other_students:
+            for subj in subjects:
+                for term in ["1st Quarter", "2nd Quarter", "3rd Quarter", "4th Quarter"]:
+                    # Create a failing trend for Science and Math randomly
+                    score_base = random.randint(76, 95)
+                    if subj in ["Mathematics", "Science"] and s.first_name in ["Juan", "Maria"]:
+                        score_base = max(65, 80 - (int(term[0]) * 5)) # Dropping scores
+                    records.append(AcademicRecord(student_id=s.id, subject=subj, score=round(score_base, 1), term=term))
         db.add_all(records)
+
+        # --- Mock Attendance ---
+        attendances = []
+        base_date = date.today() - timedelta(days=10)
+        attendance_statuses = ["Present", "Present", "Present", "Excused", "Absent"]
+        for s in humility_students + other_students:
+            for i in range(10):
+                attendances.append(Attendance(
+                    student_id=s.id,
+                    date=(base_date + timedelta(days=i)).strftime('%Y-%m-%d'),
+                    status=random.choice(attendance_statuses),
+                    remarks="Mock seed data" if random.random() > 0.8 else None
+                ))
+        db.add_all(attendances)
 
         # --- Tuition Payments ---
         payments = []
         statuses = ["Paid", "Pending", "Overdue"]
         for idx, s in enumerate(humility_students + other_students):
+            status = statuses[idx % 3]
+            amount_due = 35000.00
+            amount_paid = 35000.00 if status == "Paid" else round(random.uniform(0, 20000), 2)
+            if status == "Pending" and amount_paid == 0: amount_paid = 10000.00
+
             payments.append(TuitionPayment(
                 student_id=s.id,
-                amount_due=35000.00,
-                amount_paid=round(random.uniform(0, 35000), 2),
+                amount_due=amount_due,
+                amount_paid=amount_paid,
                 term="Term 1",
-                status=statuses[idx % 3],
-                risk_score=round(random.uniform(0.1, 0.95), 2)
+                status=status,
+                risk_score=0.0 # Placeholder
             ))
+            
+        # Compute ML Risk 
+        for p in payments:
+            risk_data = predict_tuition_default([p.amount_due], [p.amount_paid], [p.status])
+            p.risk_score = risk_data["risk_score"]
+            
         db.add_all(payments)
         db.commit()
 

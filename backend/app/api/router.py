@@ -56,8 +56,21 @@ def update_student(student_id: int, student_update: schemas.StudentCreate, db: S
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+    old_grade = student.grade_level
     for key, value in student_update.model_dump().items():
         setattr(student, key, value)
+        
+    new_grade = student.grade_level
+    if old_grade and new_grade and old_grade != new_grade and "Grade" in old_grade and "Grade" in new_grade:
+        try:
+            old_num = int(old_grade.split()[1])
+            new_num = int(new_grade.split()[1])
+            if new_num > old_num and student.school_year:
+                parts = student.school_year.split('-')
+                if len(parts) == 2:
+                    student.school_year = f"{int(parts[0])+1}-{int(parts[1])+1}"
+        except:
+            pass
     db.commit()
     db.refresh(student)
     return student
@@ -141,6 +154,35 @@ def update_academic_record(record_id: int, record_update: schemas.AcademicRecord
     return record
 
 
+@aesms_router.post("/tuition/{tuition_id}/pay", response_model=schemas.PaymentRecord)
+def record_tuition_payment(tuition_id: int, payment: schemas.PaymentRecordCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Administrator", "Cashier"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    tuition = db.query(models.TuitionPayment).filter(models.TuitionPayment.id == tuition_id).first()
+    if not tuition:
+        raise HTTPException(status_code=404, detail="Tuition not found")
+
+    db_pay = models.PaymentRecord(
+        tuition_id=tuition_id,
+        amount=payment.amount,
+        or_number=payment.or_number,
+        date_recorded=payment.date_recorded,
+        recorded_by=current_user.id
+    )
+    db.add(db_pay)
+
+    # Auto update ledger 
+    tuition.amount_paid += payment.amount
+    if tuition.amount_paid >= tuition.amount_due:
+        tuition.status = "Paid"
+    elif tuition.amount_paid > 0 and tuition.status == "Paid":
+        tuition.status = "Pending"
+        
+    db.commit()
+    db.refresh(db_pay)
+    return db_pay
+
+
 # ---------------------------------------------------------------------------
 # Attendance
 # ---------------------------------------------------------------------------
@@ -152,7 +194,21 @@ def create_attendance(attendance: schemas.AttendanceCreate, db: Session = Depend
     student = db.query(models.Student).filter(models.Student.id == attendance.student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+        
+    existings = db.query(models.Attendance).filter(
+        models.Attendance.student_id == attendance.student_id,
+        models.Attendance.date == attendance.date
+    ).all()
+
+    for ex in existings:
+        db.delete(ex)
+
+    if attendance.status == "Clear":
+        db.commit()
+        return models.Attendance(id=0, student_id=attendance.student_id, date=attendance.date, status="Clear")
+
     db_record = models.Attendance(**attendance.model_dump())
+    db_record.recorded_by = current_user.id
     db.add(db_record)
     db.commit()
     db.refresh(db_record)
@@ -269,8 +325,9 @@ def create_tuition(tuition: schemas.TuitionPaymentCreate, db: Session = Depends(
     
     balances = [p.amount_due for p in all_student_payments] + [tuition.amount_due]
     payments = [p.amount_paid for p in all_student_payments] + [tuition.amount_paid]
+    statuses = [p.status for p in all_student_payments] + [tuition.status]
     
-    risk_data = predict_tuition_default(balances, payments)
+    risk_data = predict_tuition_default(balances, payments, statuses)
     tuition.risk_score = risk_data["risk_score"]
     
     db_tuition = models.TuitionPayment(**tuition.model_dump())
@@ -294,7 +351,8 @@ def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate
     all_student_payments = db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == tuition.student_id).all()
     balances = [p.amount_due for p in all_student_payments]
     payments = [p.amount_paid for p in all_student_payments]
-    risk_data = predict_tuition_default(balances, payments)
+    statuses = [p.status for p in all_student_payments]
+    risk_data = predict_tuition_default(balances, payments, statuses)
     tuition.risk_score = risk_data["risk_score"]
     
     db.commit()
@@ -498,8 +556,10 @@ def read_users_me(current_user: models.User = Depends(get_current_active_user)):
 
 @aesms_router.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role != "Administrator":
-        raise HTTPException(status_code=403, detail="Only admins can create users")
+    if current_user.role not in ["Administrator", "Registrar"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions to create users")
+    if current_user.role == "Registrar" and user.role != "Student":
+        raise HTTPException(status_code=403, detail="Registrar can only create Student accounts")
     existing = db.query(models.User).filter(models.User.username == user.username).first()
     if existing:
         raise HTTPException(status_code=400, detail="Username already exists")

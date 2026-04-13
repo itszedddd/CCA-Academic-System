@@ -10,6 +10,7 @@ class Student(Base):
     first_name = Column(String, index=True)
     last_name = Column(String, index=True)
     grade_level = Column(String)
+    school_year = Column(String, default="2025-2026")
     section = Column(String, nullable=True)
     contact_email = Column(String, nullable=True)    # Parent/Guardian email
     profile_image = Column(String, nullable=True)    # External URL mapping
@@ -57,6 +58,20 @@ class EnrollmentForm(Base):
     status = Column(String, default="Processing")  # Processing, Success, Needs Review
 
 
+class PaymentRecord(Base):
+    __tablename__ = "payment_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tuition_id = Column(Integer, ForeignKey("tuition_payments.id"))
+    amount = Column(Float)
+    or_number = Column(String, index=True)
+    date_recorded = Column(String)
+    recorded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    tuition = relationship("TuitionPayment", back_populates="payments")
+    recorder = relationship("User")
+
+
 class TuitionPayment(Base):
     __tablename__ = "tuition_payments"
 
@@ -69,6 +84,7 @@ class TuitionPayment(Base):
     risk_score = Column(Float, nullable=True)
 
     student = relationship("Student", back_populates="tuition_payments")
+    payments = relationship("PaymentRecord", back_populates="tuition")
 
 
 class User(Base):

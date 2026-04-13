@@ -109,7 +109,7 @@ export default function UserManagement({ authFetch, currentRole }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-bold">
+              <tr className="bg-slate-50 dark:bg-slate-900">
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Username</th>
                 <th className="px-6 py-4">Role Clearance</th>
@@ -122,7 +122,7 @@ export default function UserManagement({ authFetch, currentRole }) {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {users.map(u => (
                 <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
-                  <td className="px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-400">#{u.id}</td>
+                  <td className="px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">#{u.id}</td>
                   <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{u.username}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
@@ -198,7 +198,14 @@ export default function UserManagement({ authFetch, currentRole }) {
                     <svg className="w-3.5 h-3.5 mr-1.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     Assigned Section
                   </label>
-                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500" value={formData.section} onChange={e => setFormData({...formData, section: e.target.value})} placeholder="e.g. Faith, Hope, Grace" />
+                  <select 
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 font-semibold" 
+                    value={formData.section} 
+                    onChange={e => setFormData({...formData, section: e.target.value})}
+                  >
+                    <option value="">— None —</option>
+                    {['Humility', 'Courage', 'Goodwill', 'Persistence'].map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                  </select>
                   <p className="text-xs text-slate-400 mt-1">Must match a section name used on student profiles.</p>
                 </div>
               )}

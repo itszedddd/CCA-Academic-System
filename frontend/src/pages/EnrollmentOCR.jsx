@@ -8,7 +8,7 @@ export default function EnrollmentOCR({ forms, fetchForms, uploading, fileInputR
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+      <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">OCR Extraction Engine</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Upload physical enrollment forms — AI extracts and indexes the text automatically.</p>
@@ -25,13 +25,15 @@ export default function EnrollmentOCR({ forms, fetchForms, uploading, fileInputR
 
       <div className="overflow-x-auto">
         <table className="w-full text-left">
-          <thead><tr className="bg-slate-50 dark:bg-slate-700 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
-            <th className="px-6 py-3 font-medium">Form ID</th>
-            <th className="px-6 py-3 font-medium">Type</th>
-            <th className="px-6 py-3 font-medium">Status</th>
-            <th className="px-6 py-3 font-medium">Extracted Text Preview</th>
-            <th className="px-6 py-3 font-medium text-right">Actions</th>
-          </tr></thead>
+          <thead>
+            <tr className="bg-slate-50 dark:bg-slate-700">
+              <th className="px-6 py-3">Form ID</th>
+              <th className="px-6 py-3">Type</th>
+              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3">Extracted Preview</th>
+              <th className="px-6 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
             {forms.map(f => (
               <tr key={f.id} className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors">

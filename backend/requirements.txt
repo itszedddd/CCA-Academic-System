@@ -3,6 +3,8 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-multipart
+python-jose[cryptography]
+passlib
 pytesseract
 Pillow
 scikit-learn

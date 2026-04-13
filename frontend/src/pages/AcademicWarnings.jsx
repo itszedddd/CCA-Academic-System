@@ -1,9 +1,12 @@
+import { useState } from 'react';
+
 export default function AcademicWarnings({ warnings, fetchWarnings }) {
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-      <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+      <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">AI Early Warning System</h3>
+          <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">AI Performance Tracker</h3>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Students flagged by the ML trend analysis engine (Predictive Performance Analytics).</p>
         </div>
         <button onClick={fetchWarnings} className="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg font-medium shadow-sm flex items-center text-sm hover:bg-amber-200 transition">
@@ -20,7 +23,7 @@ export default function AcademicWarnings({ warnings, fetchWarnings }) {
         </p>
       </div>
 
-      <div className="p-6 grid gap-4 grid-cols-1 lg:grid-cols-2">
+      <div className="p-6 space-y-4">
         {warnings.length === 0 ? (
           <div className="col-span-full py-16 text-center">
             <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -29,41 +32,70 @@ export default function AcademicWarnings({ warnings, fetchWarnings }) {
             <h4 className="text-slate-800 dark:text-white font-bold text-xl">No Warnings Detected</h4>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-sm mx-auto">All students are maintaining stable or improving trajectories. The AI model has not detected any negative performance slopes.</p>
           </div>
-        ) : warnings.map((w, i) => (
-          <div key={i} className="border border-red-100 bg-red-50/40 dark:bg-red-900/20 dark:border-red-800 rounded-2xl p-5 hover:shadow-md hover:border-red-200 transition-all group">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2.5 bg-white dark:bg-slate-800 shadow-sm border border-red-100 dark:border-red-800 text-red-500 rounded-xl group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+        ) : (
+          (() => {
+            const groupedWarnings = Object.values(warnings.reduce((acc, curr) => {
+              if (!acc[curr.student_id]) acc[curr.student_id] = { student_id: curr.student_id, student_name: curr.student_name, flags: [] };
+              acc[curr.student_id].flags.push(curr);
+              return acc;
+            }, {}));
+            
+            return groupedWarnings.map((group) => {
+              const isExpanded = expandedStudentId === group.student_id;
+              return (
+                <div key={group.student_id} className="border border-red-100 dark:border-red-800/60 rounded-xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm transition-all relative">
+                  <div 
+                    onClick={() => setExpandedStudentId(isExpanded ? null : group.student_id)} 
+                    className="p-4 bg-red-50/40 dark:bg-red-900/10 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer flex items-center justify-between transition-colors"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-10 h-10 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 rounded-full flex items-center justify-center text-red-500 font-bold">
+                        {group.flags.length}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 dark:text-white text-lg">{group.student_name}</h4>
+                        <p className="text-xs text-red-600 dark:text-red-400 font-bold uppercase tracking-wider">{group.flags.length} Subjects Flagged</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-black rounded-full uppercase tracking-wide border border-red-200">High Risk Profile</span>
+                      <svg className={`w-5 h-5 text-slate-400 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
+                  </div>
+                  
+                  {isExpanded && (
+                    <div className="p-4 grid gap-4 grid-cols-1 lg:grid-cols-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700">
+                      {group.flags.map((w, i) => (
+                        <div key={i} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 rounded-xl shadow-sm hover:border-red-300 dark:hover:border-red-700 transition-colors group/item">
+                          <div className="flex items-start justify-between mb-3 border-b border-slate-100 dark:border-slate-700 pb-3">
+                            <div>
+                              <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">{w.subject}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center">
+                                <span className="font-medium mr-1.5">Slope:</span>
+                                <span className="font-bold text-red-600">{w.slope} pts/term</span>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Latest</span>
+                              <span className="font-black text-slate-800 dark:text-white text-lg">{w.latest_score}<span className="text-xs text-slate-400 ml-0.5 font-medium">%</span></span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-1.5 flex items-center">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                              ML Insight
+                            </p>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 bg-red-50 dark:bg-red-900/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/50 leading-relaxed font-medium">{w.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 dark:text-white">{w.student_name}</h4>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Student #{String(w.student_id).padStart(4,'0')} · <span className="font-medium text-slate-700 dark:text-slate-300">{w.subject}</span></p>
-                </div>
-              </div>
-              <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full uppercase tracking-wide border border-red-200">High Risk</span>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-red-100/60 dark:border-red-800/60">
-              <p className="text-xs font-bold text-red-500 uppercase tracking-wide mb-2 flex items-center">
-                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                AI Insight
-              </p>
-              <p className="text-sm text-red-700/90 dark:text-red-300 bg-white dark:bg-slate-800/60 p-3 rounded-xl border border-red-50 dark:border-red-900 leading-relaxed">{w.message}</p>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm">
-                <span className="text-slate-500">Latest Score:</span>
-                <span className="font-black text-slate-800 dark:text-white ml-2 text-lg">{w.latest_score}<span className="text-xs text-slate-400 font-medium">%</span></span>
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400">
-                <span>Slope:</span>
-                <span className="font-bold text-red-600">{w.slope} pts/term</span>
-              </div>
-            </div>
-          </div>
-        ))}
+              );
+            });
+          })()
+        )}
       </div>
     </div>
   );

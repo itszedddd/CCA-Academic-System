@@ -31,7 +31,58 @@
   --color-brand-charcoal: #545454;
 }
 
+
 body {
-  @apply bg-slate-50 text-gray-900 antialiased transition-colors duration-300;
+  @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased transition-colors duration-300;
   font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+/* Titles of the tables in CINZEL font but 0% letter spacing */
+table thead th {
+  font-family: 'Cinzel', serif;
+  @apply text-slate-500 dark:text-slate-400 tracking-tighter uppercase font-bold;
+  letter-spacing: -0.02em; /* This achieves the 0% letter spacing feel in Cinzel */
+}
+
+/* Sidebar and Navigation Menu font */
+nav a, .menu-item {
+  font-family: 'Cinzel', serif;
+  @apply tracking-wider uppercase;
+}
+
+/* Mobile Sidebar Drawer */
+.sidebar-backdrop {
+  @apply fixed inset-0 bg-black/50 z-40 transition-opacity duration-300;
+}
+.sidebar-backdrop-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar-backdrop-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-drawer {
+  @apply fixed top-0 left-0 h-full z-50 transition-transform duration-300 ease-in-out;
+  width: 280px;
+}
+.sidebar-drawer-closed {
+  transform: translateX(-100%);
+}
+.sidebar-drawer-open {
+  transform: translateX(0);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }

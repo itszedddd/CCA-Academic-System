@@ -53,6 +53,28 @@ export default function TuitionML({ currentRole, authFetch }) {
     }
   };
 
+  const handlePaidChange = (newPaid) => {
+    const val = isNaN(newPaid) ? 0 : newPaid;
+    let newStatus = editingTuition.status;
+    if (val >= editingTuition.amount_due) {
+      newStatus = 'Paid';
+    } else if (val < editingTuition.amount_due && newStatus === 'Paid') {
+      newStatus = 'Pending';
+    }
+    setEditingTuition({ ...editingTuition, amount_paid: val, status: newStatus });
+  };
+
+  const handleDueChange = (newDue) => {
+    const val = isNaN(newDue) ? 0 : newDue;
+    let newStatus = editingTuition.status;
+    if (editingTuition.amount_paid >= val) {
+      newStatus = 'Paid';
+    } else if (editingTuition.amount_paid < val && newStatus === 'Paid') {
+      newStatus = 'Pending';
+    }
+    setEditingTuition({ ...editingTuition, amount_due: val, status: newStatus });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
@@ -118,13 +140,13 @@ export default function TuitionML({ currentRole, authFetch }) {
           <table className="w-full">
             <thead className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-6 py-4 text-left text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">Target Context</th>
-                <th className="px-6 py-4 text-left text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">Financial Load</th>
-                <th className="px-6 py-4 text-left text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">Payment Pipeline</th>
-                <th className="px-6 py-4 text-left text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">AI Status</th>
-                <th className="px-6 py-4 text-left text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">Risk Profiling</th>
+                <th className="px-6 py-4 text-left">Target Context</th>
+                <th className="px-6 py-4 text-left">Financial Load</th>
+                <th className="px-6 py-4 text-left">Payment Pipeline</th>
+                <th className="px-6 py-4 text-left">AI Status</th>
+                <th className="px-6 py-4 text-left">Risk Profiling</th>
                 {(currentRole === 'Administrator' || currentRole === 'Cashier') && (
-                  <th className="px-6 py-4 text-right text-xs font-black font-cinzel text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actions</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 )}
               </tr>
             </thead>
@@ -230,15 +252,15 @@ export default function TuitionML({ currentRole, authFetch }) {
       {/* Adjust Ledger Modal */}
       {editingTuition && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-700 flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-between items-center shrink-0">
               <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
                 <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 Adjust Financial Ledger
               </h3>
               <button onClick={() => setEditingTuition(null)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-            <form onSubmit={handleLedgerUpdate} className="p-6 space-y-4">
+            <form onSubmit={handleLedgerUpdate} className="p-6 space-y-4 overflow-y-auto">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Target Context</label>
                 <div className="px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-400 font-bold">
@@ -248,13 +270,65 @@ export default function TuitionML({ currentRole, authFetch }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount Due</label>
-                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_due} onChange={e => setEditingTuition({...editingTuition, amount_due: parseFloat(e.target.value)})} />
+                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_due} onChange={e => handleDueChange(parseFloat(e.target.value))} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount Paid</label>
-                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_paid} onChange={e => setEditingTuition({...editingTuition, amount_paid: parseFloat(e.target.value)})} />
+                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_paid} onChange={e => handlePaidChange(parseFloat(e.target.value))} />
                 </div>
               </div>
+
+              {/* Quick Transaction Menu */}
+              <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-lg border border-brand-100 dark:border-brand-800 space-y-3">
+                 <label className="block text-sm font-bold text-brand-700 dark:text-brand-400">Incoming Payment (Cash/Transfer)</label>
+                 <div className="flex flex-col sm:flex-row gap-2">
+                   <div className="flex-1">
+                     <input type="text" id="or_num" required className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" placeholder="O.R. Number..." />
+                   </div>
+                   <div className="flex-1">
+                     <input type="number" step="0.01" id="quick_pay" className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" placeholder="Amount..." />
+                   </div>
+                 </div>
+                 <div className="flex justify-end space-x-2">
+                   <button type="button" onClick={async () => {
+                     const val = parseFloat(document.getElementById('quick_pay').value);
+                     const orn = document.getElementById('or_num').value;
+                     if (!isNaN(val) && val > 0 && orn.trim() !== '') {
+                       const payload = { amount: val, or_number: orn.trim(), date_recorded: new Date().toISOString() };
+                       const res = await authFetch(`${API}/tuition/${editingTuition.id}/pay`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                       if(res?.ok) {
+                         const n = await res.json();
+                         const nPaid = editingTuition.amount_paid + val;
+                         let nStatus = editingTuition.status;
+                         if(nPaid >= editingTuition.amount_due) nStatus = 'Paid';
+                         setEditingTuition({...editingTuition, amount_paid: nPaid, status: nStatus, payments: [...(editingTuition.payments||[]), n]});
+                         document.getElementById('quick_pay').value = '';
+                         document.getElementById('or_num').value = '';
+                         fetchData();
+                       }
+                     }
+                   }} className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-md hover:bg-brand-700 transition">Save Payment & Record O.R.</button>
+                 </div>
+                 
+                 {/* Transaction History Log inside modal */}
+                 {editingTuition.payments && editingTuition.payments.length > 0 && (
+                   <div className="mt-4 pt-3 border-t border-brand-200/50 dark:border-brand-800/50">
+                     <h4 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Transaction Log</h4>
+                     <ul className="space-y-1.5 max-h-32 overflow-y-auto pr-2">
+                       {editingTuition.payments.map((p, idx) => (
+                         <li key={idx} className="flex justify-between items-center text-xs bg-white dark:bg-slate-800 px-2 py-1.5 rounded border border-slate-100 dark:border-slate-700 shadow-sm">
+                           <span className="font-bold text-slate-700 dark:text-slate-300">O.R. {p.or_number}</span>
+                           <div className="text-right">
+                             <div className="font-bold text-green-600 dark:text-green-400">+₱{p.amount.toLocaleString()}</div>
+                             <div className="text-[9px] text-slate-400">{new Date(p.date_recorded).toLocaleDateString()}</div>
+                           </div>
+                         </li>
+                       ))}
+                     </ul>
+                   </div>
+                 )}
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status Pipeline</label>
                 <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-bold" value={editingTuition.status} onChange={e => setEditingTuition({...editingTuition, status:e.target.value})}>

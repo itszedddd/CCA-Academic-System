@@ -1,6 +1,6 @@
 authtoken: 3AWftRRAzTcP8TuNoIqOcDeomYF_21og9bRSrDNF4H6Yy99RG
 version: 2
 tunnels:
-  frontend:
-    addr: 5173
+  hop:
+    addr: 3003
     proto: http

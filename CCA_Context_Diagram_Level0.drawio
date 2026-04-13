@@ -1,0 +1,81 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="CCA Context Diagram Level 0" id="cca-ctx0">
+    <mxGraphModel dx="1422" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="CCA AI-Integrated&lt;br&gt;Academic &amp; Enrollment&lt;br&gt;Management System" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontStyle=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="400" y="280" width="250" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="admin" value="Administrator" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="440" y="30" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="reg" value="Registrar" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="230" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="par" value="Parent" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="teach" value="Teacher" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="230" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cash" value="Cashier" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="430" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="stu" value="Student" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;strokeWidth=2;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="440" y="630" width="170" height="100" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ea1" value="System Configurations,&lt;br&gt;User Account Control" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="admin" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ea2" value="Master Analytics,&lt;br&gt;Audit Logs" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="admin">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="er1" value="Student Profiles,&lt;br&gt;Enrollment OCR Forms,&lt;br&gt;Section Assignments" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="reg" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="er2" value="Processed Rosters,&lt;br&gt;OCR Digitized Text" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0;exitY=0.45;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="reg">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ep1" value="Authentication Request" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="par" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep2" value="Overall Student Grades,&lt;br&gt;Tuition Balance,&lt;br&gt;Attendance Summary" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0;exitY=0.85;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="par">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="et1" value="Student Grades,&lt;br&gt;Daily Attendance" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="teach" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="et2" value="Class Rosters,&lt;br&gt;AI Academic Warnings" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="teach">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ec1" value="Tuition Payments,&lt;br&gt;Fee Configurations" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="cash" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="ec2" value="Financial Analytics,&lt;br&gt;Tuition Ledgers,&lt;br&gt;AI Default Predictions" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0;entryY=0.7;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="cash">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="es1" value="Authentication Request" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="stu" target="sys">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="es2" value="Report Cards,&lt;br&gt;Attendance Calendar,&lt;br&gt;AI Study Resources" style="endArrow=classic;html=1;fontSize=9;labelBackgroundColor=#FFFFFF;fontColor=#000000;strokeColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="sys" target="stu">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
