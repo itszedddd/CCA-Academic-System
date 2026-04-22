@@ -150,7 +150,9 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           <th className="px-6 py-3">Grade</th>
           <th className="px-6 py-3">Section</th>
           <th className="px-6 py-3">Status</th>
-          <th className="px-6 py-3 text-right">Actions</th>
+          {['Teacher', 'Registrar'].includes(currentRole) && (
+            <th className="px-6 py-3 text-right">Actions</th>
+          )}
         </tr>
       </thead>
       <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -189,14 +191,16 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                   ) : <span className="text-slate-400 text-sm">—</span>}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+                  <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
                 </td>
-                <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                  {currentRole === 'Teacher' && (
-                    <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
-                  )}
-                  {currentRole === 'Administrator' && <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition">Edit</button>}
-                </td>
+                {['Teacher', 'Registrar'].includes(currentRole) && (
+                  <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
+                    {currentRole === 'Teacher' && (
+                      <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
+                    )}
+                    {currentRole === 'Registrar' && <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition font-bold">Edit</button>}
+                  </td>
+                )}
               </tr>
               {isExpanded && (
                 <tr>
@@ -334,7 +338,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
               <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
             </div>
-            {(currentRole === 'Administrator' || currentRole === 'Registrar') && (
+            {currentRole === 'Registrar' && (
               <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 Register Student
@@ -459,7 +463,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
                   <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
-                    {['Enrolled','Pending','Dropped','Transferred'].map(s => <option key={s}>{s}</option>)}
+                    {['Enrolled','Pending','Dropped','Transferred', 'Hold: Incomplete Req'].map(s => <option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>

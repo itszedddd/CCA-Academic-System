@@ -2,6 +2,11 @@ try:
     import pytesseract
     from PIL import Image
     import io
+    import shutil
+
+    # Auto-detect Tesseract path on Windows
+    if not shutil.which("tesseract"):
+        pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
     def extract_text_from_image(file_bytes: bytes) -> str:
         try:

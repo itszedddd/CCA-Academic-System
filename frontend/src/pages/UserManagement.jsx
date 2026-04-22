@@ -6,7 +6,7 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1, section: '' });
+  const [formData, setFormData] = useState({ username: '', password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function UserManagement({ authFetch, currentRole }) {
 
   const openAddModal = () => {
     setEditingUser(null);
-    setFormData({ username: '', password: '', role: 'Administrator', student_id: '', is_active: 1, section: '' });
+    setFormData({ username: '', password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
     setShowModal(true);
   };
 
@@ -78,7 +78,7 @@ export default function UserManagement({ authFetch, currentRole }) {
     fetchUsers();
   };
 
-  if (currentRole !== 'Administrator') {
+  if (currentRole !== 'Superadmin') {
     return <div className="p-8 text-center text-red-500 font-bold">Unauthorized Access</div>;
   }
 
@@ -126,7 +126,7 @@ export default function UserManagement({ authFetch, currentRole }) {
                   <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{u.username}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      u.role === 'Administrator' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
+                      u.role === 'Principal' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
                       u.role === 'Teacher' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
                       u.role === 'Cashier' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
                       u.role === 'Registrar' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
@@ -188,7 +188,7 @@ export default function UserManagement({ authFetch, currentRole }) {
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">System Role</label>
                 <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-semibold" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
-                  {['Administrator', 'Teacher', 'Registrar', 'Cashier', 'Student', 'Parent'].map(r => <option key={r}>{r}</option>)}
+                  {['Superadmin', 'Principal', 'Teacher', 'Registrar', 'Admission', 'Cashier', 'Student', 'Parent'].map(r => <option key={r}>{r}</option>)}
                 </select>
               </div>
               

@@ -33,6 +33,10 @@ class StudentBase(BaseModel):
     contact_email: Optional[str] = None
     profile_image: Optional[str] = None
     enrollment_status: Optional[str] = "Pending"
+    req_birth_cert: Optional[int] = 0
+    req_form_138: Optional[int] = 0
+    req_good_moral: Optional[int] = 0
+    req_pictures: Optional[int] = 0
 
 class StudentCreate(StudentBase):
     pass
@@ -112,6 +116,18 @@ class EnrollmentFormBase(BaseModel):
     file_path: str
     extracted_text: Optional[str] = None
     status: Optional[str] = "Processing"
+    remarks: Optional[str] = None
+
+class EnrollmentFormVerify(BaseModel):
+    status: str
+    remarks: Optional[str] = None
+    student_first_name: Optional[str] = None
+    student_last_name: Optional[str] = None
+    student_dob: Optional[str] = None
+    req_birth_cert: Optional[int] = 0
+    req_form_138: Optional[int] = 0
+    req_good_moral: Optional[int] = 0
+    req_pictures: Optional[int] = 0
 
 class EnrollmentFormCreate(EnrollmentFormBase):
     pass

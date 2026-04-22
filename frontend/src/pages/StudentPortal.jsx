@@ -52,7 +52,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
           <svg className="w-8 h-8 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
         <h3 className="text-xl font-bold text-slate-800 dark:text-white">No Student Account Found</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-sm mx-auto">No enrolled students exist yet. Ask your Administrator to register a student first.</p>
+        <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-sm mx-auto">No enrolled students exist yet. Ask your Principal to register a student first.</p>
       </div>
     );
   }
@@ -72,7 +72,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
     <div className="space-y-6">
       
       {/* Target Student Navigation Selector (Visible to Admin/Staff) */}
-      {['Administrator', 'Teacher', 'Registrar', 'Cashier'].includes(currentRole) && (
+      {['Principal', 'Teacher', 'Registrar', 'Cashier'].includes(currentRole) && (
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center space-x-4">
           <label className="text-sm font-bold text-slate-700 dark:text-slate-300 shrink-0">Viewing Profile:</label>
           <select 

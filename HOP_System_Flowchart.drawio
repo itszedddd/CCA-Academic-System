@@ -1,0 +1,226 @@
+<mxfile host="app.diagrams.net" agent="Antigravity" version="26.0">
+  <diagram id="hop-flow" name="HOP System Flowchart">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- TITLE -->
+        <mxCell id="title" value="House of Puppies (HOP) — System Process Flowchart" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="350" y="10" width="700" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ===== START ===== -->
+        <mxCell id="start" value="START" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="610" y="70" width="120" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- LOGIN -->
+        <mxCell id="login" value="User Enters&#xa;Username &amp; Password" style="shape=parallelogram;perimeter=parallelogramPerimeter;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="580" y="140" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_s_l" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="start" target="login" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- AUTH CHECK -->
+        <mxCell id="auth" value="Credentials&#xa;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="220" width="120" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_l_a" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="login" target="auth" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- FAIL -->
+        <mxCell id="fail" value="Show Error&#xa;Message" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="230" width="110" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_a_f" value="No" style="edgeStyle=orthogonalEdgeStyle;fontStyle=1;fontSize=10;" edge="1" source="auth" target="fail" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e_f_l" style="edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" source="fail" target="login" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="900" y="255"/><mxPoint x="900" y="165"/></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ROLE CHECK -->
+        <mxCell id="role_check" value="Identify&#xa;User Role" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="610" y="340" width="120" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_a_r" value="Yes" style="edgeStyle=orthogonalEdgeStyle;fontStyle=1;fontSize=10;" edge="1" source="auth" target="role_check" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ===== 5 ROLE BRANCHES ===== -->
+
+        <!-- OWNER -->
+        <mxCell id="owner_dash" value="🏢 OWNER&#xa;Analytics Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="460" width="170" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r_o" value="owner" style="edgeStyle=orthogonalEdgeStyle;fontSize=9;fontStyle=2;" edge="1" source="role_check" target="owner_dash" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="own_a1" value="View Revenue&#xa;Charts (W/M/Y)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="540" width="130" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="own_a2" value="Income&#xa;Comparisons" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="600" width="130" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="own_a3" value="Generate&#xa;Clinic Reports" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="660" width="130" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="own_a4" value="Manage&#xa;Employees (CRUD)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="720" width="130" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="own_a5" value="View Clients,&#xa;Pets, Inventory" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="20" y="780" width="130" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="eo1" style="" edge="1" source="owner_dash" target="own_a1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="eo2" style="" edge="1" source="own_a1" target="own_a2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="eo3" style="" edge="1" source="own_a2" target="own_a3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="eo4" style="" edge="1" source="own_a3" target="own_a4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="eo5" style="" edge="1" source="own_a4" target="own_a5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- VET ADMIN -->
+        <mxCell id="vet_dash" value="🩺 VET_ADMIN&#xa;Veterinary Queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="460" width="170" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r_v" value="vet_admin" style="edgeStyle=orthogonalEdgeStyle;fontSize=9;fontStyle=2;" edge="1" source="role_check" target="vet_dash" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="vet_a1" value="View Pending-Vet&#xa;Patient Queue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="540" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="vet_a2" value="Examine Patient&#xa;(Diagnosis + Treatment)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="600" width="160" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="vet_a3" value="Write Prescriptions&#xa;(Medication, Dosage)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="660" width="160" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="vet_a4" value="Set Price &amp;&#xa;Complete Record" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="720" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="vet_a5" value="Print Prescription&#xa;(PDF Export)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="240" y="780" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="vet_a6" value="Access ALL&#xa;System Modules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="240" y="840" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ev1" style="" edge="1" source="vet_dash" target="vet_a1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ev2" style="" edge="1" source="vet_a1" target="vet_a2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ev3" style="" edge="1" source="vet_a2" target="vet_a3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ev4" style="" edge="1" source="vet_a3" target="vet_a4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ev5" style="" edge="1" source="vet_a4" target="vet_a5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ev6" style="" edge="1" source="vet_a5" target="vet_a6" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- STAFF RECORDS -->
+        <mxCell id="rec_dash" value="📋 STAFF_RECORDS&#xa;Records Dashboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="490" y="460" width="170" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r_sr" value="staff_records" style="edgeStyle=orthogonalEdgeStyle;fontSize=9;fontStyle=2;" edge="1" source="role_check" target="rec_dash" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="sr_a1" value="Register New&#xa;Client (PetOwner)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="490" y="540" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sr_a2" value="Register New Pet&#xa;(Link to Owner)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="490" y="600" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sr_a3" value="Submit Staff Intake&#xa;(Vitals, Vax, History)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="490" y="660" width="160" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="sr_a4" value="Record → Pending-Vet&#xa;(Queued for Vet)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="490" y="720" width="160" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="esr1" style="" edge="1" source="rec_dash" target="sr_a1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esr2" style="" edge="1" source="sr_a1" target="sr_a2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esr3" style="" edge="1" source="sr_a2" target="sr_a3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esr4" style="" edge="1" source="sr_a3" target="sr_a4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- HANDOFF ARROW: Staff Records → Vet Queue -->
+        <mxCell id="handoff" value="Handoff to Vet" style="edgeStyle=orthogonalEdgeStyle;strokeColor=#cc0000;fontColor=#cc0000;fontStyle=3;fontSize=9;dashed=1;dashPattern=8 4;" edge="1" source="sr_a4" target="vet_a1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="570" y="780"/><mxPoint x="440" y="780"/><mxPoint x="440" y="560"/></Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- STAFF SMS -->
+        <mxCell id="sms_dash" value="💬 STAFF_SMS&#xa;AI SMS Reminders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="460" width="170" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r_ss" value="staff_sms" style="edgeStyle=orthogonalEdgeStyle;fontSize=9;fontStyle=2;" edge="1" source="role_check" target="sms_dash" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="ss_a1" value="Select Client&#xa;&amp; Pet" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="540" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ss_a2" value="Choose Reminder Type&#xa;(Follow-up, Vaccination...)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="710" y="600" width="170" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ss_a3" value="🤖 AI Auto-Generates&#xa;SMS Template Message" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="710" y="660" width="170" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ss_a4" value="Preview &amp; Set&#xa;Schedule Date" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="720" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ss_a5" value="Submit →&#xa;Status: Pending" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="720" y="780" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="ess1" style="" edge="1" source="sms_dash" target="ss_a1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ess2" style="" edge="1" source="ss_a1" target="ss_a2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ess3" style="" edge="1" source="ss_a2" target="ss_a3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ess4" style="" edge="1" source="ss_a3" target="ss_a4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="ess5" style="" edge="1" source="ss_a4" target="ss_a5" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- STAFF INVENTORY -->
+        <mxCell id="inv_dash" value="📦 STAFF_INVENTORY&#xa;Inventory Management" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="460" width="180" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r_si" value="staff_inventory" style="edgeStyle=orthogonalEdgeStyle;fontSize=9;fontStyle=2;" edge="1" source="role_check" target="inv_dash" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="si_a1" value="View Stock&#xa;Levels &amp; Expiry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="970" y="540" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="si_a2" value="Add / Edit&#xa;Inventory Items" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="970" y="600" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="si_a3" value="Update Stock&#xa;Quantities" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="970" y="660" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="si_a4" value="Delete Expired /&#xa;Discontinued Items" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="970" y="720" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="esi1" style="" edge="1" source="inv_dash" target="si_a1" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esi2" style="" edge="1" source="si_a1" target="si_a2" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esi3" style="" edge="1" source="si_a2" target="si_a3" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="esi4" style="" edge="1" source="si_a3" target="si_a4" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- ===== LOGOUT CONVERGENCE ===== -->
+        <mxCell id="logout" value="Logout" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="920" width="120" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="end" value="END" style="ellipse;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="600" y="1000" width="80" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_lo" style="" edge="1" source="logout" target="end" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <!-- Connect each branch to logout -->
+        <mxCell id="e_own_lo" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="own_a5" target="logout" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="85" y="920"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e_vet_lo" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="vet_a6" target="logout" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="310" y="920"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e_sr_lo" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="sr_a4" target="logout" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="570" y="790"/><mxPoint x="570" y="920"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e_ss_lo" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="ss_a5" target="logout" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="790" y="920"/></Array></mxGeometry>
+        </mxCell>
+        <mxCell id="e_si_lo" style="edgeStyle=orthogonalEdgeStyle;dashed=1;strokeColor=#999999;" edge="1" source="si_a4" target="logout" parent="1">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="1045" y="920"/></Array></mxGeometry>
+        </mxCell>
+
+        <!-- LEGEND -->
+        <mxCell id="legend_box" value="LEGEND&#xa;━━━━━━━━━━━━━━━━━━&#xa;🟢 Green  = Owner / Inventory&#xa;🔵 Blue     = Vet Admin&#xa;🟣 Purple  = Staff Records&#xa;🔴 Red      = Staff SMS&#xa;🟡 Yellow  = Decision / AI process&#xa;⟹ Dashed red = Handoff between roles" style="shape=note;whiteSpace=wrap;html=0;backgroundOutline=1;size=18;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="470" width="250" height="160" as="geometry"/>
+        </mxCell>
+
+        <!-- AI NOTE -->
+        <mxCell id="ai_note" value="🤖 Rule-Based AI Features&#xa;━━━━━━━━━━━━━━━━━━━━&#xa;1. SMS Template Engine:&#xa;   Auto-generates messages based on&#xa;   reminder type + client/pet data&#xa;2. Predictive Follow-Up Scheduling:&#xa;   Determines next visit dates from&#xa;   treatment rules&#xa;3. Revenue Analytics:&#xa;   Yearly income comparisons with&#xa;   % change calculations" style="shape=note;whiteSpace=wrap;html=0;backgroundOutline=1;size=18;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="660" width="270" height="210" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

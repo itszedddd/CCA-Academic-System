@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 
 const ROLE_COLORS = {
-  Administrator: 'bg-purple-600',
-  Teacher:       'bg-emerald-600',
-  Registrar:     'bg-amber-600',
-  Cashier:       'bg-teal-600',
-  Parent:        'bg-orange-500',
-  Student:       'bg-brand-600',
+  Principal: 'bg-purple-600',
+  Teacher:   'bg-blue-600',
+  Registrar: 'bg-amber-600',
+  Admission: 'bg-indigo-600',
+  Cashier:   'bg-emerald-600',
+  Student:   'bg-slate-600',
+  Parent:    'bg-slate-500',
 };
 
 export default function Sidebar({ navigation, activeTab, setActiveTab, currentRole, user, handleLogout, isOpen, onClose }) {

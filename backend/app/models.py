@@ -14,7 +14,13 @@ class Student(Base):
     section = Column(String, nullable=True)
     contact_email = Column(String, nullable=True)    # Parent/Guardian email
     profile_image = Column(String, nullable=True)    # External URL mapping
-    enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped
+    enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped, Hold: Incomplete Req
+
+    # Admission Checklist Requirements
+    req_birth_cert = Column(Integer, default=0)
+    req_form_138 = Column(Integer, default=0)
+    req_good_moral = Column(Integer, default=0)
+    req_pictures = Column(Integer, default=0)
 
     academic_records = relationship("AcademicRecord", back_populates="student")
     attendance_records = relationship("Attendance", back_populates="student")
@@ -56,6 +62,7 @@ class EnrollmentForm(Base):
     file_path = Column(String)
     extracted_text = Column(String, nullable=True)
     status = Column(String, default="Processing")  # Processing, Success, Needs Review
+    remarks = Column(String, nullable=True)
 
 
 class PaymentRecord(Base):

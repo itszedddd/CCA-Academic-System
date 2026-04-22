@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import os
 
 from .database import engine, Base
@@ -9,6 +10,8 @@ from . import models
 
 Base.metadata.create_all(bind=engine)
 os.makedirs("uploads", exist_ok=True)
+
+FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
 
 app = FastAPI(
     title="CCA System API",
@@ -31,14 +34,24 @@ app.add_middleware(
 app.include_router(aesms_router, prefix="/api")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-@app.get("/")
-def root():
-    return {
-        "system": "CCA",
-        "institution": "Calvary Christian Academy",
-        "message": "CCA System API is running.",
-    }
+# Serve frontend assets and static files
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIR, "assets")), name="frontend-assets")
 
 @app.get("/health")
 def health_check():
     return {"status": "ok", "system": "CCA"}
+
+# Catch-all: serve index.html for any non-API route (SPA support)
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    # If a specific file exists in dist, serve it
+    file_path = os.path.join(FRONTEND_DIR, full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    # Otherwise serve index.html for SPA routing
+    index = os.path.join(FRONTEND_DIR, "index.html")
+    if os.path.isfile(index):
+        return FileResponse(index)
+    return {"system": "CCA", "institution": "Calvary Christian Academy", "message": "CCA System API is running."}
+

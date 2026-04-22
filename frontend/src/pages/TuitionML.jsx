@@ -145,7 +145,7 @@ export default function TuitionML({ currentRole, authFetch }) {
                 <th className="px-6 py-4 text-left">Payment Pipeline</th>
                 <th className="px-6 py-4 text-left">AI Status</th>
                 <th className="px-6 py-4 text-left">Risk Profiling</th>
-                {(currentRole === 'Administrator' || currentRole === 'Cashier') && (
+                {currentRole === 'Cashier' && (
                   <th className="px-6 py-4 text-right">Actions</th>
                 )}
               </tr>
@@ -230,7 +230,7 @@ export default function TuitionML({ currentRole, authFetch }) {
                           </div>
                         )}
                       </td>
-                      {(currentRole === 'Administrator' || currentRole === 'Cashier') && (
+                      {currentRole === 'Cashier' && (
                         <td className="px-6 py-4 text-right">
                           <button 
                             onClick={() => setEditingTuition({...t})}

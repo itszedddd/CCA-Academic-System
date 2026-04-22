@@ -62,7 +62,8 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings,
           }
         </button>
 
-        {/* Notifications */}
+        {/* Notifications - Teacher only */}
+        {currentRole === 'Teacher' && (
         <div className="relative">
           <button onClick={() => setShowNotifications(p => !p)} className="relative p-2 text-slate-400 hover:text-brand-600 transition-colors focus:outline-none rounded-lg">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -71,7 +72,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings,
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden z-50">
               <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-between items-center">
-                <h3 className="font-bold text-slate-800 dark:text-white text-sm">{currentRole === 'Student' ? 'My Notifications' : 'AI Warnings'}</h3>
+                <h3 className="font-bold text-slate-800 dark:text-white text-sm">AI Warnings</h3>
                 <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-bold">{warnings.length}</span>
               </div>
               <div className="max-h-64 overflow-y-auto">
@@ -79,20 +80,21 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings,
                   ? <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">No new notifications.</div>
                   : warnings.map((w, i) => (
                     <div key={i} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer transition">
-                      <p className="text-sm font-semibold text-slate-800 dark:text-white">{currentRole === 'Student' ? `Performance: ${w.subject}` : `${w.student_name} — ${w.subject}`}</p>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-white">{`${w.student_name} — ${w.subject}`}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{w.message}</p>
                     </div>
                   ))
                 }
               </div>
               <div className="px-4 py-2 bg-slate-50 dark:bg-slate-700 text-center border-t border-slate-100 dark:border-slate-700">
-                <button onClick={() => { setShowNotifications(false); setActiveTab(currentRole === 'Student' ? 'Student Portal' : 'Academic Warning AI'); }} className="text-xs font-bold text-brand-600 hover:text-brand-800">
-                  {currentRole === 'Student' ? 'View My Portal →' : 'View All Warnings →'}
+                <button onClick={() => { setShowNotifications(false); setActiveTab('AI Performance Tracker'); }} className="text-xs font-bold text-brand-600 hover:text-brand-800">
+                  View All Warnings →
                 </button>
               </div>
             </div>
           )}
         </div>
+        )}
       </div>
     </header>
   );
