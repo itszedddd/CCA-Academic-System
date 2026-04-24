@@ -108,15 +108,82 @@ class TuitionPayment(TuitionPaymentBase):
 
 
 # ---------------------------------------------------------------------------
-# Enrollment Forms (OCR)
+# Enrollment Forms (Structured Digital Form)
 # ---------------------------------------------------------------------------
 class EnrollmentFormBase(BaseModel):
     student_id: Optional[int] = None
     form_type: str
-    file_path: str
+    status: Optional[str] = "Needs Review"
+
+    # Structured student data
+    sex: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_place: Optional[str] = None
+    home_address: Optional[str] = None
+    father_name: Optional[str] = None
+    father_contact: Optional[str] = None
+    father_occupation: Optional[str] = None
+    father_employer: Optional[str] = None
+    mother_name: Optional[str] = None
+    mother_contact: Optional[str] = None
+    mother_occupation: Optional[str] = None
+    mother_employer: Optional[str] = None
+    church_attended: Optional[str] = None
+    church_member: Optional[str] = None
+    pastor_name: Optional[str] = None
+    previous_school: Optional[str] = None
+    grade_applying_for: Optional[str] = None
+    repeated_grade: Optional[str] = None
+    expelled_dismissed: Optional[str] = None
+    learning_disabilities: Optional[str] = None
+    special_talents: Optional[str] = None
+    how_heard: Optional[str] = None
+    reason_selecting: Optional[str] = None
+
+    # Legacy / attachment fields
+    file_path: Optional[str] = None
     extracted_text: Optional[str] = None
-    status: Optional[str] = "Processing"
     remarks: Optional[str] = None
+    submitted_by: Optional[int] = None
+
+class EnrollmentFormCreate(BaseModel):
+    """Schema for creating a new enrollment form via structured digital input."""
+    student_first_name: str
+    student_last_name: str
+    form_type: str = "Pre-Registration Application"
+    grade_applying_for: Optional[str] = None
+
+    # Student info
+    sex: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_place: Optional[str] = None
+    home_address: Optional[str] = None
+
+    # Family info
+    father_name: Optional[str] = None
+    father_contact: Optional[str] = None
+    father_occupation: Optional[str] = None
+    father_employer: Optional[str] = None
+    mother_name: Optional[str] = None
+    mother_contact: Optional[str] = None
+    mother_occupation: Optional[str] = None
+    mother_employer: Optional[str] = None
+
+    # Church info
+    church_attended: Optional[str] = None
+    church_member: Optional[str] = None
+    pastor_name: Optional[str] = None
+
+    # Academic history
+    previous_school: Optional[str] = None
+    repeated_grade: Optional[str] = None
+    expelled_dismissed: Optional[str] = None
+    learning_disabilities: Optional[str] = None
+    special_talents: Optional[str] = None
+
+    # General
+    how_heard: Optional[str] = None
+    reason_selecting: Optional[str] = None
 
 class EnrollmentFormVerify(BaseModel):
     status: str
@@ -128,9 +195,6 @@ class EnrollmentFormVerify(BaseModel):
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0
     req_pictures: Optional[int] = 0
-
-class EnrollmentFormCreate(EnrollmentFormBase):
-    pass
 
 class EnrollmentForm(EnrollmentFormBase):
     id: int
@@ -157,14 +221,3 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
-
-
-# ---------------------------------------------------------------------------
-# Resource Recommendation (response-only schema)
-# ---------------------------------------------------------------------------
-class ResourceRecommendation(BaseModel):
-    subject: str
-    average_score: float
-    resource_title: str
-    resource_url: str
-    resource_type: str   # Video, Article, Practice Set

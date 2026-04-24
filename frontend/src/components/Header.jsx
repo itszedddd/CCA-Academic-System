@@ -1,4 +1,4 @@
-export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings, showNotifications, setShowNotifications, setActiveTab, searchQuery, setSearchQuery, showSearchResults, setShowSearchResults, searchResults, currentRole, onMenuToggle }) {
+export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessibleMode, setIsAccessibleMode, warnings, showNotifications, setShowNotifications, setActiveTab, searchQuery, setSearchQuery, showSearchResults, setShowSearchResults, searchResults, currentRole, onMenuToggle }) {
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-30">
       <div className="flex items-center space-x-3 min-w-0">
@@ -62,6 +62,11 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings,
           }
         </button>
 
+        {/* Accessibility mode */}
+        <button onClick={() => setIsAccessibleMode(p => !p)} className={`p-2 transition-colors focus:outline-none rounded-lg font-bold text-sm ${isAccessibleMode ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/30' : 'text-slate-400 hover:text-brand-600 dark:hover:text-amber-400'}`} title="Toggle High Contrast / Large Text">
+          A+
+        </button>
+
         {/* Notifications - Teacher only */}
         {currentRole === 'Teacher' && (
         <div className="relative">
@@ -79,7 +84,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, warnings,
                 {warnings.length === 0
                   ? <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">No new notifications.</div>
                   : warnings.map((w, i) => (
-                    <div key={i} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer transition">
+                    <div key={i} onClick={() => { setShowNotifications(false); setActiveTab('Students'); setSearchQuery(w.student_name); }} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer transition">
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">{`${w.student_name} — ${w.subject}`}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{w.message}</p>
                     </div>

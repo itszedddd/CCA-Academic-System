@@ -4,3 +4,7 @@ tunnels:
   hop:
     addr: 3003
     proto: http
+  cca:
+    addr: 8000
+    proto: http
+    hostname: rainless-jeremiah-uncogged.ngrok-free.dev

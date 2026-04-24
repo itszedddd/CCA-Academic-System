@@ -10,7 +10,7 @@ const SECTION_META = {
 };
 const API = '/api';
 
-export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch }) {
+export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch, forms }) {
   const [showRegister, setShowRegister] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -20,9 +20,9 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [editingGradeScore, setEditingGradeScore] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('All');
+  const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
   const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
-  const [recommendations, setRecommendations] = useState([]);
   const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled', username:'', password:'' });
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
@@ -71,8 +71,6 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
     const res = await fetch(`${API}/students/${id}`);
     if (res.ok) {
       setSelectedStudent(await res.json());
-      const recRes = await fetch(`${API}/resource_recommendations/${id}`);
-      setRecommendations(recRes.ok ? await recRes.json() : []);
       setExpandedStudentId(id);
     }
   };
@@ -119,12 +117,14 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   };
 
   const uniqueSections = ['All', ...new Set(students.map(s => s.section).filter(Boolean))].sort();
+  const uniqueSchoolYears = ['All', ...new Set(students.map(s => s.school_year).filter(Boolean))].sort().reverse();
 
   const filteredStudents = students
     .filter(s => {
       const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || String(s.id).includes(searchQuery);
       const matchesSection = sectionFilter === 'All' || s.section === sectionFilter;
-      return matchesSearch && matchesSection;
+      const matchesYear = schoolYearFilter === 'All' || s.school_year === schoolYearFilter;
+      return matchesSearch && matchesSection && matchesYear;
     })
     .sort((a, b) => {
       const nameA = a.last_name.toLowerCase();
@@ -293,24 +293,32 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                         </div>
                       )}
 
-                      {recommendations.length > 0 && (
-                        <>
-                          <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700 flex items-center mt-6">
-                            <svg className="w-4 h-4 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            AI Resource Recommendations
-                          </h4>
-                          <div className="space-y-2 mb-4">
-                            {recommendations.map((rec, i) => (
-                              <div key={i} className="p-3 rounded-xl border border-brand-100 bg-brand-50/50 dark:bg-brand-900/20 dark:border-brand-800 flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{rec.resource_title}</p>
-                                  <p className="text-xs text-slate-500 mt-0.5"><span className="font-medium text-red-500">{rec.subject}</span> · Avg: {rec.average_score}% · <span className="text-brand-600">{rec.resource_type}</span></p>
-                                </div>
-                                <a href={rec.resource_url} target="_blank" rel="noreferrer" className="px-3 py-1.5 text-xs bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium ml-3 flex-shrink-0">Open →</a>
+                      {/* Historical Records (Admission/Registrar/Principal) */}
+                      {['Admission', 'Registrar', 'Principal'].includes(currentRole) && (
+                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
+                          <h4 className="font-bold text-slate-800 dark:text-white mb-3">Historical Record Details</h4>
+                          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-sm text-slate-600 dark:text-slate-400">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                              <div><span className="block text-xs font-bold text-slate-400 uppercase">Tracked School Year</span><span className="font-semibold text-slate-800 dark:text-white">{s.school_year || 'N/A'}</span></div>
+                              <div><span className="block text-xs font-bold text-slate-400 uppercase">Tracked Section</span><span className="font-semibold text-slate-800 dark:text-white">{s.section || 'N/A'}</span></div>
+                            </div>
+                            {forms && forms.filter(f => f.student_id === s.id).length > 0 ? (
+                              <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
+                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Past Digital Enrollment Forms</span>
+                                <ul className="space-y-2">
+                                  {forms.filter(f => f.student_id === s.id).map(f => (
+                                    <li key={f.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded">
+                                      <span>{f.form_type} - {f.grade_applying_for}</span>
+                                      <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{f.status}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-                            ))}
+                            ) : (
+                              <p className="text-xs text-slate-500 italic mt-4">No past enrollment forms found in the digital registry.</p>
+                            )}
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </td>
@@ -361,7 +369,14 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
-          <div className="flex w-full sm:w-auto gap-3">
+          <div className="flex w-full sm:w-auto gap-3 flex-wrap sm:flex-nowrap">
+            <select 
+              value={schoolYearFilter} 
+              onChange={(e) => setSchoolYearFilter(e.target.value)}
+              className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 flex-1 sm:flex-none font-medium"
+            >
+              {uniqueSchoolYears.map(yr => <option key={yr} value={yr}>{yr === 'All' ? 'All Years' : `SY ${yr}`}</option>)}
+            </select>
             <select 
               value={sectionFilter} 
               onChange={(e) => setSectionFilter(e.target.value)}

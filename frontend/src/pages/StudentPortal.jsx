@@ -298,37 +298,6 @@ export default function StudentPortal({ students, attendance, currentRole, user,
         </div>
       </div>
 
-      {/* AI Resource Recommendations */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex items-center">
-          <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-          <h2 className="text-sm font-black font-cinzel text-slate-800 dark:text-white uppercase tracking-wider">AI Recommendations</h2>
-          <span className="ml-2 px-2 py-0.5 bg-brand-100 text-brand-700 text-xs font-bold rounded-full">Powered by CCA AI</span>
-        </div>
-        {recommendations.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Great job! No subjects are below the 75% threshold. Keep it up!</p>
-          </div>
-        ) : (
-          <div className="p-5 space-y-3">
-            {recommendations.map((rec, i) => (
-              <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-brand-100 dark:border-brand-800 bg-brand-50/50 dark:bg-brand-900/20 hover:shadow-sm transition">
-                <div className="flex-1 min-w-0 mr-4">
-                  <p className="text-sm font-semibold text-slate-800 dark:text-white truncate">{rec.resource_title}</p>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">{rec.subject} — {rec.average_score}%</span>
-                    <span className="text-xs text-brand-600 dark:text-brand-400 font-medium">{rec.resource_type}</span>
-                  </div>
-                </div>
-                <a href={rec.resource_url} target="_blank" rel="noreferrer"
-                  className="flex-shrink-0 px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition shadow-sm">
-                  Study Now →
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

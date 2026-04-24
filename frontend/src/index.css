@@ -33,7 +33,7 @@
 
 
 body {
-  @apply bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 antialiased transition-colors duration-300;
+  @apply bg-slate-50 text-slate-800 dark:bg-slate-800 dark:text-slate-100 antialiased transition-colors duration-300;
   font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
@@ -86,3 +86,35 @@ nav a, .menu-item {
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+/* Accessibility Mode */
+html.accessible-mode {
+  font-size: 105%; /* Increase base font size by 5% */
+}
+
+html.accessible-mode button {
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
+}
+
+html.accessible-mode input, html.accessible-mode select, html.accessible-mode textarea {
+  padding: 0.6rem !important;
+  font-size: 1rem !important;
+}
+
+html.accessible-mode .text-sm {
+  font-size: 0.95rem !important;
+}
+
+html.accessible-mode .text-xs {
+  font-size: 0.85rem !important;
+}
+
+html.accessible-mode .dark {
+  /* Provide slightly higher contrast in dark mode for accessible mode */
+  --tw-bg-opacity: 1;
+  background-color: rgb(15 23 42 / var(--tw-bg-opacity)); /* slate-900 for more contrast */
+}
+

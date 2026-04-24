@@ -59,10 +59,38 @@ class EnrollmentForm(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
     form_type = Column(String)
-    file_path = Column(String)
-    extracted_text = Column(String, nullable=True)
-    status = Column(String, default="Processing")  # Processing, Success, Needs Review
+    status = Column(String, default="Needs Review")  # Needs Review, Success, Hold, Rejected
+
+    # Structured enrollment data (replaces OCR extracted_text)
+    sex = Column(String, nullable=True)
+    birth_date = Column(String, nullable=True)
+    birth_place = Column(String, nullable=True)
+    home_address = Column(String, nullable=True)
+    father_name = Column(String, nullable=True)
+    father_contact = Column(String, nullable=True)
+    father_occupation = Column(String, nullable=True)
+    father_employer = Column(String, nullable=True)
+    mother_name = Column(String, nullable=True)
+    mother_contact = Column(String, nullable=True)
+    mother_occupation = Column(String, nullable=True)
+    mother_employer = Column(String, nullable=True)
+    church_attended = Column(String, nullable=True)
+    church_member = Column(String, nullable=True)
+    pastor_name = Column(String, nullable=True)
+    previous_school = Column(String, nullable=True)
+    grade_applying_for = Column(String, nullable=True)
+    repeated_grade = Column(String, nullable=True)
+    expelled_dismissed = Column(String, nullable=True)
+    learning_disabilities = Column(String, nullable=True)
+    special_talents = Column(String, nullable=True)
+    how_heard = Column(String, nullable=True)
+    reason_selecting = Column(String, nullable=True)
+
+    # Document attachments (file paths, stored as comma-separated if multiple)
+    file_path = Column(String, nullable=True)
+    extracted_text = Column(String, nullable=True)  # Kept for backward compat / JSON summary
     remarks = Column(String, nullable=True)
+    submitted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 
 
 class PaymentRecord(Base):

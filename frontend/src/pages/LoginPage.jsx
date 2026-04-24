@@ -9,14 +9,6 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Registration state
-  const [regData, setRegData] = useState({
-    first_name: '', last_name: '', grade_level: 'Pre-Kinder',
-    section: '', contact_email: '', username: '', password: ''
-  });
-  const [regProfilePic, setRegProfilePic] = useState(null);
-  const [regFormPic, setRegFormPic] = useState(null);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true); setError(''); setSuccessMsg('');
@@ -34,38 +26,6 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
         onLogin(data.access_token);
       } else {
         setError(data.detail || 'Login failed. Please check your credentials.');
-      }
-    } catch (err) {
-      setError('Connection error. Is the server running?');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError(''); setSuccessMsg('');
-
-    if (!regFormPic) {
-      setError("You must upload an Enrollment Form image for OCR scanning.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const fd = new FormData();
-      Object.keys(regData).forEach(key => fd.append(key, regData[key]));
-      if (regProfilePic) fd.append('profile_picture', regProfilePic);
-      fd.append('enrollment_form', regFormPic);
-
-      const res = await fetch('/api/auth/register', { method: 'POST', body: fd });
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccessMsg("Registration sent to the Registrar. You may log in once approved!");
-        setIsRegistering(false);
-      } else {
-        setError(data.detail || 'Registration failed.');
       }
     } catch (err) {
       setError('Connection error. Is the server running?');
@@ -122,7 +82,6 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
               </div>
             )}
             
-            {!isRegistering ? (
               <form onSubmit={handleLogin} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest px-1 transition-colors">Username</label>
@@ -168,53 +127,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
                   )}
                 </button>
               </form>
-            ) : (
-              <form onSubmit={handleRegister} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">First Name</label><input required className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm mt-1" value={regData.first_name} onChange={e => setRegData({...regData, first_name:e.target.value})} /></div>
-                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Last Name</label><input required className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm mt-1" value={regData.last_name} onChange={e => setRegData({...regData, last_name:e.target.value})} /></div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Grade Level</label>
-                   <select className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm mt-1" value={regData.grade_level} onChange={e => setRegData({...regData, grade_level:e.target.value})}>
-                     {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
-                   </select>
-                 </div>
-                 <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Section</label><input className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm mt-1" value={regData.section} onChange={e => setRegData({...regData, section:e.target.value})} placeholder="Optional" /></div>
-                </div>
-               
-                <div className="grid grid-cols-2 gap-4">
-                  <div><label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Platform Username</label><input required className="w-full py-2.5 px-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm mt-1" value={regData.username} onChange={e => setRegData({...regData, username:e.target.value})} /></div>
-                  <div>
-                   <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">Platform Password</label>
-                   <div className="relative mt-1">
-                     <input type={showPassword ? 'text' : 'password'} required className="w-full py-2.5 pl-3 pr-10 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-[#022868]/50 text-sm" value={regData.password} onChange={e => setRegData({...regData, password:e.target.value})} />
-                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-slate-400" onClick={() => setShowPassword(!showPassword)}>
-                       {showPassword ? <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> : <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>}
-                     </div>
-                   </div>
-                 </div>
-                </div>
- 
-                <div className="grid grid-cols-2 gap-4 mt-2 border-t border-slate-200 dark:border-slate-700 pt-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase px-1">2x2 Picture</label>
-                    <input type="file" accept="image/*" onChange={e => setRegProfilePic(e.target.files[0])} className="w-full text-xs text-slate-500 dark:text-slate-400 mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 dark:file:bg-slate-700 hover:file:bg-slate-200" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-[#022868] dark:text-blue-400 uppercase px-1 flex items-center">
-                      <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      Enrollment Form *
-                    </label>
-                    <input required type="file" accept="image/*" onChange={e => setRegFormPic(e.target.files[0])} className="w-full text-xs text-slate-500 dark:text-slate-400 mt-1 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#022868] file:text-white hover:file:bg-[#011a45]" />
-                  </div>
-                </div>
- 
-                <button type="submit" disabled={loading} className="w-full relative py-3.5 bg-[#022868] hover:bg-[#011a45] text-white font-bold tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] disabled:opacity-70 mt-6 flex justify-center items-center">
-                  {loading ? <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : 'SUBMIT PRE-REGISTRATION'}
-                </button>
-              </form>
-            )}
+
 
             <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700/50 text-center">
               <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Secure System</p>

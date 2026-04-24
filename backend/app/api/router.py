@@ -1,14 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query
 from sqlalchemy.orm import Session
-from typing import List
-from collections import defaultdict
+from typing import List, Optional
 import os
 import shutil
 
 from .. import models, schemas
 from ..database import get_db
-from ..utils import extract_text_from_image
-from ..ai_engine import analyze_grade_trend, suggest_resources, predict_tuition_default
+from ..utils import validate_required_fields, check_duplicate_student
+from ..ai_engine import analyze_grade_trend, predict_tuition_default
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 
 aesms_router = APIRouter()
@@ -279,31 +278,6 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
     return {"total_warnings": len(warnings), "warnings": warnings}
 
 
-# ---------------------------------------------------------------------------
-# AI: Resource Recommendation Engine
-# ---------------------------------------------------------------------------
-
-@aesms_router.get("/resource_recommendations/{student_id}", response_model=List[schemas.ResourceRecommendation])
-def get_resource_recommendations(student_id: int, db: Session = Depends(get_db)):
-    """Returns AI-driven study resource recommendations for a student's weakest subjects."""
-    student = db.query(models.Student).filter(models.Student.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    records = db.query(models.AcademicRecord).filter(
-        models.AcademicRecord.student_id == student_id
-    ).all()
-    if not records:
-        return []
-
-    subject_scores: dict[str, list[float]] = defaultdict(list)
-    for r in records:
-        subject_scores[r.subject].append(r.score)
-
-    subject_averages = {s: sum(sc) / len(sc) for s, sc in subject_scores.items()}
-    raw = suggest_resources(subject_averages)
-    return [schemas.ResourceRecommendation(**rec) for rec in raw]
-
 
 # ---------------------------------------------------------------------------
 # Tuition Payments & AI Risk Prediction
@@ -407,62 +381,121 @@ def get_analytics_report(db: Session = Depends(get_db), current_user: models.Use
     }
 
 # ---------------------------------------------------------------------------
-# Enrollment Forms (OCR)
+# Enrollment Forms (Structured Digital Form)
 # ---------------------------------------------------------------------------
 
-@aesms_router.post("/enrollment_forms/", response_model=schemas.EnrollmentForm)
-async def upload_enrollment_form(
-    student_id: int = Form(None),
-    student_first_name: str = Form(None),
-    student_last_name: str = Form(None),
-    form_type: str = Form(...),
-    file: UploadFile = File(...),
+@aesms_router.get("/students/lookup")
+def lookup_student(
+    first_name: str = Query(...),
+    last_name: str = Query(...),
     db: Session = Depends(get_db)
 ):
-    import time
-    
+    """Auto-fill endpoint: returns existing student data for returning students."""
+    student = check_duplicate_student(db, models.Student, first_name, last_name)
+    if not student:
+        return {"found": False}
+    return {
+        "found": True,
+        "student_id": student.id,
+        "first_name": student.first_name,
+        "last_name": student.last_name,
+        "grade_level": student.grade_level,
+        "section": student.section,
+        "contact_email": student.contact_email,
+        "school_year": student.school_year,
+        "enrollment_status": student.enrollment_status,
+    }
+
+@aesms_router.post("/enrollment_forms/", response_model=schemas.EnrollmentForm)
+def create_enrollment_form(
+    payload: schemas.EnrollmentFormCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Creates a structured enrollment form. Auto-links or creates a student record."""
+    if current_user.role not in ["Principal", "Registrar", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
     # Auto-create or link student record
-    if not student_id and student_first_name and student_last_name:
-        existing_student = db.query(models.Student).filter(
-            models.Student.first_name == student_first_name.strip(),
-            models.Student.last_name == student_last_name.strip()
-        ).first()
-        if existing_student:
-            student_id = existing_student.id
-        else:
-            new_student = models.Student(
-                first_name=student_first_name.strip(),
-                last_name=student_last_name.strip(),
-                grade_level="Pending",
-                enrollment_status="Pending Validation"
-            )
-            db.add(new_student)
-            db.flush()
-            student_id = new_student.id
-    
-    # Save file with unique name to avoid collisions
-    file_ext = os.path.splitext(file.filename)[1]
-    unique_name = f"form_{int(time.time())}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, unique_name)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    with open(file_path, "rb") as f:
-        file_bytes = f.read()
-    extracted_text = extract_text_from_image(file_bytes)
-    
-    # Always set to Needs Review so Admission can verify
-    status = "Needs Review"
-    if not extracted_text or extracted_text.strip() == "":
-        status = "Failed Extraction"
-    
+    existing = check_duplicate_student(
+        db, models.Student, payload.student_first_name, payload.student_last_name
+    )
+    if existing:
+        student_id = existing.id
+    else:
+        new_student = models.Student(
+            first_name=payload.student_first_name.strip(),
+            last_name=payload.student_last_name.strip(),
+            grade_level=payload.grade_applying_for or "Pending",
+            enrollment_status="Pending Validation"
+        )
+        db.add(new_student)
+        db.flush()
+        student_id = new_student.id
+
     db_form = models.EnrollmentForm(
-        student_id=student_id, form_type=form_type,
-        file_path=file_path, extracted_text=extracted_text, status=status
+        student_id=student_id,
+        form_type=payload.form_type,
+        status="Needs Review",
+        sex=payload.sex,
+        birth_date=payload.birth_date,
+        birth_place=payload.birth_place,
+        home_address=payload.home_address,
+        father_name=payload.father_name,
+        father_contact=payload.father_contact,
+        father_occupation=payload.father_occupation,
+        father_employer=payload.father_employer,
+        mother_name=payload.mother_name,
+        mother_contact=payload.mother_contact,
+        mother_occupation=payload.mother_occupation,
+        mother_employer=payload.mother_employer,
+        church_attended=payload.church_attended,
+        church_member=payload.church_member,
+        pastor_name=payload.pastor_name,
+        previous_school=payload.previous_school,
+        grade_applying_for=payload.grade_applying_for,
+        repeated_grade=payload.repeated_grade,
+        expelled_dismissed=payload.expelled_dismissed,
+        learning_disabilities=payload.learning_disabilities,
+        special_talents=payload.special_talents,
+        how_heard=payload.how_heard,
+        reason_selecting=payload.reason_selecting,
+        submitted_by=current_user.id,
     )
     db.add(db_form)
     db.commit()
     db.refresh(db_form)
     return db_form
+
+@aesms_router.post("/enrollment_forms/{form_id}/upload_document")
+async def upload_enrollment_document(
+    form_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Uploads a supporting document (birth cert, Form 138, etc.) to an enrollment form."""
+    import time
+    if current_user.role not in ["Principal", "Registrar", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+
+    unique_name = f"doc_{int(time.time())}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, unique_name)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Append to existing file paths (comma-separated)
+    if form.file_path:
+        form.file_path = form.file_path + "," + file_path
+    else:
+        form.file_path = file_path
+
+    db.commit()
+    db.refresh(form)
+    return {"detail": "Document uploaded", "file_path": file_path}
 
 @aesms_router.get("/enrollment_forms/", response_model=List[schemas.EnrollmentForm])
 def read_enrollment_forms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
@@ -475,34 +508,6 @@ def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(
         models.EnrollmentForm.form_type == form_type
     ).first()
     return {"exists": existing is not None, "form_id": existing.id if existing else None}
-
-@aesms_router.post("/enrollment_forms/{form_id}/append_ocr")
-async def append_ocr_to_form(
-    form_id: int,
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    import time
-    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
-    if not form:
-        raise HTTPException(status_code=404, detail="Form not found")
-    
-    unique_name = f"append_{int(time.time())}_{file.filename}"
-    file_path = os.path.join(UPLOAD_DIR, unique_name)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    with open(file_path, "rb") as f:
-        file_bytes = f.read()
-    new_text = extract_text_from_image(file_bytes)
-    
-    if form.extracted_text:
-        form.extracted_text = form.extracted_text + "\n---ADDITIONAL_SCAN---\n" + new_text
-    else:
-        form.extracted_text = new_text
-    
-    db.commit()
-    db.refresh(form)
-    return {"detail": "Additional OCR appended", "extracted_text": form.extracted_text}
 
 @aesms_router.put("/enrollment_forms/{form_id}/verify", response_model=schemas.EnrollmentForm)
 def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db)):
@@ -518,7 +523,6 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
         if form.student_id:
             student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
             if student:
-                # Update checklist
                 student.req_birth_cert = payload.req_birth_cert
                 student.req_form_138 = payload.req_form_138
                 student.req_good_moral = payload.req_good_moral
@@ -534,15 +538,14 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                 if hasattr(user, 'is_active') and user.is_active == 0:
                     user.is_active = 1
             else:
-                # User auto-generation if student exists but has no account
-                new_username = payload.student_first_name.strip() if payload.student_first_name else f"student_{student.id}"
-                raw_password = f"{payload.student_last_name}{payload.student_dob}".strip() if payload.student_last_name and payload.student_dob else f"password_{student.id}"
-                
+                fn = payload.student_first_name or (student.first_name if student else f"student_{form.student_id}")
+                ln = payload.student_last_name or (student.last_name if student else "")
+                dob = payload.student_dob or "cca2026"
                 new_user = models.User(
-                    username=new_username.lower().replace(" ", "_"),
-                    hashed_password=get_password_hash(raw_password),
+                    username=fn.strip().lower().replace(" ", "_"),
+                    hashed_password=get_password_hash(f"{ln}{dob}".strip()),
                     role="Student",
-                    student_id=student.id,
+                    student_id=form.student_id,
                     is_active=1
                 )
                 db.add(new_user)
@@ -556,78 +559,6 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
 # Users & Auth
 # ---------------------------------------------------------------------------
 
-@aesms_router.post("/auth/register")
-async def register_student(
-    first_name: str = Form(...),
-    last_name: str = Form(...),
-    grade_level: str = Form(...),
-    section: str = Form(None),
-    contact_email: str = Form(None),
-    username: str = Form(...),
-    password: str = Form(...),
-    profile_picture: UploadFile = File(None),
-    enrollment_form: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    import time
-    existing = db.query(models.User).filter(models.User.username == username).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Username already taken")
-        
-    profile_url = None
-    if profile_picture and profile_picture.filename:
-        ext = os.path.splitext(profile_picture.filename)[1]
-        pic_name = f"pf_{int(time.time())}{ext}"
-        pic_path = os.path.join(UPLOAD_DIR, pic_name)
-        with open(pic_path, "wb") as buffer:
-            shutil.copyfileobj(profile_picture.file, buffer)
-        profile_url = f"/uploads/{pic_name}"
-        
-    student = models.Student(
-        first_name=first_name,
-        last_name=last_name,
-        grade_level=grade_level,
-        section=section,
-        contact_email=contact_email,
-        profile_image=profile_url,
-        enrollment_status="Pending Validation"
-    )
-    db.add(student)
-    db.flush()
-    
-    hashed = get_password_hash(password)
-    user = models.User(
-        username=username,
-        role="Student",
-        student_id=student.id,
-        is_active=0,
-        hashed_password=hashed
-    )
-    db.add(user)
-    db.flush()
-    
-    form_path = os.path.join(UPLOAD_DIR, f"form_{int(time.time())}_{enrollment_form.filename}")
-    with open(form_path, "wb") as buffer:
-        shutil.copyfileobj(enrollment_form.file, buffer)
-        
-    with open(form_path, "rb") as f:
-        file_bytes = f.read()
-        
-    extracted_text = extract_text_from_image(file_bytes)
-    status = "Needs Review" if "ERROR" in extracted_text else "Success"
-    if not extracted_text:
-        status = "Failed Extraction"
-        
-    db_form = models.EnrollmentForm(
-        student_id=student.id,
-        form_type="Pre-Registration Application",
-        file_path=form_path,
-        extracted_text=extracted_text,
-        status=status
-    )
-    db.add(db_form)
-    db.commit()
-    return {"detail": "Application submitted successfully", "status": "Pending"}
 
 @aesms_router.post("/auth/login")
 def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):

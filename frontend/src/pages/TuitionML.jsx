@@ -10,6 +10,7 @@ export default function TuitionML({ currentRole, authFetch }) {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [filterSchoolYear, setFilterSchoolYear] = useState('All');
   const [sortOrder, setSortOrder] = useState('Highest Risk');
   const [editingTuition, setEditingTuition] = useState(null);
 
@@ -117,6 +118,20 @@ export default function TuitionML({ currentRole, authFetch }) {
           <option value="Pending">Pending</option>
           <option value="Overdue">Overdue</option>
         </select>
+
+        {(() => {
+          const extractYear = (t) => t?.match(/20\d{2}-20\d{2}/)?.[0] || 'Unknown';
+          const uniqueYears = ['All', ...new Set(tuitions.map(t => extractYear(t.term)).filter(y => y !== 'Unknown'))].sort().reverse();
+          return (
+            <select 
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+              value={filterSchoolYear}
+              onChange={(e) => setFilterSchoolYear(e.target.value)}
+            >
+              {uniqueYears.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : `SY ${y}`}</option>)}
+            </select>
+          );
+        })()}
         
         <select 
           className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
@@ -157,7 +172,8 @@ export default function TuitionML({ currentRole, authFetch }) {
                     const student = getStudent(t.student_id);
                     const matchesSearch = `${student.first_name} ${student.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
                     const matchesStatus = filterStatus === 'All' || t.status === filterStatus;
-                    return matchesSearch && matchesStatus;
+                    const matchesYear = filterSchoolYear === 'All' || (t.term && t.term.includes(filterSchoolYear));
+                    return matchesSearch && matchesStatus && matchesYear;
                   })
                   .sort((a, b) => {
                     if(sortOrder === 'Highest Risk') return (b.risk_score || 0) - (a.risk_score || 0);

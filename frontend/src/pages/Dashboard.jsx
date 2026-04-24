@@ -242,17 +242,24 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                   <p className="text-xs text-green-600/80 dark:text-green-400 mt-0.5">{isStudent ? "You have no declining trends in your subjects." : "All students are on a stable or improving trajectory."}</p>
                 </div>
               </div>
-            ) : warnings.slice(0,4).map((w, i) => (
-              <div key={i} className="p-4 rounded-xl border border-red-100 bg-red-50/40 dark:bg-red-900/20 flex items-start space-x-3">
-                <div className="p-1.5 bg-red-100 dark:bg-red-800 rounded-lg text-red-600 flex-shrink-0">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            ) : (() => {
+              const uniqueWarnings = new Map();
+              warnings.forEach(w => {
+                const key = isStudent ? w.subject : w.student_id;
+                if (!uniqueWarnings.has(key)) uniqueWarnings.set(key, w);
+              });
+              return Array.from(uniqueWarnings.values()).slice(0, 4).map((w, i) => (
+                <div key={i} className="p-4 rounded-xl border border-red-100 bg-red-50/40 dark:bg-red-900/20 flex items-start space-x-3">
+                  <div className="p-1.5 bg-red-100 dark:bg-red-800 rounded-lg text-red-600 flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-red-800 dark:text-red-300 text-sm">{isStudent ? w.subject : `${w.student_name} — ${w.subject}`}</p>
+                    <p className="text-xs text-red-600/80 dark:text-red-400 mt-0.5">{w.message}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-red-800 dark:text-red-300 text-sm">{isStudent ? w.subject : `${w.student_name} — ${w.subject}`}</p>
-                  <p className="text-xs text-red-600/80 dark:text-red-400 mt-0.5">{w.message}</p>
-                </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
 
@@ -268,7 +275,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             {(() => {
               const uniqueMap = new Map();
               attendance.filter(a => a.status !== 'Clear').forEach(a => {
-                const key = isStudent ? a.date : `${a.student_id}-${a.date}`;
+                const key = isStudent ? a.date : a.student_id;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, a);
               });
               const records = Array.from(uniqueMap.values()).slice(0, 8);
