@@ -14,10 +14,6 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def seed_data():
-    # Remove old database if exists
-    if os.path.exists("cca.db"):
-        os.remove("cca.db")
-
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 

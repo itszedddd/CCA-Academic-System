@@ -60,6 +60,20 @@ if os.path.isdir(FRONTEND_DIR):
 def health_check():
     return {"status": "ok", "system": "CCA"}
 
+@app.get("/api/debug/seed")
+def debug_seed():
+    db = SessionLocal()
+    try:
+        from seed_cca import seed_data
+        seed_data()
+        count = db.query(models.User).count()
+        db.close()
+        return {"status": "success", "users_count": count}
+    except Exception as e:
+        import traceback
+        db.close()
+        return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
+
 # Catch-all: serve index.html for any non-API route (SPA support)
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
