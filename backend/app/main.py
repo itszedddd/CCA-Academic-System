@@ -4,12 +4,30 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from .database import engine, Base
+from .database import engine, Base, SessionLocal
 from .api.router import aesms_router
 from . import models
 
 Base.metadata.create_all(bind=engine)
 os.makedirs("uploads", exist_ok=True)
+
+# Auto-seed if database is empty (first deploy)
+def _auto_seed():
+    db = SessionLocal()
+    try:
+        if db.query(models.User).count() == 0:
+            print("[CCA] Empty database detected — running seed...")
+            db.close()
+            from seed_cca import seed_data
+            seed_data()
+            print("[CCA] Seed complete.")
+        else:
+            db.close()
+    except Exception as e:
+        print(f"[CCA] Auto-seed skipped or failed: {e}")
+        db.close()
+
+_auto_seed()
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
 
