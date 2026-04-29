@@ -1,13 +1,14 @@
 services:
   - type: web
-    name: hop-backend
+    name: cca-backend
     runtime: docker
     plan: free
     region: singapore
+    rootDir: backend
     envVars:
       - key: PORT
         value: 8000
     disk:
-      name: hop-data
+      name: cca-data
       mountPath: /app/data
       sizeGB: 1

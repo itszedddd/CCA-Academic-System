@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://hop-backend.onrender.com/api/$1"
+      "destination": "https://cca-backend.onrender.com/api/$1"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "https://hop-backend.onrender.com/uploads/$1"
+      "destination": "https://cca-backend.onrender.com/uploads/$1"
     },
     {
       "source": "/(.*)",

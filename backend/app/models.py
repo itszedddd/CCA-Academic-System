@@ -22,6 +22,10 @@ class Student(Base):
     req_good_moral = Column(Integer, default=0)
     req_pictures = Column(Integer, default=0)
 
+    # Auto-generated Account Details (for teacher to notify student)
+    account_username = Column(String, nullable=True)
+    initial_password = Column(String, nullable=True)
+
     academic_records = relationship("AcademicRecord", back_populates="student")
     attendance_records = relationship("Attendance", back_populates="student")
     tuition_payments = relationship("TuitionPayment", back_populates="student")
@@ -86,7 +90,12 @@ class EnrollmentForm(Base):
     how_heard = Column(String, nullable=True)
     reason_selecting = Column(String, nullable=True)
 
-    # Document attachments (file paths, stored as comma-separated if multiple)
+    # Document attachments and checklist
+    req_birth_cert = Column(Integer, default=0)
+    req_form_138 = Column(Integer, default=0)
+    req_good_moral = Column(Integer, default=0)
+    req_pictures = Column(Integer, default=0)
+    
     file_path = Column(String, nullable=True)
     extracted_text = Column(String, nullable=True)  # Kept for backward compat / JSON summary
     remarks = Column(String, nullable=True)
@@ -127,6 +136,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
+    full_name = Column(String, nullable=True) # Name of the account owner
     hashed_password = Column(String)
     role = Column(String)  # Administrator, Teacher, Parent, Student
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)  # Link for Student/Parent roles

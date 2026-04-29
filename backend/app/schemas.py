@@ -37,6 +37,8 @@ class StudentBase(BaseModel):
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0
     req_pictures: Optional[int] = 0
+    account_username: Optional[str] = None
+    initial_password: Optional[str] = None
 
 class StudentCreate(StudentBase):
     pass
@@ -139,6 +141,12 @@ class EnrollmentFormBase(BaseModel):
     special_talents: Optional[str] = None
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    
+    # Document Requirements checklist
+    req_birth_cert: Optional[int] = 0
+    req_form_138: Optional[int] = 0
+    req_good_moral: Optional[int] = 0
+    req_pictures: Optional[int] = 0
 
     # Legacy / attachment fields
     file_path: Optional[str] = None
@@ -184,6 +192,12 @@ class EnrollmentFormCreate(BaseModel):
     # General
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    
+    # Document Requirements checklist
+    req_birth_cert: Optional[int] = 0
+    req_form_138: Optional[int] = 0
+    req_good_moral: Optional[int] = 0
+    req_pictures: Optional[int] = 0
 
 class EnrollmentFormVerify(BaseModel):
     status: str
@@ -208,6 +222,7 @@ class EnrollmentForm(EnrollmentFormBase):
 # ---------------------------------------------------------------------------
 class UserBase(BaseModel):
     username: str
+    full_name: Optional[str] = None
     role: str           # Administrator, Teacher, Parent, Student
     student_id: Optional[int] = None
     is_active: Optional[int] = 1

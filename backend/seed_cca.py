@@ -99,10 +99,25 @@ def seed_data():
             ("Juan",        "Calle",         None),
         ]
 
+        import random
+        random.seed(42)
+
         humility_students = []
         for fn, ln, img in humility_students_data:
-            s = Student(first_name=fn, last_name=ln, grade_level="Grade 7", section="Humility",
-                        contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, enrollment_status="Enrolled")
+            # 80% chance they have all docs, 20% they lack some
+            has_all_docs = random.random() > 0.2
+            s = Student(
+                first_name=fn, last_name=ln, grade_level="Grade 7", section="Humility",
+                contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
+                enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
+                school_year="2025-2026",
+                req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
+                req_form_138=1 if has_all_docs else random.choice([0, 1]),
+                req_good_moral=1 if has_all_docs else random.choice([0, 1]),
+                req_pictures=1 if has_all_docs else random.choice([0, 1]),
+                account_username=f"{fn.lower()}_{ln.lower()}",
+                initial_password="cca2026"
+            )
             humility_students.append(s)
         db.add_all(humility_students)
 
@@ -118,8 +133,19 @@ def seed_data():
         ]
         other_students = []
         for fn, ln, gl, sec, img in other_students_data:
-            s = Student(first_name=fn, last_name=ln, grade_level=gl, section=sec,
-                        contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, enrollment_status="Enrolled")
+            has_all_docs = random.random() > 0.2
+            s = Student(
+                first_name=fn, last_name=ln, grade_level=gl, section=sec,
+                contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
+                enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
+                school_year="2025-2026",
+                req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
+                req_form_138=1 if has_all_docs else random.choice([0, 1]),
+                req_good_moral=1 if has_all_docs else random.choice([0, 1]),
+                req_pictures=1 if has_all_docs else random.choice([0, 1]),
+                account_username=f"{fn.lower()}_{ln.lower()}",
+                initial_password="cca2026"
+            )
             other_students.append(s)
         db.add_all(other_students)
         db.commit()

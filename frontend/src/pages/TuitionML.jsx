@@ -277,10 +277,25 @@ export default function TuitionML({ currentRole, authFetch }) {
               <button onClick={() => setEditingTuition(null)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <form onSubmit={handleLedgerUpdate} className="p-6 space-y-4 overflow-y-auto">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Target Context</label>
-                <div className="px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-400 font-bold">
-                  {getStudent(editingTuition.student_id).first_name} {getStudent(editingTuition.student_id).last_name}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Target Context</label>
+                  <div className="px-3 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-sm text-slate-600 dark:text-slate-400 font-bold h-[38px] flex items-center">
+                    {getStudent(editingTuition.student_id).first_name} {getStudent(editingTuition.student_id).last_name}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tracked School Year</label>
+                  <select 
+                    value={editingTuition.term || 'Annual SY 2025-2026'} 
+                    onChange={e => setEditingTuition({...editingTuition, term: e.target.value})}
+                    className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-bold h-[38px]"
+                  >
+                    <option value={editingTuition.term || 'Annual SY 2025-2026'}>{editingTuition.term || 'Annual SY 2025-2026'}</option>
+                    {['Annual SY 2024-2025', 'Annual SY 2023-2024'].filter(t => t !== editingTuition.term).map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">

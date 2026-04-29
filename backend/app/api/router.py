@@ -38,9 +38,38 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
     if current_user.role not in ["Principal", "Teacher", "Registrar", "Admission"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     db_student = models.Student(**student.model_dump())
+    
+    # Auto-generate account details
+    fn = (db_student.first_name or "student").strip().lower().replace(" ", "_")
+    ln = (db_student.last_name or "").strip()
+    base_username = fn
+    count = db.query(models.User).filter(models.User.username.like(f"{base_username}%")).count()
+    if count > 0:
+        base_username = f"{base_username}{count+1}"
+        
+    initial_pw = f"{ln}cca2026"
+    if not initial_pw.strip():
+        initial_pw = "cca2026"
+        
+    db_student.account_username = base_username
+    db_student.initial_password = initial_pw
+    
     db.add(db_student)
     db.commit()
     db.refresh(db_student)
+    
+    # Create the actual User record
+    new_user = models.User(
+        username=base_username,
+        hashed_password=get_password_hash(initial_pw),
+        role="Student",
+        student_id=db_student.id,
+        is_active=1
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(db_student)
+    
     return db_student
 
 @aesms_router.get("/students/{student_id}", response_model=schemas.Student)
@@ -253,6 +282,24 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
         students = db.query(models.Student).all()
 
     for student in students:
+        # 1. Document Lacking Warnings
+        if not student.req_birth_cert or not student.req_form_138 or not student.req_good_moral or not student.req_pictures:
+            missing_docs = []
+            if not student.req_birth_cert: missing_docs.append("Birth Cert")
+            if not student.req_form_138: missing_docs.append("Form 138")
+            if not student.req_good_moral: missing_docs.append("Good Moral")
+            if not student.req_pictures: missing_docs.append("Pictures")
+            
+            warnings.append({
+                "student_id": student.id,
+                "student_name": f"{student.first_name} {student.last_name}",
+                "subject": "Requirements",
+                "slope": 0.0,
+                "message": f"Action Required: Lacking documents ({', '.join(missing_docs)}). Please notify student.",
+                "latest_score": 0.0,
+            })
+            
+        # 2. Academic Trend Warnings
         records = (
             db.query(models.AcademicRecord)
             .filter(models.AcademicRecord.student_id == student.id)
@@ -541,9 +588,23 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                 fn = payload.student_first_name or (student.first_name if student else f"student_{form.student_id}")
                 ln = payload.student_last_name or (student.last_name if student else "")
                 dob = payload.student_dob or "cca2026"
+                
+                base_username = fn.strip().lower().replace(" ", "_")
+                count = db.query(models.User).filter(models.User.username.like(f"{base_username}%")).count()
+                if count > 0:
+                    base_username = f"{base_username}{count+1}"
+                
+                initial_pw = f"{ln}{dob}".strip()
+                if not initial_pw:
+                    initial_pw = "cca2026"
+                
+                if student:
+                    student.account_username = base_username
+                    student.initial_password = initial_pw
+                
                 new_user = models.User(
-                    username=fn.strip().lower().replace(" ", "_"),
-                    hashed_password=get_password_hash(f"{ln}{dob}".strip()),
+                    username=base_username,
+                    hashed_password=get_password_hash(initial_pw),
                     role="Student",
                     student_id=form.student_id,
                     is_active=1

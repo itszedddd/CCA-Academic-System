@@ -178,13 +178,15 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       })()}
 
       {(currentRole === 'Registrar' || currentRole === 'Admission') && (() => {
-        const pend = students.filter(s => s.enrollment_status === 'Pending').length;
+        const pend = students.filter(s => s.enrollment_status === 'Pending' || s.enrollment_status === 'Hold: Incomplete Req').length;
+        const lackingDocsCount = students.filter(s => !s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures).length;
+        
         return (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             <StatCard label="Total Body" value={students.length} sub="Registered Students" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             <StatCard label="Active Status" value={enrolledCount} sub="Fully Enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             <StatCard label="Pending Action" value={pend} sub="Awaiting Enrollment" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <StatCard label="OCR Processes" value={forms.length} sub="Files verified" color="text-indigo-500" icon="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
+            <StatCard label="Lacking Docs" value={lackingDocsCount} sub="Incomplete requirements" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </div>
         );
       })()}

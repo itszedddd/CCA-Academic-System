@@ -16,7 +16,8 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
     mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
     church_attended: '', church_member: '', pastor_name: '',
     previous_school: '', repeated_grade: '', expelled_dismissed: '', learning_disabilities: '', special_talents: '',
-    how_heard: '', reason_selecting: ''
+    how_heard: '', reason_selecting: '',
+    req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0
   });
   const [documentFile, setDocumentFile] = useState(null);
 
@@ -133,10 +134,16 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-bold font-cinzel text-slate-800 dark:text-white">Digital Enrollment System</h3>
-            <p className="text-sm text-slate-500">Structured data encoding and verification.</p>
+        <div className="bg-white border-b border-slate-200 p-8 flex justify-between items-center relative overflow-hidden">
+          <div className="relative z-10">
+            <h2 className="text-2xl font-black text-brand-900 tracking-widest uppercase mb-1 flex items-center">
+              <svg className="w-7 h-7 mr-3 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              STUDENT REGISTRATION
+            </h2>
+            <p className="text-sm font-semibold text-brand-600 tracking-wider">Record student info and track document requirements.</p>
+          </div>
+          <div className="absolute -right-10 -top-10 opacity-5">
+            <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zm5 16H6V4h5v7h7v9z"/></svg>
           </div>
           <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
             {['Admission', 'Principal'].includes(currentRole) && (
@@ -199,11 +206,29 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
                 </div>
               </div>
 
-              {/* Document Upload */}
+              {/* Document Checklist & Upload */}
               <div>
-                <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">IV. Attachments</h4>
+                <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">IV. Document Requirements Checklist</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" checked={encodeData.req_birth_cert === 1} onChange={e => setEncodeData({...encodeData, req_birth_cert: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
+                    <span className="text-sm font-bold text-slate-700">Birth Certificate (PSA)</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" checked={encodeData.req_form_138 === 1} onChange={e => setEncodeData({...encodeData, req_form_138: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
+                    <span className="text-sm font-bold text-slate-700">Form 138 (Card)</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" checked={encodeData.req_good_moral === 1} onChange={e => setEncodeData({...encodeData, req_good_moral: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
+                    <span className="text-sm font-bold text-slate-700">Good Moral</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" checked={encodeData.req_pictures === 1} onChange={e => setEncodeData({...encodeData, req_pictures: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
+                    <span className="text-sm font-bold text-slate-700">2x2 Pictures</span>
+                  </label>
+                </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Supporting Document (Birth Cert / Form 138 / ID)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Additional Supporting Document (Optional)</label>
                   <input type="file" onChange={e => setDocumentFile(e.target.files[0])} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" />
                 </div>
               </div>

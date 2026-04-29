@@ -15,6 +15,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [showEdit, setShowEdit] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [historyYear, setHistoryYear] = useState('');
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
@@ -65,13 +66,17 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
 
   const handleView = async (id) => {
     if (expandedStudentId === id) {
-       setExpandedStudentId(null);
-       return;
-    }
-    const res = await fetch(`${API}/students/${id}`);
-    if (res.ok) {
-      setSelectedStudent(await res.json());
-      setExpandedStudentId(id);
+      setExpandedStudentId(null);
+      setSelectedStudent(null);
+      setHistoryYear('');
+    } else {
+      const res = await authFetch(`${API}/students/${id}`);
+      if (res?.ok) {
+        const student = await res.json();
+        setSelectedStudent(student);
+        setExpandedStudentId(id);
+        setHistoryYear(student.school_year || '');
+      }
     }
   };
 
@@ -150,7 +155,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           <th className="px-6 py-3">Grade</th>
           <th className="px-6 py-3">Section</th>
           <th className="px-6 py-3">Status</th>
-          {['Teacher', 'Registrar'].includes(currentRole) && (
+          {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
             <th className="px-6 py-3 text-right">Actions</th>
           )}
         </tr>
@@ -163,7 +168,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           
           return (
             <Fragment key={s.id}>
-              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (currentRole === 'Teacher') handleView(s.id); }}>
+              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole)) handleView(s.id); }}>
                 <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-300">#{String(s.id).padStart(4,'0')}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center">
@@ -191,14 +196,24 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                   ) : <span className="text-slate-400 text-sm">—</span>}
                 </td>
                 <td className="px-6 py-4">
-                  <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+                    {(!s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures) && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-red-50 text-red-600 border border-red-200">Lacking Docs</span>
+                    )}
+                  </div>
                 </td>
-                {['Teacher', 'Registrar'].includes(currentRole) && (
+                {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
                   <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
                     {currentRole === 'Teacher' && (
                       <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
                     )}
-                    {currentRole === 'Registrar' && <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-brand-600 transition font-bold">Edit</button>}
+                    {['Admission', 'Registrar', 'Principal'].includes(currentRole) && (
+                      <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition font-bold">{isExpanded ? 'Hide Details' : 'See Details'}</button>
+                    )}
+                    {currentRole === 'Registrar' && (
+                      <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-amber-600 transition font-bold">Edit</button>
+                    )}
                   </td>
                 )}
               </tr>
@@ -298,9 +313,30 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
                           <h4 className="font-bold text-slate-800 dark:text-white mb-3">Historical Record Details</h4>
                           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-sm text-slate-600 dark:text-slate-400">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                              <div><span className="block text-xs font-bold text-slate-400 uppercase">Tracked School Year</span><span className="font-semibold text-slate-800 dark:text-white">{s.school_year || 'N/A'}</span></div>
-                              <div><span className="block text-xs font-bold text-slate-400 uppercase">Tracked Section</span><span className="font-semibold text-slate-800 dark:text-white">{s.section || 'N/A'}</span></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                              <div>
+                                <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Tracked School Year</span>
+                                <select 
+                                  value={historyYear} 
+                                  onChange={(e) => setHistoryYear(e.target.value)} 
+                                  className="w-full sm:w-64 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+                                >
+                                  <option value={s.school_year || '2025-2026'}>SY {s.school_year || '2025-2026'}</option>
+                                  <option value="2024-2025">SY 2024-2025</option>
+                                  <option value="2023-2024">SY 2023-2024</option>
+                                </select>
+                              </div>
+                              <div>
+                                <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Tracked Section</span>
+                                <select 
+                                  className="w-full sm:w-64 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+                                >
+                                  <option value={s.section || 'N/A'}>{s.section || 'N/A'}</option>
+                                  {['Humility', 'Courage', 'Goodwill', 'Persistence'].filter(sec => sec !== s.section).map(sec => (
+                                    <option key={sec} value={sec}>{sec}</option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
                             {forms && forms.filter(f => f.student_id === s.id).length > 0 ? (
                               <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
@@ -318,6 +354,32 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                               <p className="text-xs text-slate-500 italic mt-4">No past enrollment forms found in the digital registry.</p>
                             )}
                           </div>
+                        </div>
+                      )}
+
+                      {/* Document Requirements Checklist & Account Details */}
+                      {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
+                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                            <h4 className="text-xs font-bold text-brand-600 uppercase tracking-widest mb-3">Document Requirements</h4>
+                            <ul className="space-y-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_birth_cert ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_birth_cert ? '✓' : '✕'}</span> Birth Certificate (PSA)</li>
+                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_form_138 ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_form_138 ? '✓' : '✕'}</span> Form 138 (Card)</li>
+                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_good_moral ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_good_moral ? '✓' : '✕'}</span> Good Moral</li>
+                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_pictures ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_pictures ? '✓' : '✕'}</span> 2x2 Pictures</li>
+                            </ul>
+                          </div>
+                          
+                          {['Teacher', 'Registrar', 'Principal'].includes(currentRole) && s.account_username && (
+                            <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-lg p-4">
+                              <h4 className="text-xs font-bold text-brand-700 dark:text-brand-400 uppercase tracking-widest mb-3">Student Portal Access</h4>
+                              <p className="text-xs text-brand-600 dark:text-brand-300 mb-2">Provide these details to the student to access their portal.</p>
+                              <div className="space-y-2">
+                                <div><span className="text-xs font-bold text-slate-500 uppercase">Username:</span> <span className="font-mono font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-1 rounded">{s.account_username}</span></div>
+                                <div><span className="text-xs font-bold text-slate-500 uppercase">Default Password:</span> <span className="font-mono font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-1 rounded">{s.initial_password}</span></div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
