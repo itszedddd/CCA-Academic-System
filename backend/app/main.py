@@ -58,7 +58,7 @@ if os.path.isdir(FRONTEND_DIR):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "system": "CCA"}
+    return {"status": "ok", "system": "CCA", "version": "1.0.1-debug-seed"}
 
 # Catch-all: serve index.html for any non-API route (SPA support)
 @app.get("/{full_path:path}")
