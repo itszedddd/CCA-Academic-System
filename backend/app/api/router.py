@@ -698,3 +698,14 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
     db.delete(db_user)
     db.commit()
     return {"detail": "User deleted"}
+
+@aesms_router.get("/debug/seed")
+def debug_seed_db(db: Session = Depends(get_db)):
+    try:
+        from seed_cca import seed_data
+        seed_data()
+        count = db.query(models.User).count()
+        return {"status": "success", "users_count": count}
+    except Exception as e:
+        import traceback
+        return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
