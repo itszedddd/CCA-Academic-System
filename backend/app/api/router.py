@@ -623,7 +623,8 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
 
 @aesms_router.post("/auth/login")
 def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.username == username).first()
+    username_clean = username.strip().lower()
+    user = db.query(models.User).filter(models.User.username == username_clean).first()
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
         

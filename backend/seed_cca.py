@@ -149,6 +149,20 @@ def seed_data():
         # Link student user to first student (Juan Dela Cruz)
         student_user.student_id = humility_students[0].id
 
+        # --- Create Users for all mock students ---
+        student_users = []
+        for s in humility_students + other_students:
+            user = User(
+                username=s.account_username,
+                hashed_password=get_password_hash(s.initial_password),
+                role="Student",
+                is_active=1,
+                student_id=s.id
+            )
+            student_users.append(user)
+        db.add_all(student_users)
+        db.commit()
+
         # --- Academic Records for Humility section & Others (for AI warning testing) ---
         subjects = ["Mathematics", "Science", "Filipino", "English", "Araling Panlipunan (AP)", "Edukasyon sa Pagpapakatao (EsP)", "Technology and Livelihood Education (TLE)", "MAPEH"]
         import random

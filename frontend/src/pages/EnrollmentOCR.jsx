@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 const API = '/api';
 
+const InputField = ({ label, field, type="text", required=false, encodeData, setEncodeData }) => (
+  <div>
+    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label} {required && '*'}</label>
+    <input type={type} required={required} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
+  </div>
+);
+
 export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRole, students }) {
   const [activeTab, setActiveTab] = useState(currentRole === 'Registrar' ? 'Verify' : 'Encode');
   const [loading, setLoading] = useState(false);
@@ -10,7 +17,7 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
 
   // Encode Form State
   const [encodeData, setEncodeData] = useState({
-    student_first_name: '', student_last_name: '', form_type: 'Pre-Registration Application', grade_applying_for: 'Pre-Kinder',
+    student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Pre-Kinder',
     sex: '', birth_date: '', birth_place: '', home_address: '',
     father_name: '', father_contact: '', father_occupation: '', father_employer: '',
     mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
@@ -62,7 +69,7 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
         
         setSuccessMsg('Digital Enrollment Form successfully encoded!');
         setEncodeData({
-          student_first_name: '', student_last_name: '', form_type: 'Pre-Registration Application', grade_applying_for: 'Pre-Kinder',
+          student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Pre-Kinder',
           sex: '', birth_date: '', birth_place: '', home_address: '',
           father_name: '', father_contact: '', father_occupation: '', father_employer: '',
           mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
@@ -124,13 +131,6 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
     }
   };
 
-  const InputField = ({ label, field, type="text", required=false }) => (
-    <div>
-      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label} {required && '*'}</label>
-      <input type={type} required={required} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -165,19 +165,27 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
               <div>
                 <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">I. Student Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <InputField label="First Name" field="student_first_name" required />
-                  <InputField label="Last Name" field="student_last_name" required />
+                  <InputField label="First Name" field="student_first_name" required encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Last Name" field="student_last_name" required encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Applicant Type *</label>
+                    <select required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.form_type} onChange={e => setEncodeData({...encodeData, form_type: e.target.value})}>
+                      <option value="New Student">New Student</option>
+                      <option value="Transferee">Transferee</option>
+                      <option value="Returning">Returning</option>
+                    </select>
+                  </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grade Applying For *</label>
                     <select required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
                       {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
-                  <InputField label="Sex" field="sex" />
-                  <InputField label="Birth Date" field="birth_date" type="date" />
-                  <InputField label="Birth Place" field="birth_place" />
+                  <InputField label="Sex" field="sex" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Birth Date" field="birth_date" type="date" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Birth Place" field="birth_place" encodeData={encodeData} setEncodeData={setEncodeData} />
                   <div className="md:col-span-3">
-                    <InputField label="Home Address" field="home_address" />
+                    <InputField label="Home Address" field="home_address" encodeData={encodeData} setEncodeData={setEncodeData} />
                   </div>
                 </div>
               </div>
@@ -186,12 +194,12 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
               <div>
                 <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">II. Family Background</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                  <InputField label="Father's Name" field="father_name" />
-                  <InputField label="Mother's Name" field="mother_name" />
-                  <InputField label="Father's Contact" field="father_contact" />
-                  <InputField label="Mother's Contact" field="mother_contact" />
-                  <InputField label="Father's Occupation" field="father_occupation" />
-                  <InputField label="Mother's Occupation" field="mother_occupation" />
+                  <InputField label="Father's Name" field="father_name" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Mother's Name" field="mother_name" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Father's Contact" field="father_contact" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Mother's Contact" field="mother_contact" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Father's Occupation" field="father_occupation" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Mother's Occupation" field="mother_occupation" encodeData={encodeData} setEncodeData={setEncodeData} />
                 </div>
               </div>
 
@@ -199,10 +207,22 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
               <div>
                 <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">III. Academic & Church History</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2"><InputField label="Previous School" field="previous_school" /></div>
-                  <InputField label="Repeated Grade?" field="repeated_grade" />
-                  <div className="md:col-span-2"><InputField label="Church Attended" field="church_attended" /></div>
-                  <InputField label="Pastor's Name" field="pastor_name" />
+                  <div className="md:col-span-2"><InputField label="Previous School" field="previous_school" encodeData={encodeData} setEncodeData={setEncodeData} /></div>
+                  <InputField label="Repeated Grade?" field="repeated_grade" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <div className="md:col-span-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Church Attended</label>
+                      <button type="button" onClick={() => setEncodeData({...encodeData, church_attended: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
+                    </div>
+                    <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.church_attended} onChange={e => setEncodeData({...encodeData, church_attended: e.target.value})} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pastor's Name</label>
+                      <button type="button" onClick={() => setEncodeData({...encodeData, pastor_name: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
+                    </div>
+                    <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.pastor_name} onChange={e => setEncodeData({...encodeData, pastor_name: e.target.value})} />
+                  </div>
                 </div>
               </div>
 
