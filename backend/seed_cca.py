@@ -1,7 +1,7 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.models import Base, Student, User, AcademicRecord, Attendance, TuitionPayment, EnrollmentForm
+from app.models import Base, Student, User, AcademicRecord, Attendance, TuitionPayment, PaymentRecord, EnrollmentForm
 from app.auth import get_password_hash
 from app.ai_engine import predict_tuition_default
 
@@ -21,42 +21,49 @@ def seed_data():
         # Create Users
         superadmin_user = User(
             username="superadmin",
+            full_name="System Superadmin",
             hashed_password=get_password_hash("superadmin123"),
             role="Superadmin",
             is_active=1
         )
         admin_user = User(
             username="principal",
+            full_name="Elias Principal",
             hashed_password=get_password_hash("principal123"),
             role="Principal",
             is_active=1
         )
         teacher_user = User(
             username="teacher",
+            full_name="Clara Teacher",
             hashed_password=get_password_hash("teacher123"),
             role="Teacher",
             is_active=1
         )
         cashier_user = User(
             username="cashier",
+            full_name="Jane Cashier",
             hashed_password=get_password_hash("cashier123"),
             role="Cashier",
             is_active=1
         )
         registrar_user = User(
             username="registrar",
+            full_name="Bob Registrar",
             hashed_password=get_password_hash("registrar123"),
             role="Registrar",
             is_active=1
         )
         admission_registrar_user = User(
             username="admission",
+            full_name="Alice Admission",
             hashed_password=get_password_hash("admission123"),
             role="Admission",
             is_active=1
         )
         student_user = User(
             username="student",
+            full_name="Juan Dela Cruz",
             hashed_password=get_password_hash("student123"),
             role="Student",
             is_active=1,
@@ -201,15 +208,15 @@ def seed_data():
             amount_due = 35000.00
             amount_paid = 35000.00 if status == "Paid" else round(random.uniform(0, 20000), 2)
             if status == "Pending" and amount_paid == 0: amount_paid = 10000.00
-
-            payments.append(TuitionPayment(
+            tp = TuitionPayment(
                 student_id=s.id,
                 amount_due=amount_due,
                 amount_paid=amount_paid,
                 term="Term 1",
                 status=status,
                 risk_score=0.0 # Placeholder
-            ))
+            )
+            payments.append(tp)
             
         # Compute ML Risk 
         for p in payments:
@@ -217,6 +224,29 @@ def seed_data():
             p.risk_score = risk_data["risk_score"]
             
         db.add_all(payments)
+        db.flush() # flush to get IDs for TuitionPayment
+        
+        payment_records = []
+        for p in payments:
+            if p.amount_paid > 0:
+                # Add 1 or 2 historical records
+                import datetime
+                pr1 = PaymentRecord(
+                    tuition_id=p.id,
+                    amount=p.amount_paid * 0.5,
+                    or_number=f"OR-{p.id}-A",
+                    date_recorded="2025-08-15"
+                )
+                pr2 = PaymentRecord(
+                    tuition_id=p.id,
+                    amount=p.amount_paid * 0.5,
+                    or_number=f"OR-{p.id}-B",
+                    date_recorded="2025-10-15"
+                )
+                payment_records.extend([pr1, pr2])
+        
+        db.add_all(payment_records)
+        db.commit()
 
         # --- Mock OCR Enrollment Form ---
         mock_ocr_text = """

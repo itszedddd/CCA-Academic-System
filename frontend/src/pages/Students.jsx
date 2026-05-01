@@ -155,7 +155,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           <th className="px-6 py-3">Grade</th>
           <th className="px-6 py-3">Section</th>
           <th className="px-6 py-3">Status</th>
-          {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
+          {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
             <th className="px-6 py-3 text-right">Actions</th>
           )}
         </tr>
@@ -168,7 +168,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           
           return (
             <Fragment key={s.id}>
-              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole)) handleView(s.id); }}>
+              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole)) handleView(s.id); }}>
                 <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-300">#{String(s.id).padStart(4,'0')}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center">
@@ -197,18 +197,18 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-col items-start gap-1">
-                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
+                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : s.enrollment_status === 'Approved: Incomplete Req' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
                     {(!s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures) && (
                       <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-red-50 text-red-600 border border-red-200">Lacking Docs</span>
                     )}
                   </div>
                 </td>
-                {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
+                {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
                   <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
                     {currentRole === 'Teacher' && (
                       <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
                     )}
-                    {['Admission', 'Registrar', 'Principal'].includes(currentRole) && (
+                    {['Admission', 'Registrar', 'Principal', 'Cashier'].includes(currentRole) && (
                       <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition font-bold">{isExpanded ? 'Hide Details' : 'See Details'}</button>
                     )}
                     {currentRole === 'Registrar' && (
@@ -221,6 +221,46 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 <tr>
                   <td colSpan="6" className="p-0 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                     <div className="p-6">
+                      {currentRole === 'Cashier' ? (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
+                          <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Payment History</h4>
+                          {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
+                            <p className="text-sm text-slate-500 italic">No tuition records found for this student.</p>
+                          ) : (
+                            <div className="space-y-4">
+                              {selectedStudent.tuition_payments.map(tp => (
+                                <div key={tp.id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                                  <div className="flex justify-between items-center mb-3">
+                                    <span className="font-bold text-slate-800 dark:text-white">{tp.term}</span>
+                                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status}</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                                    <div className="text-slate-500">Amount Due:</div><div className="font-semibold text-slate-800 dark:text-white">₱{tp.amount_due.toLocaleString()}</div>
+                                    <div className="text-slate-500">Amount Paid:</div><div className="font-semibold text-green-600">₱{tp.amount_paid.toLocaleString()}</div>
+                                  </div>
+                                  {tp.payments && tp.payments.length > 0 && (
+                                    <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-2">
+                                      <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Transaction Logs</span>
+                                      <ul className="space-y-1.5">
+                                        {tp.payments.map((p, idx) => (
+                                          <li key={idx} className="flex justify-between items-center bg-white dark:bg-slate-900 px-2.5 py-2 rounded shadow-sm text-xs border border-slate-200 dark:border-slate-700">
+                                            <div className="flex flex-col">
+                                              <span className="font-bold text-slate-700 dark:text-slate-300">O.R. {p.or_number}</span>
+                                              <span className="text-[9px] text-slate-400">{new Date(p.date_recorded).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                            </div>
+                                            <span className="font-bold text-green-600 dark:text-green-400">+₱{p.amount.toLocaleString()}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
                       <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card (SF9 Format)</h4>
                       
                       <div className="overflow-x-auto mb-6 border border-slate-200 dark:border-slate-700 rounded-lg">
@@ -382,6 +422,8 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                           )}
                         </div>
                       )}
+                      </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -408,7 +450,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
               <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
             </div>
-            {currentRole === 'Registrar' && (
+            {['Admission', 'Principal'].includes(currentRole) && (
               <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 Register Student

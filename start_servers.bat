@@ -4,10 +4,10 @@ echo        Starting CCA Thesis Project Globally
 echo ========================================================
 echo.
 echo Starting CCA Backend (Port 8000)...
-start "CCA Backend (Running in Background)" cmd /k "cd backend && venv\Scripts\activate && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+start "CCA Backend (Running in Background)" cmd /k "cd backend && venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
 echo Starting CCA Frontend (Vite)...
-start "CCA Frontend (Running in Background)" cmd /k "cd frontend && npm run dev -- --host 0.0.0.0"
+start "CCA Frontend (Running in Background)" cmd /k "cd frontend && npm.cmd run dev -- --host 0.0.0.0"
 
 echo.
 echo Both servers have been launched in separate terminal windows!

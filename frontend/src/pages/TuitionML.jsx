@@ -314,6 +314,9 @@ export default function TuitionML({ currentRole, authFetch }) {
                  <label className="block text-sm font-bold text-brand-700 dark:text-brand-400">Incoming Payment (Cash/Transfer)</label>
                  <div className="flex flex-col sm:flex-row gap-2">
                    <div className="flex-1">
+                     <input type="date" id="tx_date" defaultValue={new Date().toLocaleDateString('en-CA')} className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" title="Transaction Date" />
+                   </div>
+                   <div className="flex-1">
                      <input type="text" id="or_num" required className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" placeholder="O.R. Number..." />
                    </div>
                    <div className="flex-1">
@@ -324,8 +327,9 @@ export default function TuitionML({ currentRole, authFetch }) {
                    <button type="button" onClick={async () => {
                      const val = parseFloat(document.getElementById('quick_pay').value);
                      const orn = document.getElementById('or_num').value;
+                     const txDate = document.getElementById('tx_date').value || new Date().toISOString();
                      if (!isNaN(val) && val > 0 && orn.trim() !== '') {
-                       const payload = { amount: val, or_number: orn.trim(), date_recorded: new Date().toISOString() };
+                       const payload = { amount: val, or_number: orn.trim(), date_recorded: new Date(txDate).toISOString() };
                        const res = await authFetch(`${API}/tuition/${editingTuition.id}/pay`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                        if(res?.ok) {
                          const n = await res.json();

@@ -8,6 +8,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showForgotPwdModal, setShowForgotPwdModal] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -98,7 +99,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest transition-colors">Password</label>
-                    <a href="#" className="text-[10px] font-bold text-[#022868] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition uppercase tracking-wider">Forgot?</a>
+                    <button type="button" onClick={() => setShowForgotPwdModal(true)} className="text-[10px] font-bold text-[#022868] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition uppercase tracking-wider">Forgot?</button>
                   </div>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -136,6 +137,24 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
           </div>
         </div>
       </div>
+
+      {showForgotPwdModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-8 text-center border border-slate-100 dark:border-slate-700 relative">
+            <button onClick={() => setShowForgotPwdModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-6">
+              <svg className="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest mb-2">Forgot Password?</h3>
+            <p className="text-slate-500 dark:text-slate-400 mb-8 font-medium">Please contact the System Superadmin or the IT Department to request a password reset.</p>
+            <button onClick={() => setShowForgotPwdModal(false)} className="w-full py-3 bg-[#022868] hover:bg-[#011a45] text-white font-bold rounded-xl transition tracking-wider">
+              UNDERSTOOD
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

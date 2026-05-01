@@ -558,6 +558,14 @@ def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(
 
 @aesms_router.put("/enrollment_forms/{form_id}/verify", response_model=schemas.EnrollmentForm)
 def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db)):
+    # Grade-to-Section mapping for automatic assignment
+    GRADE_SECTION_MAP = {
+        'Grade 7': 'Humility',
+        'Grade 8': 'Courage',
+        'Grade 9': 'Goodwill',
+        'Grade 10': 'Persistence',
+    }
+
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
@@ -566,7 +574,7 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
     if payload.remarks:
         form.remarks = payload.remarks
     
-    if payload.status in ["Success", "Hold"]:
+    if payload.status in ["Success", "Hold", "Approved Incomplete"]:
         if form.student_id:
             student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
             if student:
@@ -577,6 +585,16 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
 
                 if payload.status == "Success":
                     student.enrollment_status = "Enrolled"
+                    # Auto-assign section based on grade level
+                    grade = student.grade_level or (form.grade_applying_for or '')
+                    if grade in GRADE_SECTION_MAP:
+                        student.section = GRADE_SECTION_MAP[grade]
+                elif payload.status == "Approved Incomplete":
+                    student.enrollment_status = "Approved: Incomplete Req"
+                    # Still auto-assign section even if incomplete
+                    grade = student.grade_level or (form.grade_applying_for or '')
+                    if grade in GRADE_SECTION_MAP:
+                        student.section = GRADE_SECTION_MAP[grade]
                 elif payload.status == "Hold":
                     student.enrollment_status = "Hold: Incomplete Req"
                 
@@ -638,6 +656,29 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
 def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
 
+from pydantic import BaseModel
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+@aesms_router.post("/auth/change-password")
+def change_password(request: PasswordChangeRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if not verify_password(request.old_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect old password")
+    
+    current_user.hashed_password = get_password_hash(request.new_password)
+    db.commit()
+    return {"message": "Password updated successfully"}
+
+class ScheduleUpdateRequest(BaseModel):
+    schedule: str  # JSON string
+
+@aesms_router.put("/auth/update-schedule")
+def update_schedule(request: ScheduleUpdateRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    current_user.schedule = request.schedule
+    db.commit()
+    return {"message": "Schedule updated successfully"}
+
 @aesms_router.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Superadmin", "Registrar", "Admission"]:
@@ -686,6 +727,36 @@ def update_user(user_id: int, user: schemas.UserCreate, db: Session = Depends(ge
     db.commit()
     db.refresh(db_user)
     return db_user
+
+@aesms_router.post("/users/{user_id}/upload_profile_picture")
+async def upload_user_profile_picture(
+    user_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Upload a profile picture for a user (Teacher/Student). Users can only update their own picture."""
+    if current_user.id != user_id and current_user.role != "Superadmin":
+        raise HTTPException(status_code=403, detail="You can only update your own profile picture")
+    
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    import time
+    file_ext = os.path.splitext(file.filename)[1]
+    file_name = f"user_{user_id}_{int(time.time())}{file_ext}"
+    file_path = os.path.join(UPLOAD_DIR, file_name)
+    
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    file_url = f"/uploads/{file_name}"
+    db_user.profile_picture = file_url
+    
+    db.commit()
+    db.refresh(db_user)
+    return {"detail": "Profile picture updated", "profile_picture": file_url}
 
 @aesms_router.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):

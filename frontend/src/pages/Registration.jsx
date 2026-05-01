@@ -9,11 +9,12 @@ const InputField = ({ label, field, type="text", required=false, encodeData, set
   </div>
 );
 
-export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRole, students }) {
+export default function Registration({ forms, fetchForms, authFetch, currentRole, students }) {
   const [activeTab, setActiveTab] = useState(currentRole === 'Registrar' ? 'Verify' : 'Encode');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Encode Form State
   const [encodeData, setEncodeData] = useState({
@@ -68,6 +69,7 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
         }
         
         setSuccessMsg('Digital Enrollment Form successfully encoded!');
+        setShowSuccessModal(true);
         setEncodeData({
           student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Pre-Kinder',
           sex: '', birth_date: '', birth_place: '', home_address: '',
@@ -94,6 +96,8 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
   const [selectedForm, setSelectedForm] = useState(null);
   const [remarks, setRemarks] = useState('');
   const [requirements, setRequirements] = useState({ req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0 });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
 
   const handleVerify = async (status) => {
     setLoading(true);
@@ -126,6 +130,7 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
       case 'Success': return 'bg-green-100 text-green-700';
       case 'Needs Review': return 'bg-yellow-100 text-yellow-700';
       case 'Hold': return 'bg-orange-100 text-orange-700';
+      case 'Approved Incomplete': return 'bg-blue-100 text-blue-700';
       case 'Rejected': return 'bg-red-100 text-red-700';
       default: return 'bg-slate-100 text-slate-700';
     }
@@ -156,9 +161,25 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
         </div>
 
         {activeTab === 'Encode' && (
-          <div className="p-6">
-            {successMsg && <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-xl text-sm font-bold border border-green-200">{successMsg}</div>}
+          <div className="p-6 relative">
             {errorMsg && <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl text-sm font-bold border border-red-200">{errorMsg}</div>}
+            
+            {showSuccessModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-50 backdrop-blur-sm">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-sm w-full p-8 text-center border border-slate-100 dark:border-slate-700">
+                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+                    <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest mb-2">Success!</h3>
+                  <p className="text-slate-500 mb-8 font-medium">{successMsg}</p>
+                  <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition tracking-wider">
+                    DONE
+                  </button>
+                </div>
+              </div>
+            )}
             
             <form onSubmit={handleEncodeSubmit} className="space-y-8 max-w-4xl">
               {/* Core Student Info */}
@@ -264,9 +285,20 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
 
         {activeTab === 'Verify' && !selectedForm && (
           <div className="p-0">
+            <div className="p-4 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row gap-4">
+               <input type="text" placeholder="Search by name or form ID..." className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+               <select className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+                 <option value="All">All Statuses</option>
+                 <option value="Needs Review">Needs Review</option>
+                 <option value="Success">Success</option>
+                 <option value="Approved Incomplete">Approved (Incomplete)</option>
+                 <option value="Hold">Hold</option>
+                 <option value="Rejected">Rejected</option>
+               </select>
+            </div>
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-slate-50 text-xs font-bold uppercase text-slate-500">
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
                   <th className="px-6 py-3">Form ID</th>
                   <th className="px-6 py-3">Student Name</th>
                   <th className="px-6 py-3">Grade</th>
@@ -274,8 +306,20 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {forms.map(form => {
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {forms.filter(form => {
+                  if (statusFilter !== 'All' && form.status !== statusFilter) return false;
+                  
+                  let name = "Unknown";
+                  if (form.student_id) {
+                    const st = students.find(s => s.id === form.student_id);
+                    if (st) name = `${st.last_name}, ${st.first_name}`;
+                  }
+                  if (name === "Unknown" && form.father_name) name = `Child of ${form.father_name}`;
+                  
+                  const searchLower = searchQuery.toLowerCase();
+                  return name.toLowerCase().includes(searchLower) || String(form.id).includes(searchLower);
+                }).map(form => {
                   let name = "Unknown";
                   let grade = "Unknown";
                   if (form.student_id) {
@@ -359,11 +403,12 @@ export default function EnrollmentOCR({ forms, fetchForms, authFetch, currentRol
                      <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none" rows="3" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add internal notes..."></textarea>
                    </div>
                    
-                   <div className="grid grid-cols-2 gap-2 pt-4">
-                     <button onClick={() => handleVerify('Success')} disabled={loading} className="py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-sm transition">Approve & Enroll</button>
-                     <button onClick={() => handleVerify('Hold')} disabled={loading} className="py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg text-sm transition">Hold (Incomplete)</button>
-                     <button onClick={() => handleVerify('Rejected')} disabled={loading} className="py-2.5 col-span-2 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-sm transition">Reject Application</button>
-                   </div>
+                   <div className="grid grid-cols-3 gap-2 pt-4">
+                      <button onClick={() => handleVerify('Success')} disabled={loading} className="py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-sm transition">Approve & Enroll</button>
+                      <button onClick={() => handleVerify('Approved Incomplete')} disabled={loading} className="py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-sm transition">Approved (Incomplete)</button>
+                      <button onClick={() => handleVerify('Hold')} disabled={loading} className="py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg text-sm transition">Hold (Incomplete)</button>
+                      <button onClick={() => handleVerify('Rejected')} disabled={loading} className="py-2.5 col-span-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-sm transition">Reject Application</button>
+                    </div>
                  </div>
                </div>
 

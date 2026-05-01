@@ -6,8 +6,11 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ username: '', password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
+  const [formData, setFormData] = useState({ username: '', full_name: '', password: '', confirm_password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -24,7 +27,8 @@ export default function UserManagement({ authFetch, currentRole }) {
 
   const openAddModal = () => {
     setEditingUser(null);
-    setFormData({ username: '', password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
+    setFormData({ username: '', full_name: '', password: '', confirm_password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
+    setShowPassword(false);
     setShowModal(true);
   };
 
@@ -32,7 +36,9 @@ export default function UserManagement({ authFetch, currentRole }) {
     setEditingUser(user);
     setFormData({ 
       username: user.username, 
+      full_name: user.full_name || '',
       password: '', 
+      confirm_password: '',
       role: user.role, 
       student_id: user.student_id || '', 
       is_active: user.is_active,
@@ -56,6 +62,12 @@ export default function UserManagement({ authFetch, currentRole }) {
       is_active: parseInt(formData.is_active),
       section: formData.role === 'Teacher' ? (formData.section || null) : null
     };
+    delete payload.confirm_password;
+    
+    if (!editingUser && formData.password !== formData.confirm_password) {
+      alert("Passwords do not match");
+      return;
+    }
     
     if (editingUser) {
       await authFetch(`${API}/users/${editingUser.id}`, {
@@ -106,24 +118,49 @@ export default function UserManagement({ authFetch, currentRole }) {
             <svg className="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
           </div>
         )}
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col md:flex-row gap-4 items-center">
+          <div className="relative flex-1 w-full">
+            <input 
+              type="text" 
+              placeholder="Search by username or name..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+          <select 
+            value={roleFilter} 
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="w-full md:w-auto px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+          >
+            <option value="All">All Roles</option>
+            {['Superadmin', 'Principal', 'Teacher', 'Registrar', 'Admission', 'Cashier', 'Student', 'Parent'].map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900">
                 <th className="px-6 py-4">ID</th>
+                <th className="px-6 py-4">Full Name</th>
                 <th className="px-6 py-4">Username</th>
                 <th className="px-6 py-4">Role Clearance</th>
                 <th className="px-6 py-4">Assigned Section</th>
-                <th className="px-6 py-4">Student Link</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-              {users.map(u => (
+              {users.filter(u => {
+                const matchesSearch = (u.username.toLowerCase().includes(searchQuery.toLowerCase()) || (u.full_name && u.full_name.toLowerCase().includes(searchQuery.toLowerCase())));
+                const matchesRole = roleFilter === 'All' || u.role === roleFilter;
+                return matchesSearch && matchesRole;
+              }).map(u => (
                 <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
                   <td className="px-6 py-4 text-sm font-semibold text-slate-600 dark:text-slate-300">#{u.id}</td>
-                  <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{u.username}</td>
+                  <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{u.full_name || '—'}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-400">{u.username}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                       u.role === 'Principal' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
@@ -142,9 +179,7 @@ export default function UserManagement({ authFetch, currentRole }) {
                         : <span className="text-slate-400 italic text-xs">No section</span>
                     ) : '—'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    {u.student_id ? `Linked (ID: ${u.student_id})` : '—'}
-                  </td>
+
                   <td className="px-6 py-4">
                     <span className={`flex items-center text-xs font-bold ${u.is_active === 1 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
                       <div className={`w-2 h-2 rounded-full mr-1.5 ${u.is_active === 1 ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -175,16 +210,38 @@ export default function UserManagement({ authFetch, currentRole }) {
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Assigned Username</label>
-                <input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} placeholder="johndoe" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.full_name} onChange={e => setFormData({...formData, full_name: e.target.value})} placeholder="Juan Dela Cruz" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Assigned Username</label>
+                  <input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} placeholder="johndoe" />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  {editingUser ? 'Reset Password (optional)' : 'Set Password'}
-                </label>
-                <input type="password" required={!editingUser} className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
-              </div>
+              
+              {!editingUser && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Set Password</label>
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-slate-400 hover:text-brand-600">
+                        {showPassword ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
+                    <input type={showPassword ? "text" : "password"} required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.confirm_password} onChange={e => setFormData({...formData, confirm_password: e.target.value})} placeholder="••••••••" />
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">System Role</label>
                 <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-semibold" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>

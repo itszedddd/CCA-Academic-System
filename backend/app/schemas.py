@@ -46,6 +46,7 @@ class StudentCreate(StudentBase):
 class Student(StudentBase):
     id: int
     academic_records: List[AcademicRecord] = []
+    tuition_payments: List['TuitionPayment'] = []
 
     class Config:
         from_attributes = True
@@ -227,6 +228,8 @@ class UserBase(BaseModel):
     student_id: Optional[int] = None
     is_active: Optional[int] = 1
     section: Optional[str] = None  # Assigned section for Teacher role
+    profile_picture: Optional[str] = None
+    schedule: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str

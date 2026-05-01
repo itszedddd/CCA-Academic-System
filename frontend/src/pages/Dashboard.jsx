@@ -113,6 +113,43 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
         </div>
+      ) : currentRole === 'Teacher' ? (
+        <div className="mb-8 flex flex-col lg:flex-row gap-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
+            {user?.profile_picture ? (
+              <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-md border-4 border-brand-100 dark:border-brand-900">
+                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'T'}
+              </div>
+            )}
+            <div>
+              <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1">{user?.full_name || 'Prof. Example User'}</h2>
+              <p className="text-brand-600 dark:text-brand-400 font-bold text-sm tracking-wide mb-2 uppercase">Adviser — {user?.section || 'Unassigned Section'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs">Manage your section's attendance and academic progress.</p>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+            <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
+              <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Today's Schedule
+            </h3>
+            <ul className="space-y-3">
+              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
+                <span className="text-sm font-semibold">08:00 AM - 09:30 AM</span>
+                <span className="text-xs font-bold text-brand-200">Homeroom</span>
+              </li>
+              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
+                <span className="text-sm font-semibold">10:00 AM - 11:30 AM</span>
+                <span className="text-xs font-bold text-brand-200">Mathematics</span>
+              </li>
+              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
+                <span className="text-sm font-semibold">01:00 PM - 02:30 PM</span>
+                <span className="text-xs font-bold text-brand-200">Science Labs</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       ) : (
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
