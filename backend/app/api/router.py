@@ -281,6 +281,11 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
     else:
         students = db.query(models.Student).all()
 
+    all_remarks = db.query(models.AcademicWarningRemarks).filter(
+        models.AcademicWarningRemarks.student_id.in_([s.id for s in students])
+    ).all()
+    remarks_dict = {(r.student_id, r.subject): r.remarks for r in all_remarks}
+
     for student in students:
         # 1. Document Lacking Warnings
         if not student.req_birth_cert or not student.req_form_138 or not student.req_good_moral or not student.req_pictures:
@@ -297,6 +302,7 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
                 "slope": 0.0,
                 "message": f"Action Required: Lacking documents ({', '.join(missing_docs)}). Please notify student.",
                 "latest_score": 0.0,
+                "remarks": remarks_dict.get((student.id, "Requirements"), "")
             })
             
         # 2. Academic Trend Warnings
@@ -320,9 +326,34 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
                         "slope": analysis["slope"],
                         "message": analysis["message"],
                         "latest_score": analysis["latest_score"],
+                        "remarks": remarks_dict.get((student.id, subject), "")
                     })
 
     return {"total_warnings": len(warnings), "warnings": warnings}
+
+class RemarkUpdate(BaseModel):
+    student_id: int
+    subject: str
+    remarks: str
+
+@aesms_router.post("/academic_warnings/remarks")
+def update_academic_warning_remark(remark: RemarkUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role != "Teacher":
+        raise HTTPException(status_code=403, detail="Only teachers can update remarks")
+    
+    db_remark = db.query(models.AcademicWarningRemarks).filter(
+        models.AcademicWarningRemarks.student_id == remark.student_id,
+        models.AcademicWarningRemarks.subject == remark.subject
+    ).first()
+    
+    if db_remark:
+        db_remark.remarks = remark.remarks
+    else:
+        db_remark = models.AcademicWarningRemarks(student_id=remark.student_id, subject=remark.subject, remarks=remark.remarks)
+        db.add(db_remark)
+        
+    db.commit()
+    return {"message": "Remarks updated successfully"}
 
 
 
@@ -754,6 +785,11 @@ async def upload_user_profile_picture(
     file_url = f"/uploads/{file_name}"
     db_user.profile_picture = file_url
     
+    if db_user.student_id:
+        student = db.query(models.Student).filter(models.Student.id == db_user.student_id).first()
+        if student:
+            student.profile_image = file_url
+            
     db.commit()
     db.refresh(db_user)
     return {"detail": "Profile picture updated", "profile_picture": file_url}
@@ -781,3 +817,45 @@ def debug_seed_db(db: Session = Depends(get_db)):
     except Exception as e:
         import traceback
         return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
+
+@aesms_router.get("/auth/section-schedule/{section}")
+def get_section_schedule(section: str, db: Session = Depends(get_db)):
+    teacher = db.query(models.User).filter(models.User.role == "Teacher", models.User.section == section).first()
+    if teacher and teacher.schedule:
+        return {"schedule": teacher.schedule, "teacher_name": teacher.full_name}
+    return {"schedule": "[]", "teacher_name": None}
+
+@aesms_router.post("/admin/end_school_year")
+def end_school_year(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Registrar"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    students = db.query(models.Student).filter(models.Student.enrollment_status == "Enrolled").all()
+    promoted_count = 0
+    for student in students:
+        # Increment school year
+        if student.school_year:
+            parts = student.school_year.split('-')
+            if len(parts) == 2:
+                try:
+                    student.school_year = f"{int(parts[0])+1}-{int(parts[1])+1}"
+                except:
+                    pass
+        
+        # Advance grade level
+        grade = student.grade_level
+        if grade and "Grade" in grade:
+            try:
+                num = int(grade.split()[1])
+                if num < 12:
+                    student.grade_level = f"Grade {num+1}"
+            except:
+                pass
+                
+        # Clear section so they need to be re-assigned next year
+        student.section = None
+        student.enrollment_status = "Pending Validation"
+        promoted_count += 1
+        
+    db.commit()
+    return {"detail": f"School year ended. {promoted_count} students moved to next grade and archived."}

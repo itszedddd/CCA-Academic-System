@@ -9,6 +9,7 @@ class AcademicRecordBase(BaseModel):
     subject: str
     score: float
     term: str
+    school_year: Optional[str] = None
 
 class AcademicRecordCreate(AcademicRecordBase):
     student_id: int

@@ -7,6 +7,15 @@ export default function Settings({ user, authFetch }) {
   const [profilePicPreview, setProfilePicPreview] = useState(user?.profile_picture || '');
   const [profilePicFile, setProfilePicFile] = useState(null);
   const [statusMsg, setStatusMsg] = useState({ text: '', type: '' });
+  
+  const [schedule, setSchedule] = useState(() => {
+    try {
+      return user?.schedule ? JSON.parse(user.schedule) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [newScheduleItem, setNewScheduleItem] = useState({ time: '', subject: '', day: 'Monday' });
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -81,7 +90,38 @@ export default function Settings({ user, authFetch }) {
     }
   };
 
+  const handleScheduleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API}/auth/update-schedule`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ schedule: JSON.stringify(schedule) })
+      });
+      if (res.ok) {
+        setStatusMsg({ text: 'Schedule updated successfully!', type: 'success' });
+      } else {
+        setStatusMsg({ text: 'Failed to update schedule.', type: 'error' });
+      }
+    } catch (e) {
+      setStatusMsg({ text: 'Network error.', type: 'error' });
+    }
+  };
+
+  const addScheduleItem = () => {
+    if (newScheduleItem.time && newScheduleItem.subject && newScheduleItem.day) {
+      setSchedule([...schedule, newScheduleItem]);
+      setNewScheduleItem({ time: '', subject: '', day: 'Monday' });
+    }
+  };
+
+  const removeScheduleItem = (index) => {
+    setSchedule(schedule.filter((_, i) => i !== index));
+  };
+
   const canEditProfilePic = user?.role === 'Teacher' || user?.role === 'Student';
+  const isTeacher = user?.role === 'Teacher';
 
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
@@ -174,6 +214,84 @@ export default function Settings({ user, authFetch }) {
                   Upload Profile Picture
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* Teacher Schedule Editor */}
+          {isTeacher && (
+            <div className="md:col-span-2 space-y-4 bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
+                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Manage Class Schedule
+              </h3>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <select 
+                    value={newScheduleItem.day}
+                    onChange={(e) => setNewScheduleItem({...newScheduleItem, day: e.target.value})}
+                    className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+                  >
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <input 
+                    type="text" 
+                    placeholder="Time (e.g. 08:00 AM - 09:30 AM)"
+                    value={newScheduleItem.time}
+                    onChange={(e) => setNewScheduleItem({...newScheduleItem, time: e.target.value})}
+                    className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <input 
+                    type="text" 
+                    placeholder="Subject (e.g. Mathematics)"
+                    value={newScheduleItem.subject}
+                    onChange={(e) => setNewScheduleItem({...newScheduleItem, subject: e.target.value})}
+                    className="flex-1 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
+                  />
+                  <button type="button" onClick={addScheduleItem} className="px-4 py-2 bg-brand-100 hover:bg-brand-200 text-brand-700 font-bold rounded-lg transition">
+                    Add Item
+                  </button>
+                </div>
+                
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                  {schedule.length === 0 ? (
+                    <div className="p-4 text-center text-sm text-slate-500">No schedule items added.</div>
+                  ) : (
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">
+                        <tr>
+                          <th className="px-4 py-2 font-bold">Time Slot</th>
+                          <th className="px-4 py-2 font-bold">Subject</th>
+                          <th className="px-4 py-2 font-bold w-16 text-center">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {schedule.map((item, idx) => (
+                          <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+                            <td className="px-4 py-3">
+                              <div>
+                                <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.day || 'Any Day'}</span>
+                                <span className="block text-sm font-bold text-slate-800 dark:text-white">{item.time}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{item.subject}</td>
+                            <td className="px-4 py-3 text-center">
+                              <button onClick={() => removeScheduleItem(idx)} className="text-red-500 hover:text-red-700 font-bold px-2 py-1 bg-red-50 hover:bg-red-100 rounded">
+                                ✕
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+                
+                <button onClick={handleScheduleUpdate} className="w-full px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg shadow transition">
+                  Save Schedule
+                </button>
+              </div>
             </div>
           )}
           

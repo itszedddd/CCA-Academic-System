@@ -39,6 +39,7 @@ class AcademicRecord(Base):
     subject = Column(String)
     score = Column(Float)
     term = Column(String)
+    school_year = Column(String, nullable=True)
 
     student = relationship("Student", back_populates="academic_records")
 
@@ -142,3 +143,12 @@ class User(Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)  # Link for Student/Parent roles
     is_active = Column(Integer, default=1)
     section = Column(String, nullable=True)  # For Teacher role: restricts visible students to this section
+    profile_picture = Column(String, nullable=True)
+    schedule = Column(String, nullable=True)
+
+class AcademicWarningRemarks(Base):
+    __tablename__ = "academic_warning_remarks"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"))
+    subject = Column(String)
+    remarks = Column(String)

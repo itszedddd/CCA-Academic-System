@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function AcademicWarnings({ warnings, fetchWarnings }) {
+export default function AcademicWarnings({ warnings, fetchWarnings, currentRole, authFetch, API }) {
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -85,7 +85,34 @@ export default function AcademicWarnings({ warnings, fetchWarnings }) {
                               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                               ML Insight
                             </p>
-                            <p className="text-xs text-slate-600 dark:text-slate-300 bg-red-50 dark:bg-red-900/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/50 leading-relaxed font-medium">{w.message}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 bg-red-50 dark:bg-red-900/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/50 leading-relaxed font-medium mb-3">{w.message}</p>
+                            
+                            {/* Remarks Section */}
+                            <p className="text-[10px] font-bold text-brand-500 uppercase tracking-widest mb-1.5 flex items-center mt-3">
+                              <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
+                              Teacher Remarks
+                            </p>
+                            {currentRole === 'Teacher' ? (
+                              <textarea
+                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-xs text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-brand-500 outline-none resize-none shadow-inner"
+                                rows="2"
+                                placeholder="Type your remarks here... (Saved automatically when you click outside)"
+                                defaultValue={w.remarks}
+                                onBlur={(e) => {
+                                  if(e.target.value !== w.remarks) {
+                                    authFetch(`${API}/academic_warnings/remarks`, {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ student_id: w.student_id, subject: w.subject, remarks: e.target.value })
+                                    }).then(() => fetchWarnings());
+                                  }
+                                }}
+                              ></textarea>
+                            ) : (
+                              <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/40 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 leading-relaxed italic">
+                                {w.remarks || "No remarks added yet."}
+                              </p>
+                            )}
                           </div>
                         </div>
                       ))}

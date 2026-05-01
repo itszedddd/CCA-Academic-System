@@ -4,6 +4,9 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   const [loadingReport, setLoadingReport] = useState(false);
   const [tuitions, setTuitions] = useState([]);
   const [reportData, setReportData] = useState(null);
+  const [mySchedule, setMySchedule] = useState([]);
+  
+  const isStudent = currentRole === 'Student' || currentRole === 'Parent';
 
   useEffect(() => {
     if (currentRole === 'Cashier' || currentRole === 'Principal') {
@@ -12,7 +15,26 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     if (currentRole === 'Principal') {
       authFetch('/api/analytics/report').then(r => r?.ok ? r.json() : null).then(setReportData).catch(()=>{});
     }
-  }, [currentRole]);
+    
+    if (currentRole === 'Teacher') {
+      try {
+        setMySchedule(user?.schedule ? JSON.parse(user.schedule) : []);
+      } catch {
+        setMySchedule([]);
+      }
+    } else if (isStudent) {
+      const mySection = students.find(s => s.id === user?.student_id)?.section;
+      if (mySection) {
+        authFetch(`/api/auth/section-schedule/${mySection}`)
+          .then(r => r?.ok ? r.json() : null)
+          .then(data => {
+            if (data?.schedule) {
+              try { setMySchedule(JSON.parse(data.schedule)); } catch {}
+            }
+          }).catch(()=>{});
+      }
+    }
+  }, [currentRole, user, students]);
 
   const handleGenerateReport = async () => {
     setLoadingReport(true);
@@ -89,10 +111,53 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       setLoadingReport(false);
     }
   };
-  const isStudent = currentRole === 'Student' || currentRole === 'Parent';
   
   const todayAbsences = attendance.filter(a => a.status === 'Absent').length;
-  const enrolledCount = students.filter(s => s.enrollment_status === 'Enrolled').length;
+  const teacherStudents = currentRole === 'Teacher' ? students.filter(s => s.section === user?.section) : students;
+  const enrolledCount = teacherStudents.filter(s => s.enrollment_status === 'Enrolled').length;
+  const totalSectionStudents = teacherStudents.length;
+  const filteredWarnings = currentRole === 'Teacher' ? warnings.filter(w => teacherStudents.some(s => s.id === w.student_id)) : warnings;
+
+  const renderCalendar = (scheduleItems) => {
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+    const hasDays = scheduleItems.some(i => i.day);
+    if (!hasDays) {
+      return (
+        <ul className="space-y-3">
+          {scheduleItems.length === 0 ? (
+            <li className="text-sm text-slate-400">No schedule assigned yet.</li>
+          ) : (
+            scheduleItems.map((item, idx) => (
+              <li key={idx} className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
+                <span className="text-sm font-semibold">{item.time}</span>
+                <span className="text-xs font-bold text-brand-200">{item.subject}</span>
+              </li>
+            ))
+          )}
+        </ul>
+      );
+    }
+    return (
+      <div className="grid grid-cols-5 gap-2 text-center text-xs mt-2">
+        {days.map(d => (
+          <div key={d} className="font-bold text-brand-200 pb-2 border-b border-white/20 uppercase text-[10px] tracking-wider">{d.substring(0,3)}</div>
+        ))}
+        {days.map(d => {
+          const items = scheduleItems.filter(i => i.day === d);
+          return (
+            <div key={`${d}-items`} className="space-y-2 pt-2">
+              {items.map((item, idx) => (
+                <div key={idx} className="bg-white/10 p-1.5 rounded-md border border-white/10 shadow-sm backdrop-blur-sm hover:bg-white/20 transition cursor-default" title={`${item.time} - ${item.subject}`}>
+                  <div className="font-bold text-white truncate text-[10px]">{item.subject}</div>
+                  <div className="text-[9px] text-slate-300 opacity-90 truncate">{item.time}</div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const StatCard = ({ label, value, sub, icon, color }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
@@ -109,9 +174,18 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     <div className="space-y-6">
       {/* Header for Students */}
       {isStudent ? (
-        <div className="mb-8">
-          <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
+        <div className="mb-8 flex flex-col lg:flex-row gap-6">
+          <div className="flex-1">
+            <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
+          </div>
+          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+            <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
+              <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              My Class Schedule
+            </h3>
+            {renderCalendar(mySchedule)}
+          </div>
         </div>
       ) : currentRole === 'Teacher' ? (
         <div className="mb-8 flex flex-col lg:flex-row gap-6">
@@ -134,20 +208,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Today's Schedule
             </h3>
-            <ul className="space-y-3">
-              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-                <span className="text-sm font-semibold">08:00 AM - 09:30 AM</span>
-                <span className="text-xs font-bold text-brand-200">Homeroom</span>
-              </li>
-              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-                <span className="text-sm font-semibold">10:00 AM - 11:30 AM</span>
-                <span className="text-xs font-bold text-brand-200">Mathematics</span>
-              </li>
-              <li className="flex justify-between items-center bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-                <span className="text-sm font-semibold">01:00 PM - 02:30 PM</span>
-                <span className="text-xs font-bold text-brand-200">Science Labs</span>
-              </li>
-            </ul>
+            {renderCalendar(mySchedule)}
           </div>
         </div>
       ) : (
@@ -231,13 +292,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       {(currentRole === 'Teacher' || isStudent) && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           {!isStudent && (
-            <StatCard label="Total Enrolled" value={enrolledCount} sub="Active students" color="text-brand-600"
+            <StatCard label={currentRole === 'Teacher' ? "Total Students" : "Total Enrolled"} value={currentRole === 'Teacher' ? totalSectionStudents : enrolledCount} sub={currentRole === 'Teacher' ? "Assigned to section" : "Active students"} color="text-brand-600"
               icon="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
           )}
           
           <StatCard 
             label={isStudent ? "My AI Insights" : "AI Warnings"} 
-            value={warnings.length} 
+            value={filteredWarnings.length} 
             sub={isStudent ? "Performance trends" : "Declining trend flagged"} 
             color="text-red-500"
             icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" 
@@ -251,7 +312,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             icon="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" 
           />
 
-          {!isStudent && (
+          {(!isStudent && currentRole !== 'Teacher') && (
             <StatCard label="OCR Forms" value={forms.length} sub="Documents processed" color="text-indigo-500"
               icon="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
           )}
@@ -268,10 +329,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               {isStudent ? "My Performance Insights" : "AI Performance Insights"}
             </h3>
-            {!isStudent && <button onClick={() => setActiveTab('Academic Warning AI')} className="text-sm font-medium text-slate-400 hover:text-brand-600 transition">View All →</button>}
+            {!isStudent && <button onClick={() => setActiveTab('AI Performance Tracker')} className="text-sm font-medium text-slate-400 hover:text-brand-600 transition">View All →</button>}
           </div>
           <div className="space-y-3">
-            {warnings.length === 0 ? (
+            {filteredWarnings.length === 0 ? (
               <div className="p-4 rounded-xl border border-green-100 bg-green-50 dark:bg-green-900/20 flex items-start space-x-3">
                 <div className="p-1.5 bg-green-100 dark:bg-green-800 rounded-lg text-green-600">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -283,7 +344,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               </div>
             ) : (() => {
               const uniqueWarnings = new Map();
-              warnings.forEach(w => {
+              filteredWarnings.forEach(w => {
                 const key = isStudent ? w.subject : w.student_id;
                 if (!uniqueWarnings.has(key)) uniqueWarnings.set(key, w);
               });

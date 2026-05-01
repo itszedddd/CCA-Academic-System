@@ -96,7 +96,8 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         student_id: selectedStudent.id,
         subject: newRecord.subject,
         score: parseFloat(newRecord.score),
-        term: newRecord.term
+        term: newRecord.term,
+        school_year: selectedStudent.school_year || '2025-2026'
       })
     });
     if (res?.ok) {
@@ -279,8 +280,11 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                               <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records found.</td></tr>
                             ) : (
                               (() => {
+                                const recordsToShow = selectedStudent.academic_records.filter(r => (r.school_year || '2025-2026') === (historyYear || s.school_year || '2025-2026'));
+                                if (recordsToShow.length === 0) return <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records for this school year.</td></tr>;
+
                                 const grouped = {};
-                                selectedStudent.academic_records.forEach(r => {
+                                recordsToShow.forEach(r => {
                                   if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
                                   const t = r.term.toLowerCase();
                                   if (t.includes('1st')) grouped[r.subject].q1 = r;
@@ -450,7 +454,24 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
               <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
             </div>
-            {['Admission', 'Principal'].includes(currentRole) && (
+            {['Registrar', 'Principal'].includes(currentRole) && (
+              <button onClick={async () => {
+                if(window.confirm('Are you sure you want to end the current school year? This will advance all students to the next grade and clear their sections.')) {
+                  const token = localStorage.getItem('token');
+                  const res = await fetch('/api/admin/end_school_year', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                  if (res.ok) {
+                    alert('School year ended successfully.');
+                    fetchStudents();
+                  } else {
+                    alert('Failed to end school year.');
+                  }
+                }
+              }} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
+                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                End School Year
+              </button>
+            )}
+            {['Principal'].includes(currentRole) && (
               <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                 Register Student
