@@ -11,8 +11,8 @@ const SECTION_META = {
 const API = '/api';
 
 export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch, forms }) {
-  const [showRegister, setShowRegister] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [historyYear, setHistoryYear] = useState('');
@@ -24,45 +24,9 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
   const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
-  const [newStudent, setNewStudent] = useState({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled', username:'', password:'' });
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
-  const [newStudentFile, setNewStudentFile] = useState(null);
   const [editingStudentFile, setEditingStudentFile] = useState(null);
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const studentPayload = { ...newStudent };
-    delete studentPayload.username;
-    delete studentPayload.password;
-    const res = await authFetch(`${API}/students/`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(studentPayload) });
-    if (res?.ok) { 
-      const created = await res.json();
-      if (newStudentFile) {
-        const fd = new FormData();
-        fd.append('file', newStudentFile);
-        await authFetch(`${API}/students/${created.id}/upload_image`, { method: 'POST', body: fd });
-      }
-      
-      if (newStudent.username && newStudent.password) {
-        await authFetch(`${API}/users/`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            username: newStudent.username,
-            password: newStudent.password,
-            role: 'Student',
-            student_id: created.id,
-            is_active: 1
-          })
-        });
-      }
-      
-      setShowRegister(false); fetchStudents(); 
-      setNewStudent({ first_name:'', last_name:'', grade_level:'Pre-Kinder', section:'', contact_email:'', profile_image:'', enrollment_status:'Enrolled', username:'', password:'' }); 
-      setNewStudentFile(null);
-    }
-  };
 
   const handleView = async (id) => {
     if (expandedStudentId === id) {
@@ -455,26 +419,9 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
             </div>
             {['Registrar', 'Principal'].includes(currentRole) && (
-              <button onClick={async () => {
-                if(window.confirm('Are you sure you want to end the current school year? This will advance all students to the next grade and clear their sections.')) {
-                  const token = localStorage.getItem('token');
-                  const res = await fetch('/api/admin/end_school_year', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-                  if (res.ok) {
-                    alert('School year ended successfully.');
-                    fetchStudents();
-                  } else {
-                    alert('Failed to end school year.');
-                  }
-                }
-              }} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
+              <button onClick={() => setShowEndYearConfirm(true)} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
                 <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 End School Year
-              </button>
-            )}
-            {['Principal'].includes(currentRole) && (
-              <button onClick={() => setShowRegister(true)} className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
-                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                Register Student
               </button>
             )}
           </div>
@@ -539,47 +486,6 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         </div>
       </div>
 
-      {/* Register Modal */}
-      {showRegister && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 w-full max-w-md shadow-2xl relative">
-            <button onClick={() => setShowRegister(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-6">Register New Student</h3>
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">First Name</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.first_name} onChange={e => setNewStudent({...newStudent, first_name:e.target.value})} /></div>
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Last Name</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.last_name} onChange={e => setNewStudent({...newStudent, last_name:e.target.value})} /></div>
-              </div>
-              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grade Level</label>
-                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.grade_level} onChange={e => setNewStudent({...newStudent, grade_level:e.target.value})}>
-                  {GRADES.map(g => <option key={g}>{g}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
-                  <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.section} onChange={e => setNewStudent({...newStudent, section:e.target.value})}>
-                    <option value="">— None —</option>
-                    {SECTIONS.map(sec => <option key={sec}>{sec}</option>)}
-                  </select>
-                </div>
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
-                  <input className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.school_year || '2025-2026'} onChange={e => setNewStudent({...newStudent, school_year:e.target.value})} placeholder="2025-2026" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Parent Email</label><input type="email" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.contact_email} onChange={e => setNewStudent({...newStudent, contact_email:e.target.value})} placeholder="parent@example.com" /></div>
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profile Image</label><input type="file" accept="image/*" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" onChange={e => setNewStudentFile(e.target.files[0])} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 border-t border-slate-200 dark:border-slate-700 pt-4 mt-2">
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student Username</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.username} onChange={e => setNewStudent({...newStudent, username:e.target.value})} placeholder="e.g. juan.delacruz" /></div>
-                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Student Password</label><input required type="password" className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={newStudent.password} onChange={e => setNewStudent({...newStudent, password:e.target.value})} placeholder="••••••••" /></div>
-              </div>
-              <button type="submit" className="w-full py-2.5 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700 transition shadow mt-2">Submit Registration</button>
-            </form>
-          </div>
-        </div>
-      )}
-
     {/* The View modal was here. Now it is moved to inline sub-row */}
 
       {/* Edit Modal */}
@@ -616,6 +522,37 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">Save Changes</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* End School Year Confirm Modal */}
+      {showEndYearConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white">End School Year?</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">
+              Are you sure you want to end the current school year? This action will advance all students to the next grade level and clear their current section assignments. This cannot be easily undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button onClick={() => setShowEndYearConfirm(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancel</button>
+              <button onClick={async () => {
+                setShowEndYearConfirm(false);
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/end_school_year', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                  alert('School year ended successfully.');
+                  fetchStudents();
+                } else {
+                  alert('Failed to end school year.');
+                }
+              }} className="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow transition">Confirm End Year</button>
+            </div>
           </div>
         </div>
       )}

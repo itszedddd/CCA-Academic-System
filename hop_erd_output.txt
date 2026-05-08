@@ -1,6 +1,0 @@
-
-Processing: C:\Users\ender\Downloads\[HOP] Thesis Paper_00 (3).docx
-DEBUG: Found 0 tables in C:\Users\ender\Downloads\[HOP] Thesis Paper_00 (3).docx
-
-Processing: c:\Users\ender\Programming\Thesis_Project\HOP_Thesis.docx
-DEBUG: Found 0 tables in c:\Users\ender\Programming\Thesis_Project\HOP_Thesis.docx

@@ -38,8 +38,28 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
           if (res?.ok) {
             const data = await res.json();
             if (data.found) {
-              setEncodeData(prev => ({ ...prev, grade_applying_for: data.grade_level }));
-              setSuccessMsg(`Auto-filled existing student: ${data.first_name} ${data.last_name}`);
+              setEncodeData(prev => ({ 
+                ...prev, 
+                grade_applying_for: data.grade_level || prev.grade_applying_for,
+                form_type: 'Returning',
+                sex: data.sex || prev.sex,
+                birth_date: data.birth_date || prev.birth_date,
+                birth_place: data.birth_place || prev.birth_place,
+                home_address: data.home_address || prev.home_address,
+                father_name: data.father_name || prev.father_name,
+                father_contact: data.father_contact || prev.father_contact,
+                father_occupation: data.father_occupation || prev.father_occupation,
+                father_employer: data.father_employer || prev.father_employer,
+                mother_name: data.mother_name || prev.mother_name,
+                mother_contact: data.mother_contact || prev.mother_contact,
+                mother_occupation: data.mother_occupation || prev.mother_occupation,
+                mother_employer: data.mother_employer || prev.mother_employer,
+                church_attended: data.church_attended || prev.church_attended,
+                church_member: data.church_member || prev.church_member,
+                pastor_name: data.pastor_name || prev.pastor_name,
+                previous_school: data.previous_school || prev.previous_school
+              }));
+              setSuccessMsg(`Auto-filled historical data for returning student: ${data.first_name} ${data.last_name}`);
               setTimeout(() => setSuccessMsg(''), 3000);
             }
           }

@@ -62,12 +62,15 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
   const handleSetAttendance = async (studentId, dateStr, status) => {
     const currentRec = attendanceMap[studentId]?.[dateStr];
 
-    if (currentRec && currentRec.status === status) return;
+    let targetStatus = status;
+    if (currentRec && currentRec.status === status) {
+      targetStatus = 'Clear';
+    }
 
     const res = await authFetch(`${API}/attendance/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ student_id: parseInt(studentId), date: dateStr, status: status, remarks: '' }),
+      body: JSON.stringify({ student_id: parseInt(studentId), date: dateStr, status: targetStatus, remarks: '' }),
     });
     if (res?.ok) { fetchAttendance(); }
   };

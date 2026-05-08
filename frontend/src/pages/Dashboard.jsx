@@ -5,6 +5,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   const [tuitions, setTuitions] = useState([]);
   const [reportData, setReportData] = useState(null);
   const [mySchedule, setMySchedule] = useState([]);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [editSchedule, setEditSchedule] = useState([]);
   
   const isStudent = currentRole === 'Student' || currentRole === 'Parent';
 
@@ -208,7 +210,23 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Today's Schedule
             </h3>
-            {renderCalendar(mySchedule)}
+            {currentRole === 'Teacher' ? (
+              <div 
+                className="cursor-pointer group relative"
+                onClick={() => {
+                  setEditSchedule(mySchedule);
+                  setShowScheduleModal(true);
+                }}
+              >
+                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition rounded-xl z-10 flex items-center justify-center">
+                  <span className="bg-brand-900/80 text-white px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-sm shadow-xl flex items-center">
+                    <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    Click to Edit Schedule
+                  </span>
+                </div>
+                {renderCalendar(mySchedule)}
+              </div>
+            ) : renderCalendar(mySchedule)}
           </div>
         </div>
       ) : (
@@ -401,6 +419,78 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               {isStudent ? "View Full Record →" : "View Full Attendance →"}
             </button>
           </div>
+          </div>
+        </div>
+      )}
+
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden relative max-h-[90vh] flex flex-col">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-between items-center shrink-0">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white">Edit Weekly Class Schedule</h3>
+              <button onClick={() => setShowScheduleModal(false)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              {editSchedule.map((item, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row gap-3 mb-4 sm:mb-3 items-start sm:items-end bg-slate-50 dark:bg-slate-900/50 p-3 sm:p-0 rounded-xl sm:bg-transparent">
+                  <div className="flex-1 w-full">
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Day</label>
+                    <select className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={item.day || ''} onChange={e => {
+                      const newSch = [...editSchedule];
+                      newSch[idx].day = e.target.value;
+                      setEditSchedule(newSch);
+                    }}>
+                      <option value="">Select Day</option>
+                      {['Monday','Tuesday','Wednesday','Thursday','Friday'].map(d => <option key={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex-1 w-full">
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Time</label>
+                    <input type="text" placeholder="e.g. 08:00 AM - 09:00 AM" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={item.time || ''} onChange={e => {
+                      const newSch = [...editSchedule];
+                      newSch[idx].time = e.target.value;
+                      setEditSchedule(newSch);
+                    }} />
+                  </div>
+                  <div className="flex-1 w-full">
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Subject</label>
+                    <input type="text" placeholder="e.g. Mathematics" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={item.subject || ''} onChange={e => {
+                      const newSch = [...editSchedule];
+                      newSch[idx].subject = e.target.value;
+                      setEditSchedule(newSch);
+                    }} />
+                  </div>
+                  <button onClick={() => {
+                    const newSch = editSchedule.filter((_, i) => i !== idx);
+                    setEditSchedule(newSch);
+                  }} className="w-full sm:w-auto px-3 py-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg text-sm font-bold sm:h-[38px] flex justify-center items-center">
+                    <svg className="w-4 h-4 mr-1 sm:mr-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <span className="sm:hidden">Remove</span>
+                  </button>
+                </div>
+              ))}
+              
+              <button onClick={() => setEditSchedule([...editSchedule, { day: 'Monday', time: '', subject: '' }])} className="mt-2 w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-brand-600 transition flex items-center justify-center">
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                Add Schedule Item
+              </button>
+            </div>
+            
+            <div className="p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-end space-x-3 shrink-0">
+              <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-bold transition">Cancel</button>
+              <button onClick={async () => {
+                const res = await authFetch(`/api/users/${user.id}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ schedule: JSON.stringify(editSchedule) })
+                });
+                if (res?.ok) {
+                  setMySchedule(editSchedule);
+                  setShowScheduleModal(false);
+                }
+              }} className="px-6 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow transition tracking-wide">Save Schedule</button>
+            </div>
           </div>
         </div>
       )}

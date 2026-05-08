@@ -54,6 +54,17 @@ export default function UserManagement({ authFetch, currentRole }) {
     else alert("Failed to delete user. You cannot delete your currently active account.");
   };
 
+  const handleResetPassword = async (id) => {
+    if (!window.confirm("Are you sure you want to reset this user's password to default?")) return;
+    const res = await authFetch(`${API}/users/${id}/reset_password`, { method: 'POST' });
+    if (res?.ok) {
+      const data = await res.json();
+      alert(`Password reset successfully. The new default password is: ${data.default_password}\n\nPlease inform the staff or teacher.`);
+    } else {
+      alert("Failed to reset password.");
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     const payload = { 
@@ -187,6 +198,7 @@ export default function UserManagement({ authFetch, currentRole }) {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-3">
+                    <button onClick={() => handleResetPassword(u.id)} className="text-amber-500 hover:text-amber-700 text-sm font-bold transition">Reset Password</button>
                     <button onClick={() => openEditModal(u)} className="text-brand-600 hover:text-brand-800 text-sm font-bold transition">Edit</button>
                     <button onClick={() => handleDelete(u.id)} className="text-red-500 hover:text-red-700 text-sm font-bold transition">Revoke</button>
                   </td>

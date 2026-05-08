@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
 import shutil
+from pydantic import BaseModel
 
 from .. import models, schemas
 from ..database import get_db
@@ -472,17 +473,59 @@ def lookup_student(
     student = check_duplicate_student(db, models.Student, first_name, last_name)
     if not student:
         return {"found": False}
-    return {
+        
+    next_grade = student.grade_level
+    if next_grade and next_grade.startswith("Grade "):
+        try:
+            num = int(next_grade.split()[1])
+            if num < 10:
+                next_grade = f"Grade {num + 1}"
+            elif num == 10:
+                next_grade = "Grade 11 (SHS)"
+        except:
+            pass
+    elif next_grade == "Kinder":
+        next_grade = "Grade 1"
+    elif next_grade == "Pre-Kinder":
+        next_grade = "Kinder"
+        
+    latest_form = db.query(models.EnrollmentForm).filter(
+        models.EnrollmentForm.student_id == student.id
+    ).order_by(models.EnrollmentForm.id.desc()).first()
+    
+    data = {
         "found": True,
         "student_id": student.id,
         "first_name": student.first_name,
         "last_name": student.last_name,
-        "grade_level": student.grade_level,
+        "grade_level": next_grade,
         "section": student.section,
         "contact_email": student.contact_email,
         "school_year": student.school_year,
         "enrollment_status": student.enrollment_status,
     }
+    
+    if latest_form:
+        data.update({
+            "sex": latest_form.sex or '',
+            "birth_date": latest_form.birth_date or '',
+            "birth_place": latest_form.birth_place or '',
+            "home_address": latest_form.home_address or '',
+            "father_name": latest_form.father_name or '',
+            "father_contact": latest_form.father_contact or '',
+            "father_occupation": latest_form.father_occupation or '',
+            "father_employer": latest_form.father_employer or '',
+            "mother_name": latest_form.mother_name or '',
+            "mother_contact": latest_form.mother_contact or '',
+            "mother_occupation": latest_form.mother_occupation or '',
+            "mother_employer": latest_form.mother_employer or '',
+            "church_attended": latest_form.church_attended or '',
+            "church_member": latest_form.church_member or '',
+            "pastor_name": latest_form.pastor_name or '',
+            "previous_school": latest_form.previous_school or '',
+        })
+        
+    return data
 
 @aesms_router.post("/enrollment_forms/", response_model=schemas.EnrollmentForm)
 def create_enrollment_form(
@@ -687,7 +730,7 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
 def read_users_me(current_user: models.User = Depends(get_current_active_user)):
     return current_user
 
-from pydantic import BaseModel
+
 class PasswordChangeRequest(BaseModel):
     old_password: str
     new_password: str
@@ -806,6 +849,26 @@ def delete_user(user_id: int, db: Session = Depends(get_db), current_user: model
     db.delete(db_user)
     db.commit()
     return {"detail": "User deleted"}
+
+@aesms_router.post("/users/{user_id}/reset_password")
+def reset_user_password(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role != "Superadmin":
+        raise HTTPException(status_code=403, detail="Only Superadmin can reset passwords")
+        
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    default_pw = "cca2026"
+    if db_user.student_id:
+        student = db.query(models.Student).filter(models.Student.id == db_user.student_id).first()
+        if student and student.last_name:
+            default_pw = f"{student.last_name}cca2026".replace(" ", "").lower()
+            
+    db_user.hashed_password = get_password_hash(default_pw)
+    db.commit()
+    
+    return {"message": "Password reset to default", "default_password": default_pw}
 
 @aesms_router.get("/debug/seed")
 def debug_seed_db(db: Session = Depends(get_db)):
