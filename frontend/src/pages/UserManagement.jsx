@@ -152,7 +152,7 @@ export default function UserManagement({ authFetch, currentRole }) {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-900">
+              <tr className="bg-slate-50 dark:bg-slate-900 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
                 <th className="px-6 py-4">ID</th>
                 <th className="px-6 py-4">Full Name</th>
                 <th className="px-6 py-4">Username</th>

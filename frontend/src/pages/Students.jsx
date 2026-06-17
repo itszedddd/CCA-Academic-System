@@ -114,7 +114,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const renderStudentTable = (rows) => (
     <table className="w-full text-left">
       <thead>
-        <tr className="bg-slate-50 dark:bg-slate-700">
+        <tr className="bg-slate-50 dark:bg-slate-700 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
           <th className="px-6 py-3">ID</th>
           <th className="px-6 py-3">Name</th>
           <th className="px-6 py-3">Grade</th>

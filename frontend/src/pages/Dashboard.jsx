@@ -402,7 +402,12 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               return records.map(a => (
                 <div key={a.id} className="px-5 py-3 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{isStudent ? a.date : `Student #${String(a.student_id).padStart(4,'0')}`}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {isStudent ? a.date : (() => {
+                        const student = students.find(s => s.id === a.student_id);
+                        return student ? `${student.first_name} ${student.last_name}` : `Student #${String(a.student_id).padStart(4,'0')}`;
+                      })()}
+                    </p>
                   {!isStudent && <p className="text-xs text-slate-400">{a.date}</p>}
                 </div>
                 <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${

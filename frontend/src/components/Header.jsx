@@ -18,6 +18,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessi
 
       <div className="flex items-center space-x-2 md:space-x-3">
         {/* Search */}
+        {currentRole !== 'Student' && (
         <div className="relative hidden sm:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -42,7 +43,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessi
                 {searchResults.students.length === 0 ? (
                   <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">No students found for "{searchQuery}"</div>
                 ) : searchResults.students.map(s => (
-                  <div key={s.id} onClick={() => setShowSearchResults(false)} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer flex items-center">
+                  <div key={s.id} onClick={() => { setShowSearchResults(false); setActiveTab('Students'); setSearchQuery(s.id.toString()); }} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer flex items-center">
                     <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs mr-3">
                       {s.first_name[0]}{s.last_name[0]}
                     </div>
@@ -56,6 +57,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessi
             </div>
           )}
         </div>
+        )}
 
         {/* Dark mode */}
         <button onClick={() => setIsDarkMode(p => !p)} className="p-2 text-slate-400 hover:text-brand-600 dark:hover:text-amber-400 transition-colors focus:outline-none rounded-lg">

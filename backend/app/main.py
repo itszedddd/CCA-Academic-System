@@ -43,7 +43,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://cca-academic-system.onrender.com",
+        "https://your-frontend.vercel.app" # Add Vercel deployment URL here
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

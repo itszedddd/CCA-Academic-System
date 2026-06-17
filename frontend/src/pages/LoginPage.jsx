@@ -130,9 +130,33 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
               </form>
 
 
-            <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700/50 text-center">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Secure System</p>
-              <p className="text-[11px] text-slate-400 dark:text-slate-500 transition-colors">JWT Encrypted Access Protocol</p>
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700/50">
+              <div className="bg-amber-50/80 dark:bg-amber-900/10 border border-amber-200/60 dark:border-amber-700/30 rounded-xl px-5 py-4 text-center">
+                <h3 className="text-sm font-black text-slate-800 dark:text-white leading-tight mb-0.5" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Calvary Christian
+                </h3>
+                <h3 className="text-sm font-black text-slate-800 dark:text-white leading-tight mb-2" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Academy, Inc.
+                </h3>
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider leading-relaxed mb-3">
+                  Sarmiennto Townville, Poblacion 1,<br />
+                  City of San Jose Del Monte, Bulacan
+                </p>
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <span className="text-[11px] font-bold">09561504946</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-[11px] font-bold">calvarychristianacademy.sjdm@gmail.com</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

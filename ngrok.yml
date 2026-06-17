@@ -1,4 +1,4 @@
-authtoken: 3AWftRRAzTcP8TuNoIqOcDeomYF_21og9bRSrDNF4H6Yy99RG
+# authtoken: REMOVED for security
 version: 2
 tunnels:
   hop:

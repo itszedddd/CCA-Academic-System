@@ -74,14 +74,16 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
     return db_student
 
 @aesms_router.get("/students/{student_id}", response_model=schemas.Student)
-def get_student(student_id: int, db: Session = Depends(get_db)):
+def get_student(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
 
 @aesms_router.put("/students/{student_id}", response_model=schemas.Student)
-def update_student(student_id: int, student_update: schemas.StudentCreate, db: Session = Depends(get_db)):
+def update_student(student_id: int, student_update: schemas.StudentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Teacher", "Registrar", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -105,7 +107,9 @@ def update_student(student_id: int, student_update: schemas.StudentCreate, db: S
     return student
 
 @aesms_router.delete("/students/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
+def delete_student(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Registrar"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     student = db.query(models.Student).filter(models.Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -128,7 +132,11 @@ async def upload_student_image(
         raise HTTPException(status_code=404, detail="Student not found")
         
     import time
-    file_ext = os.path.splitext(file.filename)[1]
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".gif"}
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JPG, PNG, and GIF are allowed.")
+
     file_name = f"student_{student_id}_{int(time.time())}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, file_name)
     
@@ -390,7 +398,9 @@ def create_tuition(tuition: schemas.TuitionPaymentCreate, db: Session = Depends(
     return db_tuition
 
 @aesms_router.put("/tuition/{tuition_id}", response_model=schemas.TuitionPayment)
-def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate, db: Session = Depends(get_db)):
+def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Cashier"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     tuition = db.query(models.TuitionPayment).filter(models.TuitionPayment.id == tuition_id).first()
     if not tuition:
         raise HTTPException(status_code=404, detail="Tuition not found")
@@ -467,7 +477,8 @@ def get_analytics_report(db: Session = Depends(get_db), current_user: models.Use
 def lookup_student(
     first_name: str = Query(...),
     last_name: str = Query(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
 ):
     """Auto-fill endpoint: returns existing student data for returning students."""
     student = check_duplicate_student(db, models.Student, first_name, last_name)
@@ -603,6 +614,11 @@ async def upload_enrollment_document(
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
 
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx"}
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type.")
+
     unique_name = f"doc_{int(time.time())}_{file.filename}"
     file_path = os.path.join(UPLOAD_DIR, unique_name)
     with open(file_path, "wb") as buffer:
@@ -619,11 +635,13 @@ async def upload_enrollment_document(
     return {"detail": "Document uploaded", "file_path": file_path}
 
 @aesms_router.get("/enrollment_forms/", response_model=List[schemas.EnrollmentForm])
-def read_enrollment_forms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_enrollment_forms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Registrar", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     return db.query(models.EnrollmentForm).order_by(models.EnrollmentForm.id.desc()).offset(skip).limit(limit).all()
 
 @aesms_router.get("/enrollment_forms/check_duplicate")
-def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(get_db)):
+def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     existing = db.query(models.EnrollmentForm).filter(
         models.EnrollmentForm.student_id == student_id,
         models.EnrollmentForm.form_type == form_type
@@ -631,7 +649,9 @@ def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(
     return {"exists": existing is not None, "form_id": existing.id if existing else None}
 
 @aesms_router.put("/enrollment_forms/{form_id}/verify", response_model=schemas.EnrollmentForm)
-def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db)):
+def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Registrar"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
     # Grade-to-Section mapping for automatic assignment
     GRADE_SECTION_MAP = {
         'Grade 7': 'Humility',
@@ -818,7 +838,11 @@ async def upload_user_profile_picture(
         raise HTTPException(status_code=404, detail="User not found")
     
     import time
-    file_ext = os.path.splitext(file.filename)[1]
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".gif"}
+    if file_ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JPG, PNG, and GIF are allowed.")
+    
     file_name = f"user_{user_id}_{int(time.time())}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, file_name)
     
@@ -868,10 +892,12 @@ def reset_user_password(user_id: int, db: Session = Depends(get_db), current_use
     db_user.hashed_password = get_password_hash(default_pw)
     db.commit()
     
-    return {"message": "Password reset to default", "default_password": default_pw}
+    return {"message": "Password reset to default"}
 
 @aesms_router.get("/debug/seed")
-def debug_seed_db(db: Session = Depends(get_db)):
+def debug_seed_db(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role != "Superadmin":
+        raise HTTPException(status_code=403, detail="Not authorized")
     try:
         from seed_cca import seed_data
         seed_data()
@@ -882,7 +908,7 @@ def debug_seed_db(db: Session = Depends(get_db)):
         return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
 
 @aesms_router.get("/auth/section-schedule/{section}")
-def get_section_schedule(section: str, db: Session = Depends(get_db)):
+def get_section_schedule(section: str, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     teacher = db.query(models.User).filter(models.User.role == "Teacher", models.User.section == section).first()
     if teacher and teacher.schedule:
         return {"schedule": teacher.schedule, "teacher_name": teacher.full_name}
