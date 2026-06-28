@@ -13,6 +13,7 @@ import LoginPage from './pages/LoginPage';
 import UserManagement from './pages/UserManagement';
 import Settings from './pages/Settings';
 import AIEngine from './pages/AIEngine';
+import Archive from './pages/Archive';
 
 const API = '/api';
 
@@ -129,6 +130,7 @@ export default function App() {
     { name: 'User Accounts',      icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', roles: ['Superadmin'] },
     { name: 'Student Portal',     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', roles: ['Student', 'Parent'] },
     { name: 'AI Engine Diagnostics', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z', roles: ['Superadmin', 'Principal', 'Teacher'] },
+    { name: 'Student Archive', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4', roles: ['Principal', 'Registrar'] },
     { name: 'Settings',           icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', roles: ['Superadmin', 'Principal', 'Teacher', 'Registrar', 'Admission', 'Cashier', 'Student', 'Parent'] },
   ];
 
@@ -203,6 +205,7 @@ export default function App() {
             { activeTab === 'User Accounts'      && <UserManagement {...sharedProps} /> }
             { activeTab === 'Student Portal'     && <StudentPortal {...sharedProps} /> }
             { activeTab === 'AI Engine Diagnostics' && <AIEngine {...sharedProps} /> }
+            { activeTab === 'Student Archive'    && <Archive {...sharedProps} /> }
             { activeTab === 'Settings'           && <Settings {...sharedProps} /> }
           </div>
         </main>

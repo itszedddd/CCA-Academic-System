@@ -99,6 +99,9 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
 
   const filteredStudents = students
     .filter(s => {
+      const archivedStatuses = ['Archived', 'Graduated', 'Dropped', 'Transferred'];
+      if (archivedStatuses.includes(s.enrollment_status)) return false;
+
       const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || String(s.id).includes(searchQuery);
       const matchesSection = sectionFilter === 'All' || s.section === sectionFilter;
       const matchesYear = schoolYearFilter === 'All' || s.school_year === schoolYearFilter;
@@ -517,7 +520,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
                   <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
-                    {['Enrolled','Pending','Dropped','Transferred', 'Hold: Incomplete Req'].map(s => <option key={s}>{s}</option>)}
+                    {['Enrolled','Pending','Hold: Incomplete Req', 'Dropped', 'Transferred', 'Archived', 'Graduated'].map(s => <option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
