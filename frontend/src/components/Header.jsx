@@ -89,7 +89,7 @@ export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessi
                 {warnings.length === 0
                   ? <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">No new notifications.</div>
                   : warnings.map((w, i) => (
-                    <div key={i} onClick={() => { setShowNotifications(false); setActiveTab('Students'); setSearchQuery(w.student_name); }} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer transition">
+                    <div key={i} onClick={() => { setShowNotifications(false); setActiveTab('AI Performance Tracker'); setSearchQuery(w.student_name); }} className="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 border-b border-slate-50 dark:border-slate-700 cursor-pointer transition">
                       <p className="text-sm font-semibold text-slate-800 dark:text-white">{`${w.student_name} — ${w.subject}`}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">{w.message}</p>
                     </div>

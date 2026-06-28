@@ -66,7 +66,7 @@ class EnrollmentForm(Base):
     form_type = Column(String)
     status = Column(String, default="Needs Review")  # Needs Review, Success, Hold, Rejected
 
-    # Structured enrollment data (replaces OCR extracted_text)
+    # Structured enrollment data
     sex = Column(String, nullable=True)
     birth_date = Column(String, nullable=True)
     birth_place = Column(String, nullable=True)
@@ -98,7 +98,6 @@ class EnrollmentForm(Base):
     req_pictures = Column(Integer, default=0)
     
     file_path = Column(String, nullable=True)
-    extracted_text = Column(String, nullable=True)  # Kept for backward compat / JSON summary
     remarks = Column(String, nullable=True)
     submitted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
 

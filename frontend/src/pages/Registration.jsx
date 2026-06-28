@@ -5,7 +5,7 @@ const API = '/api';
 const InputField = ({ label, field, type="text", required=false, encodeData, setEncodeData }) => (
   <div>
     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label} {required && '*'}</label>
-    <input type={type} required={required} className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
+    <input type={type} required={required} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
   </div>
 );
 
@@ -159,23 +159,23 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="bg-white border-b border-slate-200 p-8 flex justify-between items-center relative overflow-hidden">
+        <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-8 flex justify-between items-center relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-2xl font-black text-brand-900 tracking-widest uppercase mb-1 flex items-center">
-              <svg className="w-7 h-7 mr-3 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            <h2 className="text-2xl font-black text-brand-900 dark:text-brand-400 tracking-widest uppercase mb-1 flex items-center">
+              <svg className="w-7 h-7 mr-3 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
               STUDENT REGISTRATION
             </h2>
-            <p className="text-sm font-semibold text-brand-600 tracking-wider">Record student info and track document requirements.</p>
+            <p className="text-sm font-semibold text-brand-600 dark:text-brand-400/80 tracking-wider">Record student info and track document requirements.</p>
           </div>
           <div className="absolute -right-10 -top-10 opacity-5">
             <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zm5 16H6V4h5v7h7v9z"/></svg>
           </div>
           <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
             {['Admission', 'Principal'].includes(currentRole) && (
-              <button onClick={() => setActiveTab('Encode')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Encode' ? 'bg-white shadow text-brand-600' : 'text-slate-500 hover:text-slate-700'}`}>Encode Form</button>
+              <button onClick={() => setActiveTab('Encode')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Encode' ? 'bg-white dark:bg-slate-800 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}>Encode Form</button>
             )}
             {['Registrar', 'Principal'].includes(currentRole) && (
-              <button onClick={() => setActiveTab('Verify')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Verify' ? 'bg-white shadow text-brand-600' : 'text-slate-500 hover:text-slate-700'}`}>Verify Records</button>
+              <button onClick={() => setActiveTab('Verify')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Verify' ? 'bg-white dark:bg-slate-800 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}>Verify Records</button>
             )}
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   <InputField label="Last Name" field="student_last_name" required encodeData={encodeData} setEncodeData={setEncodeData} />
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Applicant Type *</label>
-                    <select required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.form_type} onChange={e => setEncodeData({...encodeData, form_type: e.target.value})}>
+                    <select required className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.form_type} onChange={e => setEncodeData({...encodeData, form_type: e.target.value})}>
                       <option value="New Student">New Student</option>
                       <option value="Transferee">Transferee</option>
                       <option value="Returning">Returning</option>
@@ -218,7 +218,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grade Applying For *</label>
-                    <select required className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
+                    <select required className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
                       {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
@@ -255,42 +255,42 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Church Attended</label>
                       <button type="button" onClick={() => setEncodeData({...encodeData, church_attended: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
                     </div>
-                    <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.church_attended} onChange={e => setEncodeData({...encodeData, church_attended: e.target.value})} />
+                    <input type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.church_attended} onChange={e => setEncodeData({...encodeData, church_attended: e.target.value})} />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pastor's Name</label>
                       <button type="button" onClick={() => setEncodeData({...encodeData, pastor_name: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
                     </div>
-                    <input type="text" className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.pastor_name} onChange={e => setEncodeData({...encodeData, pastor_name: e.target.value})} />
+                    <input type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.pastor_name} onChange={e => setEncodeData({...encodeData, pastor_name: e.target.value})} />
                   </div>
                 </div>
               </div>
 
               {/* Document Checklist & Upload */}
               <div>
-                <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">IV. Document Requirements Checklist</h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-slate-50 border border-slate-200 p-4 rounded-xl">
+                <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">IV. Document Requirements Checklist</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 rounded-xl">
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" checked={encodeData.req_birth_cert === 1} onChange={e => setEncodeData({...encodeData, req_birth_cert: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
-                    <span className="text-sm font-bold text-slate-700">Birth Certificate (PSA)</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Birth Certificate (PSA)</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" checked={encodeData.req_form_138 === 1} onChange={e => setEncodeData({...encodeData, req_form_138: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
-                    <span className="text-sm font-bold text-slate-700">Form 138 (Card)</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Form 138 (Card)</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" checked={encodeData.req_good_moral === 1} onChange={e => setEncodeData({...encodeData, req_good_moral: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
-                    <span className="text-sm font-bold text-slate-700">Good Moral</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Good Moral</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="checkbox" checked={encodeData.req_pictures === 1} onChange={e => setEncodeData({...encodeData, req_pictures: e.target.checked ? 1 : 0})} className="w-4 h-4 text-brand-600 rounded" />
-                    <span className="text-sm font-bold text-slate-700">2x2 Pictures</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">2x2 Pictures</span>
                   </label>
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Additional Supporting Document (Optional)</label>
-                  <input type="file" onChange={e => setDocumentFile(e.target.files[0])} className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" />
+                  <input type="file" onChange={e => setDocumentFile(e.target.files[0])} className="w-full text-sm dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-300 hover:file:bg-slate-200 dark:hover:file:bg-slate-600" />
                 </div>
               </div>
 
@@ -353,10 +353,10 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                      name = `Child of ${form.father_name}`;
                   }
                   return (
-                    <tr key={form.id} className="hover:bg-slate-50 transition">
-                      <td className="px-6 py-4 text-sm font-bold text-brand-600">#{String(form.id).padStart(4,'0')}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-600">{form.grade_applying_for || grade}</td>
+                    <tr key={form.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                      <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(form.id).padStart(4,'0')}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{name}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{form.grade_applying_for || grade}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${getStatusColor(form.status)}`}>{form.status}</span>
                       </td>
@@ -379,20 +379,20 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
              </button>
              <div className="flex flex-col lg:flex-row gap-8">
                
-               <div className="flex-1 bg-slate-50 rounded-xl border border-slate-200 p-6">
-                 <h4 className="font-bold text-brand-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Encoded Data Review</h4>
-                 <div className="grid grid-cols-2 gap-y-3 text-sm">
-                    <div className="text-slate-500">Form Type:</div><div className="font-semibold">{selectedForm.form_type}</div>
-                    <div className="text-slate-500">Grade Applying For:</div><div className="font-semibold">{selectedForm.grade_applying_for || 'N/A'}</div>
-                    <div className="col-span-2 border-t border-slate-200 my-2"></div>
-                    <div className="text-slate-500">Sex:</div><div className="font-semibold">{selectedForm.sex || 'N/A'}</div>
-                    <div className="text-slate-500">Birth Date:</div><div className="font-semibold">{selectedForm.birth_date || 'N/A'}</div>
-                    <div className="text-slate-500">Home Address:</div><div className="font-semibold">{selectedForm.home_address || 'N/A'}</div>
-                    <div className="col-span-2 border-t border-slate-200 my-2"></div>
-                    <div className="text-slate-500">Father's Name:</div><div className="font-semibold">{selectedForm.father_name || 'N/A'}</div>
-                    <div className="text-slate-500">Mother's Name:</div><div className="font-semibold">{selectedForm.mother_name || 'N/A'}</div>
-                    <div className="col-span-2 border-t border-slate-200 my-2"></div>
-                    <div className="text-slate-500">Previous School:</div><div className="font-semibold">{selectedForm.previous_school || 'N/A'}</div>
+               <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                 <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Encoded Data Review</h4>
+                 <div className="grid grid-cols-2 gap-y-3 text-sm text-slate-800 dark:text-slate-200">
+                    <div className="text-slate-500 dark:text-slate-400">Form Type:</div><div className="font-semibold">{selectedForm.form_type}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Grade Applying For:</div><div className="font-semibold">{selectedForm.grade_applying_for || 'N/A'}</div>
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="text-slate-500 dark:text-slate-400">Sex:</div><div className="font-semibold">{selectedForm.sex || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Birth Date:</div><div className="font-semibold">{selectedForm.birth_date || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Home Address:</div><div className="font-semibold">{selectedForm.home_address || 'N/A'}</div>
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="text-slate-500 dark:text-slate-400">Father's Name:</div><div className="font-semibold">{selectedForm.father_name || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Mother's Name:</div><div className="font-semibold">{selectedForm.mother_name || 'N/A'}</div>
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="text-slate-500 dark:text-slate-400">Previous School:</div><div className="font-semibold">{selectedForm.previous_school || 'N/A'}</div>
                  </div>
                  
                  {selectedForm.file_path && (
@@ -407,20 +407,20 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                  )}
                </div>
 
-               <div className="w-full lg:w-1/3 bg-white border border-brand-200 rounded-xl p-6 shadow-sm">
-                 <h4 className="font-bold text-brand-800 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">Verification Action</h4>
+               <div className="w-full lg:w-1/3 bg-white dark:bg-slate-800 border border-brand-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
+                 <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Verification Action</h4>
                  <div className="space-y-4">
                    <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-2">Requirements Checklist (Check if received)</label>
-                     <label className="flex items-center text-sm mb-1"><input type="checkbox" className="mr-2" checked={requirements.req_birth_cert} onChange={e=>setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)</label>
-                     <label className="flex items-center text-sm mb-1"><input type="checkbox" className="mr-2" checked={requirements.req_form_138} onChange={e=>setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)</label>
-                     <label className="flex items-center text-sm mb-1"><input type="checkbox" className="mr-2" checked={requirements.req_good_moral} onChange={e=>setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate</label>
-                     <label className="flex items-center text-sm mb-1"><input type="checkbox" className="mr-2" checked={requirements.req_pictures} onChange={e=>setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures</label>
+                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Requirements Checklist (Check if received)</label>
+                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_birth_cert} onChange={e=>setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)</label>
+                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_form_138} onChange={e=>setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)</label>
+                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_good_moral} onChange={e=>setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate</label>
+                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_pictures} onChange={e=>setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures</label>
                    </div>
                    
                    <div>
-                     <label className="block text-xs font-bold text-slate-500 mb-1">Registrar Remarks</label>
-                     <textarea className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-800 outline-none" rows="3" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add internal notes..."></textarea>
+                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Registrar Remarks</label>
+                     <textarea className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-sm text-slate-800 dark:text-white outline-none" rows="3" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add internal notes..."></textarea>
                    </div>
                    
                    <div className="grid grid-cols-3 gap-2 pt-4">

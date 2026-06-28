@@ -6,3 +6,4 @@ python-multipart
 python-jose[cryptography]
 passlib
 numpy
+scikit-learn

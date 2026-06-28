@@ -248,32 +248,11 @@ def seed_data():
         db.add_all(payment_records)
         db.commit()
 
-        # --- Mock OCR Enrollment Form ---
-        mock_ocr_text = """
-Student Name: Carlos Yulo
-Sex: Male
-Birth Date: 2000-02-16
-Birth Place: Manila
-Home Address: 123 Leveriza St. Malate Manila
-Father's Name: Mark Andrew
-Employer: Gymnastics Org
-Occupation: Coach
-Contact Number: 0917-123-4567
-Church Attended: CCA Chapel
-Member of Church?: Y
-Pastor Name: Pastor Cruz
-Has the child ever repeated any grade?: N/A
-Has the student ever been expelled, dismissed?: No
-Does the student have any learning disabilities?: None
-What special abilities or talents does the student have?: Olympic Gymnastics
-How did you hear about the school?: Referral
-What is your reason selecting this school?: Excellent Christian Education
-"""
+        # --- Mock Enrollment Form ---
         mock_form = EnrollmentForm(
             student_id=None,
             form_type="Pre-Registration Application",
             file_path="/uploads/mock_form.jpg",
-            extracted_text=mock_ocr_text,
             status="Needs Review"
         )
 
@@ -282,26 +261,6 @@ What is your reason selecting this school?: Excellent Christian Education
             student_id=humility_students[0].id,  # Juan Dela Cruz
             form_type="Pre-Registration Application",
             file_path="/uploads/mock_form_juan.jpg",
-            extracted_text="""
-Student Name: Juan Dela Cruz
-Sex: Male
-Birth Date: 2012-05-14
-Birth Place: Quezon City, Philippines
-Home Address: 456 Malakas St. Diliman QC
-Father's Name: Roberto Dela Cruz
-Employer: Department of Education
-Occupation: Teacher III
-Contact Number: 0918-456-7890
-Church Attended: Calvary Christian Church
-Member of Church?: Y
-Pastor Name: Pastor Santos
-Has the child ever repeated any grade?: No
-Has the student ever been expelled, dismissed?: No
-Does the student have any learning disabilities?: None reported
-What special abilities or talents does the student have?: Leadership, Public Speaking
-How did you hear about the school?: Church Recommendation
-What is your reason selecting this school?: Christian-based education with strong academics
-""",
             status="Needs Review"
         )
 
@@ -309,34 +268,6 @@ What is your reason selecting this school?: Christian-based education with stron
             student_id=humility_students[1].id,  # Maria Clara
             form_type="Birth Certificate (PSA)",
             file_path="/uploads/mock_bc_maria.jpg",
-            extracted_text="""REPUBLIC OF THE PHILIPPINES
-OFFICE OF THE CIVIL REGISTRAR GENERAL
-
-CERTIFICATE OF LIVE BIRTH
-
-Registry No.: 2012-004567
-
-Maria Clara
-
-Date of Birth: March 22, 2012 Sex: Female
-Birth: Manila, Philippines Nationality: Filipino
-
-PARENTS' INFORMATION
-
-Father's Name: Damaso Clara Father's Nationality: Filipino
-Mother's Name: Sisa Clara Mother's Nationality: Filipino
-
-Mother's Maiden Name: Sisa Reyes
-
-CERTIFICATION AND REGISTRATION
-
-I certify that the above information is true and correct as recorded in
-the civil registry.
-
-Date Registered: April 1, 2012
-Civil Registrar: Roberto Santos
-[Official Seal/Logo]
-""",
             status="Needs Review"
         )
 
@@ -344,26 +275,6 @@ Civil Registrar: Roberto Santos
             student_id=humility_students[2].id,  # Emilio Aguinaldo
             form_type="Pre-Registration Application",
             file_path="/uploads/mock_form_emilio.jpg",
-            extracted_text="""
-Student Name: Emilio Aguinaldo
-Sex: Male
-Birth Date: 2011-11-23
-Birth Place: Kawit, Cavite
-Home Address: 789 Kalayaan Blvd. Kawit Cavite
-Father's Name: Crispulo Aguinaldo
-Employer: Provincial Government
-Occupation: Government Employee
-Contact Number: 0919-111-2222
-Church Attended: CCA Main Chapel
-Member of Church?: Y
-Pastor Name: Pastor Reyes
-Has the child ever repeated any grade?: No
-Has the student ever been expelled, dismissed?: No
-Does the student have any learning disabilities?: None
-What special abilities or talents does the student have?: History Knowledge, Debate
-How did you hear about the school?: Family Tradition
-What is your reason selecting this school?: Values-based Christian education
-""",
             status="Needs Review"
         )
 
@@ -371,30 +282,6 @@ What is your reason selecting this school?: Values-based Christian education
             student_id=other_students[0].id,  # Andres Bonifacio
             form_type="Form 138 (Report Card)",
             file_path="/uploads/mock_f138_andres.jpg",
-            extracted_text="""
-DEPARTMENT OF EDUCATION
-SCHOOL YEAR 2025-2026
-
-FORM 138 - REPORT CARD
-
-Student Name: Andres Bonifacio
-Grade Level: Grade 7
-Section: Courage
-School: Santiago Elementary School
-
-FINAL GRADES:
-Mathematics: 88
-Science: 85
-Filipino: 92
-English: 87
-Araling Panlipunan: 94
-EsP: 90
-TLE: 88
-MAPEH: 91
-
-General Average: 89.375
-Remarks: PROMOTED
-""",
             status="Needs Review"
         )
 
@@ -402,21 +289,6 @@ Remarks: PROMOTED
             student_id=humility_students[3].id,  # Apolinario Mabini
             form_type="Good Moral Certificate",
             file_path="/uploads/mock_gm_apolinario.jpg",
-            extracted_text="""
-CERTIFICATE OF GOOD MORAL CHARACTER
-
-This is to certify that Apolinario Mabini, a student of this institution
-during the School Year 2025-2026 in Grade 6, has been found to be of
-GOOD MORAL CHARACTER.
-
-This certificate is issued upon request of the above-named student for
-enrollment purposes.
-
-Given this 15th day of March, 2026 at Manila, Philippines.
-
-School Principal: Dr. Elena Vasquez
-School Name: Mabini Elementary School
-""",
             status="Needs Review"
         )
 

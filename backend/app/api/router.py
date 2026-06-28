@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from .. import models, schemas
 from ..database import get_db
 from ..utils import validate_required_fields, check_duplicate_student
-from ..ai_engine import analyze_grade_trend, predict_tuition_default
+from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 
 aesms_router = APIRouter()
@@ -295,6 +295,22 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
     ).all()
     remarks_dict = {(r.student_id, r.subject): r.remarks for r in all_remarks}
 
+    # Pre-fetch all attendance records for efficiency
+    student_ids = [s.id for s in students]
+    all_attendance = db.query(models.Attendance).filter(
+        models.Attendance.student_id.in_(student_ids)
+    ).all()
+    # Build attendance lookup: {student_id: {total_days, total_absences, total_lates}}
+    attendance_lookup = {}
+    for att in all_attendance:
+        if att.student_id not in attendance_lookup:
+            attendance_lookup[att.student_id] = {"total_days": 0, "total_absences": 0, "total_lates": 0}
+        attendance_lookup[att.student_id]["total_days"] += 1
+        if att.status == "Absent":
+            attendance_lookup[att.student_id]["total_absences"] += 1
+        elif att.status == "Late":
+            attendance_lookup[att.student_id]["total_lates"] += 1
+
     for student in students:
         # 1. Document Lacking Warnings
         if not student.req_birth_cert or not student.req_form_138 or not student.req_good_moral or not student.req_pictures:
@@ -314,7 +330,7 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
                 "remarks": remarks_dict.get((student.id, "Requirements"), "")
             })
             
-        # 2. Academic Trend Warnings
+        # 2. AI-Powered Academic Trend Warnings (with attendance data)
         records = (
             db.query(models.AcademicRecord)
             .filter(models.AcademicRecord.student_id == student.id)
@@ -322,11 +338,12 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
             .all()
         )
         subjects = set(r.subject for r in records)
+        student_attendance = attendance_lookup.get(student.id, None)
 
         for subject in subjects:
             subject_scores = [r.score for r in records if r.subject == subject]
             if len(subject_scores) >= 3:
-                analysis = analyze_grade_trend(subject_scores)
+                analysis = analyze_grade_trend(subject_scores, attendance_data=student_attendance)
                 if analysis["has_warning"]:
                     warnings.append({
                         "student_id": student.id,
@@ -335,6 +352,8 @@ def check_academic_warnings(db: Session = Depends(get_db), current_user: models.
                         "slope": analysis["slope"],
                         "message": analysis["message"],
                         "latest_score": analysis["latest_score"],
+                        "risk_probability": analysis.get("risk_probability", 0.0),
+                        "model_type": analysis.get("model_type", "N/A"),
                         "remarks": remarks_dict.get((student.id, subject), "")
                     })
 
@@ -421,6 +440,15 @@ def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate
     db.commit()
     db.refresh(tuition)
     return tuition
+
+# ---------------------------------------------------------------------------
+# AI Model Summary (for thesis defense)
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/ai/model_summary")
+def ai_model_summary():
+    """Returns a detailed summary of all AI/ML models used in the system."""
+    return get_ai_model_summary()
 
 # ---------------------------------------------------------------------------
 # Analytics & Intelligent Reports

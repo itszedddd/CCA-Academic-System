@@ -15,7 +15,6 @@ The system utilizes a modern full-stack architecture with a focus on AI integrat
 | **Backend Framework** | FastAPI (Python) |
 | **Database** | SQLite (Development) / PostgreSQL (Optional) |
 | **ORM** | SQLAlchemy |
-| **AI/OCR** | PyTesseract (Tesseract OCR), Pillow |
 | **Machine Learning** | Scikit-learn, Pandas, NumPy |
 | **API Documentation** | Swagger UI / Redoc (Built-in FastAPI) |
 
@@ -29,7 +28,6 @@ The system utilizes a modern full-stack architecture with a focus on AI integrat
 | **Node.js** | 18+ (Frontend Runtime) |
 | **Git** | Version Control System |
 | **Postman** | API Testing and Documentation |
-| **Tesseract OCR** | v5.x (OCR Engine) |
 | **Vite** | Frontend Build Tool |
 | **Modern Web Browser** | Microsoft Edge / Chrome |
 
@@ -46,7 +44,7 @@ Minimum requirements for administrative and staff usage.
 *   **Connectivity**: 
     *   **Network**: Broadband Modem/Router with stable internet connection.
 *   **Peripherals**: 
-    *   **Scanner**: High-resolution scanner or camera (for OCR document uploads).
+    *   **Scanner**: High-resolution scanner or camera (for document uploads).
     *   **Display**: Standard 1080p monitor for dashboard visibility.
 
 ---
@@ -60,14 +58,14 @@ The project follows the **Agile SDLC model** to allow for iterative development,
 | **Month 1** | Planning & Requirements | Identifying system problems, objectives, and user needs. |
 | **Month 2** | System Design | Architecture design, UI/UX prototyping, and AI logic planning. |
 | **Month 3** | Core Development | Building Student Info Module and Database structure. |
-| **Month 4** | AI Integration | OCR automation development and ML tracking implementation. |
-| **Month 5** | Testing & Validation | System testing, OCR accuracy validation, and bug fixing. |
+| **Month 4** | AI Integration | AI implementation and ML tracking. |
+| **Month 5** | Testing & Validation | System testing and bug fixing. |
 | **Month 6** | Deployment & Improvement | Final deployment, staff training, and feature refinement. |
 
 ---
 
 ### 5. Features of the Proposed System
-*   **Automated Enrollment (OCR)**: Extracts student data from uploaded forms directly into the database, reducing repetitive encoding.
+*   **Digital Enrollment Forms**: Streamlined student enrollment with document uploads.
 *   **Centralized Student Database**: Secure and organized storage for all student, academic, and administrative records.
 *   **AI-Powered Academic Monitoring**: Early Warning System (EWS) to detect declining performance trends based on grades.
 *   **Tuition Payment Risk Prediction**: Utilizes Machine Learning to classify payment risks and improve financial oversight.

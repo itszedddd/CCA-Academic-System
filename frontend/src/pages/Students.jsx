@@ -10,7 +10,7 @@ const SECTION_META = {
 };
 const API = '/api';
 
-export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch, forms }) {
+export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch, forms, searchQuery, setSearchQuery }) {
   const [showEdit, setShowEdit] = useState(false);
   const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -19,7 +19,6 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [sectionFilter, setSectionFilter] = useState('All');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -27,6 +26,15 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
   const [editingStudentFile, setEditingStudentFile] = useState(null);
+
+  React.useEffect(() => {
+    if (searchQuery && students.length > 0) {
+      const match = students.find(s => String(s.id) === searchQuery);
+      if (match && expandedStudentId !== match.id) {
+        handleView(match.id);
+      }
+    }
+  }, [searchQuery, students]);
 
   const handleView = async (id) => {
     if (expandedStudentId === id) {
