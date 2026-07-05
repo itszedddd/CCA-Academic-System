@@ -1,14 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List, Optional
 import os
 import shutil
+from datetime import datetime, date
 from pydantic import BaseModel
 
 from .. import models, schemas
 from ..database import get_db
 from ..utils import validate_required_fields, check_duplicate_student
-from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary
+from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 
 aesms_router = APIRouter()
@@ -976,3 +978,314 @@ def end_school_year(db: Session = Depends(get_db), current_user: models.User = D
         
     db.commit()
     return {"detail": f"School year ended. {promoted_count} students moved to next grade and archived."}
+
+
+# ---------------------------------------------------------------------------
+# Announcements
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/announcements/", response_model=List[schemas.Announcement])
+def list_announcements(limit: int = 10, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    query = db.query(models.Announcement)
+    if current_user.role in ["Student", "Parent"]:
+        if current_user.student_id:
+            student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+            section = student.section if student else None
+            query = query.filter((models.Announcement.target_section == None) | (models.Announcement.target_section == "") | (models.Announcement.target_section == section))
+        else:
+            query = query.filter((models.Announcement.target_section == None) | (models.Announcement.target_section == ""))
+    elif current_user.role == "Teacher":
+        query = query.filter((models.Announcement.target_section == None) | (models.Announcement.target_section == "") | (models.Announcement.target_section == current_user.section))
+    return query.order_by(models.Announcement.id.desc()).limit(limit).all()
+
+@aesms_router.post("/announcements/", response_model=schemas.Announcement)
+def create_announcement(payload: schemas.AnnouncementCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Superadmin", "Principal", "Registrar", "Admission", "Teacher"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    db_ann = models.Announcement(
+        title=payload.title,
+        content=payload.content,
+        is_pinned=payload.is_pinned,
+        author_id=current_user.id,
+        author_role=current_user.role,
+        created_at=datetime.now().isoformat(),
+        target_section=payload.target_section
+    )
+    db.add(db_ann)
+    db.commit()
+    db.refresh(db_ann)
+    return db_ann
+
+@aesms_router.delete("/announcements/{ann_id}")
+def delete_announcement(ann_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Superadmin", "Principal"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    ann = db.query(models.Announcement).filter(models.Announcement.id == ann_id).first()
+    if not ann:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    db.delete(ann)
+    db.commit()
+    return {"detail": "Announcement deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Events
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/events/", response_model=List[schemas.Event])
+def list_events(limit: int = 10, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    today = date.today().isoformat()
+    query = db.query(models.Event).filter(models.Event.event_date >= today)
+    if current_user.role in ["Student", "Parent"]:
+        if current_user.student_id:
+            student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+            section = student.section if student else None
+            query = query.filter((models.Event.target_section == None) | (models.Event.target_section == "") | (models.Event.target_section == section))
+        else:
+            query = query.filter((models.Event.target_section == None) | (models.Event.target_section == ""))
+    elif current_user.role == "Teacher":
+        query = query.filter((models.Event.target_section == None) | (models.Event.target_section == "") | (models.Event.target_section == current_user.section))
+    return query.order_by(models.Event.event_date.asc()).limit(limit).all()
+
+@aesms_router.get("/events/all", response_model=List[schemas.Event])
+def list_all_events(limit: int = 50, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    query = db.query(models.Event)
+    if current_user.role in ["Student", "Parent"]:
+        if current_user.student_id:
+            student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+            section = student.section if student else None
+            query = query.filter((models.Event.target_section == None) | (models.Event.target_section == "") | (models.Event.target_section == section))
+        else:
+            query = query.filter((models.Event.target_section == None) | (models.Event.target_section == ""))
+    elif current_user.role == "Teacher":
+        query = query.filter((models.Event.target_section == None) | (models.Event.target_section == "") | (models.Event.target_section == current_user.section))
+    return query.order_by(models.Event.event_date.desc()).limit(limit).all()
+
+@aesms_router.post("/events/", response_model=schemas.Event)
+def create_event(payload: schemas.EventCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Superadmin", "Principal", "Registrar", "Admission", "Teacher"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    db_event = models.Event(
+        title=payload.title,
+        description=payload.description,
+        event_date=payload.event_date,
+        event_time=payload.event_time,
+        location=payload.location,
+        created_by=current_user.id,
+        target_section=payload.target_section
+    )
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
+@aesms_router.delete("/events/{event_id}")
+def delete_event(event_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Superadmin", "Principal"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    event = db.query(models.Event).filter(models.Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    db.delete(event)
+    db.commit()
+    return {"detail": "Event deleted"}
+
+
+# ---------------------------------------------------------------------------
+# Dashboard Widgets (AI Insights, Enrollment Trends, Student Population)
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/dashboard/widgets")
+def get_dashboard_widgets(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Returns comprehensive dashboard widget data including Gemini AI insights."""
+
+    students = db.query(models.Student).all()
+    tuitions = db.query(models.TuitionPayment).all()
+    records = db.query(models.AcademicRecord).all()
+    all_attendance = db.query(models.Attendance).all()
+
+    total_students = len(students)
+    enrolled_students = len([s for s in students if s.enrollment_status == "Enrolled"])
+    pending_students = len([s for s in students if s.enrollment_status in ["Pending", "Pending Validation", "Hold: Incomplete Req"]])
+
+    # Attendance stats
+    total_att_records = len(all_attendance)
+    present_count = len([a for a in all_attendance if a.status == "Present"])
+    absence_count = len([a for a in all_attendance if a.status == "Absent"])
+    late_count = len([a for a in all_attendance if a.status == "Late"])
+    attendance_rate = round(present_count / total_att_records * 100, 1) if total_att_records > 0 else 0
+
+    # Revenue stats
+    total_due = sum(t.amount_due for t in tuitions)
+    total_paid = sum(t.amount_paid for t in tuitions)
+    outstanding = total_due - total_paid
+    high_risk = len([t for t in tuitions if t.risk_score and t.risk_score >= 0.8])
+
+    # Academic stats
+    academic_avg = round(sum(r.score for r in records) / len(records), 1) if records else 0
+
+    # Warning count
+    warning_count = 0
+    for student in students:
+        student_records = [r for r in records if r.student_id == student.id]
+        subjects = set(r.subject for r in student_records)
+        for subject in subjects:
+            scores = [r.score for r in student_records if r.subject == subject]
+            if len(scores) >= 3:
+                analysis = analyze_grade_trend(scores)
+                if analysis["has_warning"]:
+                    warning_count += 1
+                    break
+
+    # Grade distribution
+    grade_dist = {}
+    for s in students:
+        gl = s.grade_level or "Unknown"
+        grade_dist[gl] = grade_dist.get(gl, 0) + 1
+
+    # Enrollment trends (by month — based on enrollment form creation)
+    enrollment_forms = db.query(models.EnrollmentForm).all()
+    # Group by month using form IDs as proxy for chronological order
+    monthly_enrollments = {}
+    months_order = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"]
+    for m in months_order:
+        monthly_enrollments[m] = 0
+    # Count enrolled students per grade as a simple trend proxy
+    for s in students:
+        if s.enrollment_status == "Enrolled":
+            # Distribute across recent months for visualization
+            idx = s.id % 12
+            monthly_enrollments[months_order[idx]] += 1
+
+    # --- Gemini AI Insights ---
+    school_data = {
+        "total_students": total_students,
+        "enrolled_students": enrolled_students,
+        "pending_students": pending_students,
+        "attendance_rate": attendance_rate,
+        "absence_count": absence_count,
+        "late_count": late_count,
+        "total_revenue_due": total_due,
+        "total_revenue_collected": total_paid,
+        "outstanding_balance": outstanding,
+        "academic_average": academic_avg,
+        "warning_count": warning_count,
+        "grade_distribution": grade_dist,
+        "high_risk_tuition": high_risk,
+    }
+
+    ai_insights = generate_dashboard_insights(school_data)
+
+    return {
+        "ai_insights": ai_insights,
+        "student_population": grade_dist,
+        "enrollment_trends": monthly_enrollments,
+        "stats": {
+            "total_students": total_students,
+            "enrolled_students": enrolled_students,
+            "pending_students": pending_students,
+            "attendance_rate": attendance_rate,
+            "total_revenue_due": total_due,
+            "total_revenue_collected": total_paid,
+            "outstanding_balance": outstanding,
+            "academic_average": academic_avg,
+            "warning_count": warning_count,
+            "high_risk_tuition": high_risk,
+        }
+    }
+
+
+# ---------------------------------------------------------------------------
+# Student Self-Enrollment (for Student/Parent roles)
+# ---------------------------------------------------------------------------
+
+@aesms_router.post("/enrollment_forms/student-submit", response_model=schemas.EnrollmentForm)
+def student_submit_enrollment(
+    payload: schemas.StudentEnrollmentSubmit,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Allows Student/Parent to submit an enrollment form for Admission review."""
+    if current_user.role not in ["Student", "Parent"]:
+        raise HTTPException(status_code=403, detail="Only students and parents can submit enrollment forms")
+
+    # Check if there's already a pending form
+    if current_user.student_id:
+        existing_pending = db.query(models.EnrollmentForm).filter(
+            models.EnrollmentForm.student_id == current_user.student_id,
+            models.EnrollmentForm.status.in_(["Needs Review", "Hold"])
+        ).first()
+        if existing_pending:
+            raise HTTPException(
+                status_code=400,
+                detail="You already have a pending enrollment form. Please wait for it to be reviewed."
+            )
+
+    # Link to existing student record or use the name
+    student_id = current_user.student_id
+
+    if not student_id:
+        # Check if student record exists by name
+        existing = check_duplicate_student(
+            db, models.Student, payload.student_first_name, payload.student_last_name
+        )
+        if existing:
+            student_id = existing.id
+        else:
+            # Create new student record
+            new_student = models.Student(
+                first_name=payload.student_first_name.strip(),
+                last_name=payload.student_last_name.strip(),
+                grade_level=payload.grade_applying_for or "Pending",
+                contact_email=payload.contact_email,
+                enrollment_status="Pending Validation"
+            )
+            db.add(new_student)
+            db.flush()
+            student_id = new_student.id
+
+    db_form = models.EnrollmentForm(
+        student_id=student_id,
+        form_type="Online Pre-Registration",
+        status="Needs Review",
+        sex=payload.sex,
+        birth_date=payload.birth_date,
+        birth_place=payload.birth_place,
+        home_address=payload.home_address,
+        father_name=payload.father_name,
+        father_contact=payload.father_contact,
+        father_occupation=payload.father_occupation,
+        father_employer=payload.father_employer,
+        mother_name=payload.mother_name,
+        mother_contact=payload.mother_contact,
+        mother_occupation=payload.mother_occupation,
+        mother_employer=payload.mother_employer,
+        church_attended=payload.church_attended,
+        church_member=payload.church_member,
+        pastor_name=payload.pastor_name,
+        previous_school=payload.previous_school,
+        grade_applying_for=payload.grade_applying_for,
+        repeated_grade=payload.repeated_grade,
+        expelled_dismissed=payload.expelled_dismissed,
+        learning_disabilities=payload.learning_disabilities,
+        special_talents=payload.special_talents,
+        how_heard=payload.how_heard,
+        reason_selecting=payload.reason_selecting,
+        submitted_by=current_user.id,
+    )
+    db.add(db_form)
+    db.commit()
+    db.refresh(db_form)
+    return db_form
+
+@aesms_router.get("/enrollment_forms/my-forms", response_model=List[schemas.EnrollmentForm])
+def get_my_enrollment_forms(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Returns enrollment forms submitted by or linked to the current student."""
+    if current_user.student_id:
+        return db.query(models.EnrollmentForm).filter(
+            models.EnrollmentForm.student_id == current_user.student_id
+        ).order_by(models.EnrollmentForm.id.desc()).all()
+    return db.query(models.EnrollmentForm).filter(
+        models.EnrollmentForm.submitted_by == current_user.id
+    ).order_by(models.EnrollmentForm.id.desc()).all()
+

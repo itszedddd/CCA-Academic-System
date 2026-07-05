@@ -151,3 +151,31 @@ class AcademicWarningRemarks(Base):
     student_id = Column(Integer, ForeignKey("students.id"))
     subject = Column(String)
     remarks = Column(String)
+
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    content = Column(String)
+    author_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    author_role = Column(String, nullable=True)
+    created_at = Column(String)  # ISO datetime string
+    is_pinned = Column(Integer, default=0)
+    target_section = Column(String, nullable=True)  # Section name or None for all
+
+    author = relationship("User")
+
+
+class Event(Base):
+    __tablename__ = "events"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String)
+    description = Column(String, nullable=True)
+    event_date = Column(String)  # ISO date string e.g. "2026-07-15"
+    event_time = Column(String, nullable=True)  # e.g. "9:00 AM"
+    location = Column(String, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    target_section = Column(String, nullable=True)  # Section name or None for all
+
+    creator = relationship("User")

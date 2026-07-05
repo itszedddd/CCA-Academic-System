@@ -145,10 +145,11 @@ export default function StudentPortal({ students, attendance, currentRole, user,
                     studentData.academic_records.forEach(r => {
                       if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
                       const t = r.term.toLowerCase();
-                      if (t.includes('1st')) grouped[r.subject].q1 = r;
-                      else if (t.includes('2nd')) grouped[r.subject].q2 = r;
-                      else if (t.includes('3rd')) grouped[r.subject].q3 = r;
-                      else if (t.includes('4th')) grouped[r.subject].q4 = r;
+                      if (t.includes('1st') || t === '1' || t.includes('q1') || t.includes('quarter 1')) grouped[r.subject].q1 = r;
+                      else if (t.includes('2nd') || t === '2' || t.includes('q2') || t.includes('quarter 2')) grouped[r.subject].q2 = r;
+                      else if (t.includes('3rd') || t === '3' || t.includes('q3') || t.includes('quarter 3')) grouped[r.subject].q3 = r;
+                      else if (t.includes('4th') || t === '4' || t.includes('q4') || t.includes('quarter 4')) grouped[r.subject].q4 = r;
+                      else grouped[r.subject].q1 = r; // fallback
                     });
                     return Object.values(grouped).map((row, i) => {
                       const grades = [row.q1?.score, row.q2?.score, row.q3?.score, row.q4?.score].filter(s => s != null);

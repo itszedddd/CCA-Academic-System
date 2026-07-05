@@ -255,17 +255,22 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                               <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records found.</td></tr>
                             ) : (
                               (() => {
-                                const recordsToShow = selectedStudent.academic_records.filter(r => (r.school_year || '2025-2026') === (historyYear || s.school_year || '2025-2026'));
+                                const recordsToShow = selectedStudent.academic_records.filter(r => {
+                                  const rYear = r.school_year ? r.school_year.trim() : '2025-2026';
+                                  const targetYear = historyYear || (s.school_year ? s.school_year.trim() : '2025-2026');
+                                  return rYear === targetYear;
+                                });
                                 if (recordsToShow.length === 0) return <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records for this school year.</td></tr>;
 
                                 const grouped = {};
                                 recordsToShow.forEach(r => {
                                   if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
                                   const t = r.term.toLowerCase();
-                                  if (t.includes('1st')) grouped[r.subject].q1 = r;
-                                  else if (t.includes('2nd')) grouped[r.subject].q2 = r;
-                                  else if (t.includes('3rd')) grouped[r.subject].q3 = r;
-                                  else if (t.includes('4th')) grouped[r.subject].q4 = r;
+                                  if (t.includes('1st') || t === '1' || t.includes('q1') || t.includes('quarter 1')) grouped[r.subject].q1 = r;
+                                  else if (t.includes('2nd') || t === '2' || t.includes('q2') || t.includes('quarter 2')) grouped[r.subject].q2 = r;
+                                  else if (t.includes('3rd') || t === '3' || t.includes('q3') || t.includes('quarter 3')) grouped[r.subject].q3 = r;
+                                  else if (t.includes('4th') || t === '4' || t.includes('q4') || t.includes('quarter 4')) grouped[r.subject].q4 = r;
+                                  else grouped[r.subject].q1 = r; // fallback if no match
                                 });
                                 
                                 const renderCell = (r) => {

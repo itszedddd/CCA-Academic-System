@@ -240,3 +240,91 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Announcements
+# ---------------------------------------------------------------------------
+class AnnouncementBase(BaseModel):
+    title: str
+    content: str
+    is_pinned: Optional[int] = 0
+    target_section: Optional[str] = None
+
+class AnnouncementCreate(AnnouncementBase):
+    pass
+
+class Announcement(AnnouncementBase):
+    id: int
+    author_id: Optional[int] = None
+    author_role: Optional[str] = None
+    created_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Events
+# ---------------------------------------------------------------------------
+class EventBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    event_date: str
+    event_time: Optional[str] = None
+    location: Optional[str] = None
+    target_section: Optional[str] = None
+
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+    created_by: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Student Self-Enrollment (submitted by Student/Parent roles)
+# ---------------------------------------------------------------------------
+class StudentEnrollmentSubmit(BaseModel):
+    """Schema for students/parents to submit their own enrollment form."""
+    student_first_name: str
+    student_last_name: str
+    grade_applying_for: Optional[str] = None
+
+    # Student info
+    sex: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_place: Optional[str] = None
+    home_address: Optional[str] = None
+    contact_email: Optional[str] = None
+
+    # Family info
+    father_name: Optional[str] = None
+    father_contact: Optional[str] = None
+    father_occupation: Optional[str] = None
+    father_employer: Optional[str] = None
+    mother_name: Optional[str] = None
+    mother_contact: Optional[str] = None
+    mother_occupation: Optional[str] = None
+    mother_employer: Optional[str] = None
+
+    # Church info
+    church_attended: Optional[str] = None
+    church_member: Optional[str] = None
+    pastor_name: Optional[str] = None
+
+    # Academic history
+    previous_school: Optional[str] = None
+    repeated_grade: Optional[str] = None
+    expelled_dismissed: Optional[str] = None
+    learning_disabilities: Optional[str] = None
+    special_talents: Optional[str] = None
+
+    # General
+    how_heard: Optional[str] = None
+    reason_selecting: Optional[str] = None
+

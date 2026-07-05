@@ -8,7 +8,66 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [editSchedule, setEditSchedule] = useState([]);
   
+  // New widget states
+  const [aiInsights, setAiInsights] = useState([]);
+  const [enrollmentTrends, setEnrollmentTrends] = useState(null);
+  const [studentPopulation, setStudentPopulation] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  
+  // Post modal states
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [postType, setPostType] = useState('Announcement'); // 'Announcement' or 'Event'
+  const [postForm, setPostForm] = useState({ title: '', content: '', date: '', time: '', location: '', target_section: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const isStudent = currentRole === 'Student' || currentRole === 'Parent';
+
+  const handlePostSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      if (postType === 'Announcement') {
+        const payload = {
+          title: postForm.title,
+          content: postForm.content,
+          is_pinned: 0,
+          target_section: postForm.target_section || null
+        };
+        const res = await authFetch('/api/announcements/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const newAnn = await res.json();
+          setAnnouncements([newAnn, ...announcements]);
+        }
+      } else {
+        const payload = {
+          title: postForm.title,
+          description: postForm.content,
+          event_date: postForm.date,
+          event_time: postForm.time || null,
+          location: postForm.location || null,
+          target_section: postForm.target_section || null
+        };
+        const res = await authFetch('/api/events/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const newEvt = await res.json();
+          setEvents([...events, newEvt].sort((a,b) => new Date(a.event_date) - new Date(b.event_date)));
+        }
+      }
+      setShowPostModal(false);
+      setPostForm({ title: '', content: '', date: '', time: '', location: '', target_section: '' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (currentRole === 'Cashier' || currentRole === 'Principal') {
@@ -36,7 +95,22 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           }).catch(()=>{});
       }
     }
-  }, [currentRole, user, students]);
+
+    // Fetch new dashboard widgets
+    if (!isStudent) {
+      authFetch('/api/dashboard/widgets').then(r => r?.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            setAiInsights(data.ai_insights || []);
+            setEnrollmentTrends(data.enrollment_trends || null);
+            setStudentPopulation(data.student_population || null);
+          }
+        }).catch(()=>{});
+    }
+    authFetch('/api/events/').then(r => r?.ok ? r.json() : []).then(setEvents).catch(()=>{});
+    authFetch('/api/announcements/').then(r => r?.ok ? r.json() : []).then(setAnnouncements).catch(()=>{});
+
+  }, [currentRole, isStudent]);
 
   const handleGenerateReport = async () => {
     setLoadingReport(true);
@@ -337,7 +411,199 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         </div>
       )}
 
-      {/* AI Insights + Attendance Summary */}
+      {/* Gemini AI Insights Panel (For Faculty & Staff) */}
+      {!isStudent && aiInsights.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          
+          <div className="flex items-center justify-between mb-6 relative z-10">
+            <h3 className="text-xl font-black font-cinzel text-slate-800 dark:text-white flex items-center tracking-wider">
+              <svg className="w-6 h-6 mr-3 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              Gemini AI Insights
+            </h3>
+            <span className="bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 text-xs font-bold px-3 py-1 rounded-full border border-cyan-100 dark:border-cyan-800">
+              Live Analysis
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+            {aiInsights.map((insight, idx) => {
+              const typeStyles = {
+                positive: 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300',
+                warning: 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-300',
+                info: 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-300',
+                neutral: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300',
+              };
+              const style = typeStyles[insight.type] || typeStyles.neutral;
+              
+              return (
+                <div key={idx} className={`rounded-2xl p-5 border ${style} shadow-sm transition-transform hover:-translate-y-1`}>
+                  <h4 className="font-bold text-[15px] mb-2 leading-tight">{insight.title}</h4>
+                  <p className="text-sm opacity-90 leading-relaxed">{insight.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Events & Announcements Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Upcoming Events */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="flex justify-between items-center w-full">
+              <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Upcoming Events
+              </h3>
+              {!isStudent && (
+                <button onClick={() => { setPostType('Event'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">
+                  + Add Event
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="p-5 flex-1 space-y-4">
+            {events.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No upcoming events scheduled.</p>
+            ) : (
+              events.slice(0, 4).map(event => (
+                <div key={event.id} className="flex space-x-4">
+                  <div className="flex flex-col items-center justify-center w-14 h-14 bg-brand-50 dark:bg-brand-900/30 rounded-xl border border-brand-100 dark:border-brand-800 shrink-0">
+                    <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">
+                      {new Date(event.event_date).toLocaleString('default', { month: 'short' })}
+                    </span>
+                    <span className="text-lg font-black text-slate-800 dark:text-white leading-none">
+                      {new Date(event.event_date).getDate()}
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">{event.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{event.description}</p>
+                    {(event.event_time || event.location) && (
+                      <div className="flex items-center space-x-3 mt-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                        {event.event_time && <span>🕒 {event.event_time}</span>}
+                        {event.location && <span>📍 {event.location}</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Recent Announcements */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+            <div className="flex justify-between items-center w-full">
+              <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+                Recent Announcements
+              </h3>
+              {!isStudent && (
+                <button onClick={() => { setPostType('Announcement'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">
+                  + Add Post
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="p-5 flex-1 space-y-4">
+            {announcements.length === 0 ? (
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent announcements.</p>
+            ) : (
+              announcements.slice(0, 4).map(ann => (
+                <div key={ann.id} className="border-l-4 border-brand-500 pl-4 py-1">
+                  <div className="flex items-start justify-between">
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">
+                      {ann.is_pinned === 1 && <span className="mr-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Pinned</span>}
+                      {ann.title}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{ann.content}</p>
+                  <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 mt-2 tracking-wider">
+                    Posted by {ann.author_role} • {new Date(ann.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+      </div>
+
+      {/* Population & Enrollment Trends (Registrar / Admission) */}
+      {(currentRole === 'Registrar' || currentRole === 'Admission' || currentRole === 'Principal') && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Student Population Breakdown */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center mb-6">
+              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Student Population by Grade
+            </h3>
+            {studentPopulation ? (
+              <div className="space-y-4">
+                {Object.entries(studentPopulation)
+                  .sort((a,b) => b[1] - a[1]) // sort by count descending
+                  .map(([grade, count], idx) => {
+                    const total = Object.values(studentPopulation).reduce((a,b)=>a+b, 0) || 1;
+                    const pct = Math.round((count / total) * 100);
+                    // color palette
+                    const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-cyan-500', 'bg-rose-500', 'bg-purple-500'];
+                    const color = colors[idx % colors.length];
+                    return (
+                      <div key={grade}>
+                        <div className="flex justify-between text-sm font-semibold mb-1">
+                          <span className="text-slate-700 dark:text-slate-300">{grade}</span>
+                          <span className="text-slate-500">{count} ({pct}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
+                          <div className={`${color} h-2 rounded-full`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                })}
+              </div>
+            ) : (
+              <div className="h-40 flex items-center justify-center text-slate-400">Loading population data...</div>
+            )}
+          </div>
+
+          {/* Enrollment Trends */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center mb-6">
+              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+              Enrollment Trends (Current SY)
+            </h3>
+            {enrollmentTrends ? (
+              <div className="h-48 flex items-end space-x-2 pt-4">
+                {Object.entries(enrollmentTrends).map(([month, count]) => {
+                  const max = Math.max(...Object.values(enrollmentTrends), 1);
+                  const heightPct = Math.max((count / max) * 100, 5); // min 5% height
+                  return (
+                    <div key={month} className="flex-1 flex flex-col items-center justify-end group">
+                      <div className="w-full bg-brand-500 rounded-t-sm transition-all group-hover:bg-brand-400 relative" style={{ height: `${heightPct}%` }}>
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+                          {count}
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-500 mt-2 uppercase">{month}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-40 flex items-center justify-center text-slate-400">Loading trend data...</div>
+            )}
+          </div>
+          
+        </div>
+      )}
+
+      {/* Legacy AI Warnings Summary (Now mostly for Students/Teachers) */}
       {(isStudent || currentRole === 'Teacher') && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* AI Insights */}
@@ -496,6 +762,61 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                 }
               }} className="px-6 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow transition tracking-wide">Save Schedule</button>
             </div>
+          </div>
+        </div>
+      )}
+      {showPostModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden relative">
+            <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-between items-center">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-white">New {postType}</h3>
+              <button onClick={() => setShowPostModal(false)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            
+            <form onSubmit={handlePostSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">Title</label>
+                <input required type="text" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.title} onChange={e => setPostForm({...postForm, title: e.target.value})} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1">{postType === 'Announcement' ? 'Content' : 'Description'}</label>
+                <textarea required rows="4" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.content} onChange={e => setPostForm({...postForm, content: e.target.value})}></textarea>
+              </div>
+              
+              {postType === 'Event' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Date</label>
+                    <input required type="date" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.date} onChange={e => setPostForm({...postForm, date: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Time (Optional)</label>
+                    <input type="text" placeholder="e.g. 9:00 AM" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.time} onChange={e => setPostForm({...postForm, time: e.target.value})} />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Location (Optional)</label>
+                    <input type="text" placeholder="e.g. Main Hall" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.location} onChange={e => setPostForm({...postForm, location: e.target.value})} />
+                  </div>
+                </div>
+              )}
+
+              {currentRole === 'Teacher' && user?.section && (
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Target Section</label>
+                  <select className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.target_section} onChange={e => setPostForm({...postForm, target_section: e.target.value})}>
+                    <option value="">All Sections (Public)</option>
+                    <option value={user.section}>{user.section} (My Section Only)</option>
+                  </select>
+                </div>
+              )}
+              
+              <div className="pt-4 flex justify-end space-x-3">
+                <button type="button" onClick={() => setShowPostModal(false)} className="px-5 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl font-bold transition">Cancel</button>
+                <button type="submit" disabled={isSubmitting} className="px-6 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow transition tracking-wide disabled:opacity-50">
+                  {isSubmitting ? 'Posting...' : 'Post'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
