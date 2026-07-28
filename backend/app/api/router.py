@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from .. import models, schemas
 from ..database import get_db
 from ..utils import validate_required_fields, check_duplicate_student
-from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights
+from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights, generate_ai_report
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 
 aesms_router = APIRouter()
@@ -451,6 +451,239 @@ def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate
 def ai_model_summary():
     """Returns a detailed summary of all AI/ML models used in the system."""
     return get_ai_model_summary()
+
+
+# ---------------------------------------------------------------------------
+# AI Report Generation (Gemini LLM — Full Narrative Reports)
+# ---------------------------------------------------------------------------
+
+class ReportRequest(BaseModel):
+    report_type: str  # institutional_summary, academic_performance, tuition_finance, attendance_analysis, student_profile
+    student_id: Optional[int] = None  # Required only for student_profile
+
+# Role access map per report type
+_REPORT_ROLE_ACCESS = {
+    "institutional_summary": ["Principal"],
+    "academic_performance": ["Principal", "Teacher"],
+    "tuition_finance": ["Principal", "Cashier"],
+    "attendance_analysis": ["Principal", "Teacher"],
+    "student_profile": ["Principal", "Teacher", "Registrar"],
+}
+
+@aesms_router.post("/ai/generate_report")
+def generate_report(request: ReportRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Generates an AI-powered institutional or student report using Gemini."""
+    
+    # Validate report type
+    allowed_types = list(_REPORT_ROLE_ACCESS.keys())
+    if request.report_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Invalid report type. Must be one of: {', '.join(allowed_types)}")
+    
+    # Check role access
+    allowed_roles = _REPORT_ROLE_ACCESS[request.report_type]
+    if current_user.role not in allowed_roles:
+        raise HTTPException(status_code=403, detail="Not authorized for this report type")
+    
+    # Gather data based on report type
+    data = _gather_report_data(request.report_type, request.student_id, db, current_user)
+    
+    # Generate the report
+    report = generate_ai_report(request.report_type, data)
+    return report
+
+
+def _gather_report_data(report_type: str, student_id: Optional[int], db: Session, current_user) -> dict:
+    """Gathers all relevant data from the database for the specified report type."""
+    
+    students = db.query(models.Student).all()
+    records = db.query(models.AcademicRecord).all()
+    tuitions = db.query(models.TuitionPayment).all()
+    all_attendance = db.query(models.Attendance).all()
+    
+    # Common stats
+    total_students = len(students)
+    enrolled_students = len([s for s in students if s.enrollment_status == "Enrolled"])
+    pending_students = len([s for s in students if s.enrollment_status in ["Pending", "Pending Validation", "Hold: Incomplete Req"]])
+    
+    # Grade distribution
+    grade_dist = {}
+    for s in students:
+        gl = s.grade_level or "Unknown"
+        grade_dist[gl] = grade_dist.get(gl, 0) + 1
+    
+    # Attendance stats
+    total_att = len(all_attendance)
+    present_count = len([a for a in all_attendance if a.status == "Present"])
+    absence_count = len([a for a in all_attendance if a.status == "Absent"])
+    late_count = len([a for a in all_attendance if a.status == "Late"])
+    attendance_rate = round(present_count / total_att * 100, 1) if total_att > 0 else 0
+    
+    # Financial stats
+    total_due = sum(t.amount_due for t in tuitions)
+    total_paid = sum(t.amount_paid for t in tuitions)
+    outstanding = total_due - total_paid
+    collection_rate = round(total_paid / total_due * 100, 1) if total_due > 0 else 0
+    high_risk = len([t for t in tuitions if t.risk_score and t.risk_score >= 0.8])
+    
+    # Payment status breakdown
+    payment_status = {}
+    for t in tuitions:
+        st = t.status or "Unknown"
+        payment_status[st] = payment_status.get(st, 0) + 1
+    
+    # Academic stats
+    academic_avg = round(sum(r.score for r in records) / len(records), 1) if records else 0
+    
+    # Subject averages
+    subject_scores = {}
+    for r in records:
+        if r.subject not in subject_scores:
+            subject_scores[r.subject] = []
+        subject_scores[r.subject].append(r.score)
+    subject_averages = {s: round(sum(scores) / len(scores), 1) for s, scores in subject_scores.items()}
+    
+    # Warning count
+    warning_count = 0
+    at_risk_students = []
+    for student in students:
+        student_records = [r for r in records if r.student_id == student.id]
+        subjects = set(r.subject for r in student_records)
+        for subject in subjects:
+            subj_scores = [r.score for r in student_records if r.subject == subject]
+            if len(subj_scores) >= 3:
+                analysis = analyze_grade_trend(subj_scores)
+                if analysis["has_warning"]:
+                    warning_count += 1
+                    at_risk_students.append(f"{student.first_name} {student.last_name} ({subject})")
+                    break
+    
+    # Section attendance breakdown
+    section_attendance = {}
+    for student in students:
+        section = student.section or "Unassigned"
+        if section not in section_attendance:
+            section_attendance[section] = {"present": 0, "absent": 0, "late": 0, "total": 0}
+        student_att = [a for a in all_attendance if a.student_id == student.id]
+        for a in student_att:
+            section_attendance[section]["total"] += 1
+            if a.status == "Present":
+                section_attendance[section]["present"] += 1
+            elif a.status == "Absent":
+                section_attendance[section]["absent"] += 1
+            elif a.status == "Late":
+                section_attendance[section]["late"] += 1
+    
+    # Chronic absentees
+    chronic_absentees = []
+    for student in students:
+        student_att = [a for a in all_attendance if a.student_id == student.id]
+        if len(student_att) >= 5:  # Need meaningful sample
+            absences = len([a for a in student_att if a.status == "Absent"])
+            if absences / len(student_att) > 0.2:
+                chronic_absentees.append(f"{student.first_name} {student.last_name} ({absences}/{len(student_att)} absent)")
+    
+    # Format dictionary strings for readability
+    grade_dist_str = ", ".join([f"Grade {k}: {v}" for k, v in grade_dist.items()]) if grade_dist else "None"
+    payment_status_str = ", ".join([f"{k}: {v}" for k, v in payment_status.items()]) if payment_status else "None"
+    section_att_str = "; ".join([f"{k} (Present: {v['present']}, Absent: {v['absent']}, Late: {v['late']})" for k, v in section_attendance.items()]) if section_attendance else "None"
+
+    base_data = {
+        "total_students": total_students,
+        "enrolled_students": enrolled_students,
+        "pending_students": pending_students,
+        "grade_distribution": grade_dist_str,
+        "academic_average": academic_avg,
+        "subject_averages": subject_averages,
+        "warning_count": warning_count,
+        "at_risk_students": at_risk_students,
+        "attendance_rate": attendance_rate,
+        "present_count": present_count,
+        "absence_count": absence_count,
+        "late_count": late_count,
+        "section_attendance": section_att_str,
+        "chronic_absentees": chronic_absentees,
+        "total_revenue_due": total_due,
+        "total_revenue_collected": total_paid,
+        "outstanding_balance": outstanding,
+        "collection_rate": collection_rate,
+        "high_risk_tuition": high_risk,
+        "payment_status_breakdown": payment_status_str,
+    }
+    
+    # For student profile, add individual student data
+    if report_type == "student_profile" and student_id:
+        student = db.query(models.Student).filter(models.Student.id == student_id).first()
+        if not student:
+            raise HTTPException(status_code=404, detail="Student not found")
+        
+        # Section scoping for Teachers
+        if current_user.role == "Teacher":
+            assigned = getattr(current_user, 'section', None)
+            if assigned and student.section != assigned:
+                raise HTTPException(status_code=403, detail="Student is not in your assigned section")
+        
+        # Academic records
+        student_records = [r for r in records if r.student_id == student_id]
+        academics_summary_dict = {}
+        for r in student_records:
+            if r.subject not in academics_summary_dict:
+                academics_summary_dict[r.subject] = []
+            academics_summary_dict[r.subject].append({"term": r.term, "score": r.score})
+            
+        academics_summary_str_list = []
+        for subj, scores in academics_summary_dict.items():
+            scores_str = ", ".join([f"{s['term']}: {s['score']}%" for s in scores])
+            academics_summary_str_list.append(f"{subj} ({scores_str})")
+        academics_summary_str = "\n".join(academics_summary_str_list) if academics_summary_str_list else "No academic records"
+        
+        # Attendance
+        student_att = [a for a in all_attendance if a.student_id == student_id]
+        att_summary = {
+            "total_days": len(student_att),
+            "present": len([a for a in student_att if a.status == "Present"]),
+            "absent": len([a for a in student_att if a.status == "Absent"]),
+            "late": len([a for a in student_att if a.status == "Late"]),
+        }
+        att_rate = round(att_summary["present"] / att_summary["total_days"] * 100, 1) if att_summary["total_days"] > 0 else 0
+        
+        # Tuition
+        student_tuitions = [t for t in tuitions if t.student_id == student_id]
+        tuition_summary = {
+            "total_due": sum(t.amount_due for t in student_tuitions),
+            "total_paid": sum(t.amount_paid for t in student_tuitions),
+            "statuses": [t.status for t in student_tuitions],
+            "risk_scores": [t.risk_score for t in student_tuitions if t.risk_score is not None],
+        }
+        
+        # AI risk assessment
+        risk_info = []
+        for subject, subject_records in academics_summary_dict.items():
+            scores = [r["score"] for r in subject_records]
+            if len(scores) >= 3:
+                analysis = analyze_grade_trend(scores, attendance_data=att_summary)
+                if analysis["has_warning"]:
+                    risk_info.append(f"{subject}: {analysis['risk_probability']:.0%} risk — {analysis['message']}")
+        
+        if student_tuitions:
+            from ..ai_engine import predict_tuition_default
+            balances = [t.amount_due for t in student_tuitions]
+            payments = [t.amount_paid for t in student_tuitions]
+            statuses = [t.status for t in student_tuitions]
+            tuition_risk = predict_tuition_default(balances, payments, statuses)
+            risk_info.append(f"Tuition default risk: {tuition_risk['risk_score']:.0%} — {tuition_risk['message']}")
+        
+        base_data.update({
+            "student_name": f"{student.first_name} {student.last_name}",
+            "student_grade": student.grade_level or "N/A",
+            "student_section": student.section or "Unassigned",
+            "enrollment_status": student.enrollment_status or "N/A",
+            "student_academics": academics_summary_str,
+            "student_attendance": f"Total: {att_summary['total_days']} days | Present: {att_summary['present']} | Absent: {att_summary['absent']} | Late: {att_summary['late']} | Rate: {att_rate}%",
+            "student_tuition": f"Due: ₱{tuition_summary['total_due']:,.2f} | Paid: ₱{tuition_summary['total_paid']:,.2f} | Outstanding: ₱{tuition_summary['total_due'] - tuition_summary['total_paid']:,.2f}",
+            "student_risk": "; ".join(risk_info) if risk_info else "No risk flags detected. Student appears to be in good standing.",
+        })
+    
+    return base_data
 
 # ---------------------------------------------------------------------------
 # Analytics & Intelligent Reports

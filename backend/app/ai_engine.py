@@ -476,11 +476,31 @@ def get_ai_model_summary() -> dict:
                     "temperature": 0.7,
                     "max_output_tokens": 1024
                 }
+            },
+            {
+                "name": "AI Report Generator",
+                "type": "Generative AI (LLM)",
+                "algorithm": "Google Gemini 2.0 Flash",
+                "library": "google-generativeai",
+                "features": [
+                    "Institutional Summary (enrollment, finance, academics, attendance)",
+                    "Academic Performance Analysis (subject averages, at-risk students)",
+                    "Tuition & Finance Reports (collection rates, risk assessment)",
+                    "Attendance Analysis (chronic absenteeism, section breakdown)",
+                    "Individual Student Profile Reports (holistic assessment)"
+                ],
+                "output": "Structured multi-section narrative reports with actionable recommendations",
+                "hyperparameters": {
+                    "model": "gemini-2.0-flash",
+                    "report_types": 5,
+                    "fallback": "rule-based"
+                }
             }
         ],
         "training_approach": "Synthetic data generation based on observed Philippine K-12 academic patterns",
         "preprocessing": "StandardScaler normalization applied to all features"
     }
+
 
 
 # =============================================================================
@@ -667,3 +687,387 @@ def _generate_fallback_insights(data: dict) -> list[dict]:
         })
 
     return insights[:4]
+
+
+# =============================================================================
+# 4. AI Report Generator (Gemini LLM — Full Narrative Reports)
+# =============================================================================
+
+# Prompt templates per report type
+_REPORT_PROMPTS = {
+    "institutional_summary": """You are an AI assistant for Calvary Christian Academy (CCA), a Philippine K-12 Christian school.
+Generate a comprehensive INSTITUTIONAL SUMMARY REPORT based on the following school data.
+
+SCHOOL DATA:
+{data_text}
+
+Write a professional report with EXACTLY these sections as a JSON array:
+1. "Executive Overview" — A 3-4 sentence summary of the school's overall status
+2. "Enrollment & Student Body" — Analysis of enrollment numbers, grade distribution, pending applications
+3. "Academic Performance" — Analysis of overall academic averages, at-risk students, grade trends
+4. "Financial Health" — Tuition collection rates, outstanding balances, high-risk accounts
+5. "Attendance Metrics" — Attendance rates, absenteeism patterns, late arrivals
+6. "Key Recommendations" — 3-5 specific actionable recommendations for school administration
+
+Each section must have:
+- "heading": The section title
+- "content": 2-4 paragraphs of professional analysis with specific numbers from the data
+
+Return ONLY a JSON array of section objects. No markdown, no code blocks, just raw JSON.""",
+
+    "academic_performance": """You are an AI assistant for Calvary Christian Academy (CCA), a Philippine K-12 Christian school.
+Generate a detailed ACADEMIC PERFORMANCE REPORT based on the following data.
+
+SCHOOL DATA:
+{data_text}
+
+Write a professional report with EXACTLY these sections as a JSON array:
+1. "Academic Overview" — Summary of overall academic standing
+2. "Subject-Level Analysis" — Performance breakdown by subject area
+3. "At-Risk Student Analysis" — Students flagged by the AI Early Warning System, patterns observed
+4. "Grade Level Comparison" — How different grade levels compare academically
+5. "Recommendations for Academic Improvement" — Specific interventions and strategies
+
+Each section must have:
+- "heading": The section title
+- "content": 2-4 paragraphs of detailed analysis with specific numbers
+
+Return ONLY a JSON array of section objects. No markdown, no code blocks, just raw JSON.""",
+
+    "tuition_finance": """You are an AI assistant for Calvary Christian Academy (CCA), a Philippine K-12 Christian school.
+Generate a detailed TUITION & FINANCE REPORT based on the following data.
+
+SCHOOL DATA:
+{data_text}
+
+Write a professional report with EXACTLY these sections as a JSON array:
+1. "Financial Overview" — Summary of the school's tuition revenue status
+2. "Collection Analysis" — Detailed breakdown of collection rates, paid vs outstanding
+3. "Risk Assessment" — High-risk accounts identified by the AI Payment Default Predictor
+4. "Payment Pattern Trends" — Observations about payment behavior across terms
+5. "Financial Recommendations" — Specific actions to improve collection rates
+
+Each section must have:
+- "heading": The section title
+- "content": 2-4 paragraphs with specific peso amounts and percentages
+
+Return ONLY a JSON array of section objects. No markdown, no code blocks, just raw JSON.""",
+
+    "attendance_analysis": """You are an AI assistant for Calvary Christian Academy (CCA), a Philippine K-12 Christian school.
+Generate a detailed ATTENDANCE ANALYSIS REPORT based on the following data.
+
+SCHOOL DATA:
+{data_text}
+
+Write a professional report with EXACTLY these sections as a JSON array:
+1. "Attendance Overview" — Summary of overall attendance health
+2. "Section-Level Breakdown" — Attendance rates per section/grade level
+3. "Chronic Absenteeism" — Students with concerning absence patterns
+4. "Late Arrival Analysis" — Patterns in late arrivals
+5. "Attendance Recommendations" — Specific strategies to improve attendance
+
+Each section must have:
+- "heading": The section title
+- "content": 2-4 paragraphs with specific numbers and percentages
+
+Return ONLY a JSON array of section objects. No markdown, no code blocks, just raw JSON.""",
+
+    "student_profile": """You are an AI assistant for Calvary Christian Academy (CCA), a Philippine K-12 Christian school.
+Generate a detailed INDIVIDUAL STUDENT PROFILE REPORT based on the following data.
+
+STUDENT DATA:
+{data_text}
+
+Write a professional report with EXACTLY these sections as a JSON array:
+1. "Student Overview" — Name, grade level, section, enrollment status summary
+2. "Academic Performance" — Subject-by-subject analysis, trends, strengths and weaknesses
+3. "AI Risk Assessment" — Results from the AI Early Warning System and Tuition Default Predictor
+4. "Attendance Record" — Attendance summary with any concerning patterns
+5. "Tuition Status" — Payment history and outstanding balances
+6. "Holistic Assessment & Recommendations" — Overall assessment with specific recommendations for the student
+
+Each section must have:
+- "heading": The section title
+- "content": 2-3 paragraphs with specific data points
+
+Return ONLY a JSON array of section objects. No markdown, no code blocks, just raw JSON.""",
+}
+
+# Report type display names
+_REPORT_TITLES = {
+    "institutional_summary": "Institutional Summary Report",
+    "academic_performance": "Academic Performance Report",
+    "tuition_finance": "Tuition & Finance Report",
+    "attendance_analysis": "Attendance Analysis Report",
+    "student_profile": "Student Profile Report",
+}
+
+
+def generate_ai_report(report_type: str, data: dict) -> dict:
+    """
+    Uses Google Gemini AI to generate a full-length narrative report
+    based on school/student data.
+
+    Parameters:
+        report_type: One of the supported report types
+        data: Dict containing all relevant data for the report
+
+    Returns:
+        dict with keys: title, generated_at, report_type, sections, model_used
+        sections is a list of {heading, content} dicts
+    """
+    import os
+    from datetime import datetime
+
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    report_title = _REPORT_TITLES.get(report_type, "AI Generated Report")
+    timestamp = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+
+    # Build data summary text
+    data_text = _build_data_text(report_type, data)
+
+    # Get the prompt template
+    prompt_template = _REPORT_PROMPTS.get(report_type)
+    if not prompt_template:
+        return {
+            "title": report_title,
+            "generated_at": timestamp,
+            "report_type": report_type,
+            "sections": [{"heading": "Error", "content": f"Unknown report type: {report_type}"}],
+            "model_used": "N/A"
+        }
+
+    prompt = prompt_template.format(data_text=data_text)
+
+    # Try Gemini API
+    if api_key:
+        try:
+            import google.generativeai as genai
+            import json
+
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            response = model.generate_content(prompt)
+
+            text = response.text.strip()
+            # Clean up markdown code blocks if present
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1] if "\n" in text else text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+
+            sections = json.loads(text)
+            if isinstance(sections, list) and len(sections) >= 1:
+                return {
+                    "title": report_title,
+                    "generated_at": timestamp,
+                    "report_type": report_type,
+                    "sections": sections,
+                    "model_used": "Google Gemini 2.0 Flash"
+                }
+        except Exception as e:
+            print(f"[CCA AI] Report generation error: {e}")
+
+    # Fallback: Generate structured report without LLM
+    sections = _generate_fallback_report(report_type, data)
+    return {
+        "title": report_title,
+        "generated_at": timestamp,
+        "report_type": report_type,
+        "sections": sections,
+        "model_used": "Rule-Based Fallback (Gemini unavailable)"
+    }
+
+
+def _build_data_text(report_type: str, data: dict) -> str:
+    """Builds a human-readable data summary string for the Gemini prompt."""
+    lines = []
+
+    # Common school-wide data
+    if "total_students" in data:
+        lines.append(f"Total registered students: {data['total_students']}")
+    if "enrolled_students" in data:
+        lines.append(f"Enrolled students: {data['enrolled_students']}")
+    if "pending_students" in data:
+        lines.append(f"Pending enrollment: {data['pending_students']}")
+    if "grade_distribution" in data:
+        lines.append(f"Grade level distribution: {data['grade_distribution']}")
+
+    # Academic data
+    if "academic_average" in data:
+        lines.append(f"Global academic average: {data['academic_average']}%")
+    if "warning_count" in data:
+        lines.append(f"Students with AI academic warnings: {data['warning_count']}")
+    if "subject_averages" in data:
+        lines.append(f"Subject averages: {data['subject_averages']}")
+    if "at_risk_students" in data:
+        lines.append(f"At-risk students: {data['at_risk_students']}")
+
+    # Attendance data
+    if "attendance_rate" in data:
+        lines.append(f"Overall attendance rate: {data['attendance_rate']}%")
+    if "absence_count" in data:
+        lines.append(f"Total absences recorded: {data['absence_count']}")
+    if "late_count" in data:
+        lines.append(f"Total late arrivals: {data['late_count']}")
+    if "present_count" in data:
+        lines.append(f"Total present records: {data['present_count']}")
+    if "section_attendance" in data:
+        lines.append(f"Attendance by section: {data['section_attendance']}")
+    if "chronic_absentees" in data:
+        lines.append(f"Chronic absentees (>20% absence rate): {data['chronic_absentees']}")
+
+    # Financial data
+    if "total_revenue_due" in data:
+        lines.append(f"Total tuition due: ₱{data['total_revenue_due']:,.2f}")
+    if "total_revenue_collected" in data:
+        lines.append(f"Total tuition collected: ₱{data['total_revenue_collected']:,.2f}")
+    if "outstanding_balance" in data:
+        lines.append(f"Outstanding balance: ₱{data['outstanding_balance']:,.2f}")
+    if "collection_rate" in data:
+        lines.append(f"Collection rate: {data['collection_rate']}%")
+    if "high_risk_tuition" in data:
+        lines.append(f"High-risk tuition accounts: {data['high_risk_tuition']}")
+    if "payment_status_breakdown" in data:
+        lines.append(f"Payment status breakdown: {data['payment_status_breakdown']}")
+
+    # Student profile data
+    if "student_name" in data:
+        lines.append(f"Student name: {data['student_name']}")
+    if "student_grade" in data:
+        lines.append(f"Grade level: {data['student_grade']}")
+    if "student_section" in data:
+        lines.append(f"Section: {data['student_section']}")
+    if "enrollment_status" in data:
+        lines.append(f"Enrollment status: {data['enrollment_status']}")
+    if "student_academics" in data:
+        lines.append(f"Academic records: {data['student_academics']}")
+    if "student_attendance" in data:
+        lines.append(f"Attendance records: {data['student_attendance']}")
+    if "student_tuition" in data:
+        lines.append(f"Tuition records: {data['student_tuition']}")
+    if "student_risk" in data:
+        lines.append(f"AI risk assessment: {data['student_risk']}")
+
+    return "\n".join(lines)
+
+
+def _generate_fallback_report(report_type: str, data: dict) -> list:
+    """Generate a structured report using rule-based logic when Gemini is unavailable."""
+
+    if report_type == "institutional_summary":
+        total = data.get("total_students", 0)
+        enrolled = data.get("enrolled_students", 0)
+        pending = data.get("pending_students", 0)
+        att_rate = data.get("attendance_rate", 0)
+        due = data.get("total_revenue_due", 0)
+        collected = data.get("total_revenue_collected", 0)
+        avg = data.get("academic_average", 0)
+        warns = data.get("warning_count", 0)
+
+        collection_pct = round(collected / due * 100, 1) if due > 0 else 0
+
+        return [
+            {"heading": "Executive Overview",
+             "content": f"Calvary Christian Academy currently has {total} registered students, of which {enrolled} are actively enrolled. The overall attendance rate stands at {att_rate}%, and the global academic average is {avg}%. The tuition collection rate is at {collection_pct}%."},
+            {"heading": "Enrollment & Student Body",
+             "content": f"Out of {total} total students, {enrolled} are enrolled and {pending} applications are pending review. The school should prioritize processing pending applications to finalize enrollment figures."},
+            {"heading": "Academic Performance",
+             "content": f"The global academic average is {avg}%. The AI Early Warning System has flagged {warns} student(s) with declining academic trends that require intervention."},
+            {"heading": "Financial Health",
+             "content": f"Total tuition due is ₱{due:,.2f}, with ₱{collected:,.2f} collected ({collection_pct}%). Outstanding balance is ₱{due - collected:,.2f}. {data.get('high_risk_tuition', 0)} accounts are flagged as high-risk by the AI Payment Default Predictor."},
+            {"heading": "Attendance Metrics",
+             "content": f"Overall attendance rate is {att_rate}%. A total of {data.get('absence_count', 0)} absences and {data.get('late_count', 0)} late arrivals have been recorded."},
+            {"heading": "Key Recommendations",
+             "content": "1. Process all pending enrollment applications to finalize student body counts.\n2. Conduct intervention meetings for at-risk students flagged by the AI system.\n3. Follow up on high-risk tuition accounts to improve collection rates.\n4. Investigate chronic absenteeism and implement attendance improvement programs.\n5. Review academic support resources for students scoring below the 75% passing threshold."},
+        ]
+
+    elif report_type == "academic_performance":
+        avg = data.get("academic_average", 0)
+        warns = data.get("warning_count", 0)
+        subjects = data.get("subject_averages", {})
+
+        subject_text = ", ".join([f"{s}: {v}%" for s, v in subjects.items()]) if subjects else "No subject data available."
+
+        return [
+            {"heading": "Academic Overview",
+             "content": f"The global academic average across all subjects is {avg}%. {warns} student(s) have been flagged by the AI Early Warning System for declining performance trends."},
+            {"heading": "Subject-Level Analysis",
+             "content": f"Subject averages: {subject_text}. Further analysis per subject can help identify areas where teaching strategies may need adjustment."},
+            {"heading": "At-Risk Student Analysis",
+             "content": f"{warns} student(s) are currently flagged as at-risk based on the Random Forest Classifier model analyzing grade slopes, score volatility, and attendance patterns."},
+            {"heading": "Grade Level Comparison",
+             "content": f"Grade distribution: {data.get('grade_distribution', 'N/A')}. Individual grade-level performance analysis requires further breakdown of academic records."},
+            {"heading": "Recommendations for Academic Improvement",
+             "content": "1. Schedule academic counseling for all at-risk students.\n2. Review teaching methodologies for subjects with below-average performance.\n3. Implement peer tutoring programs for struggling students.\n4. Consider additional formative assessments to track student progress more frequently."},
+        ]
+
+    elif report_type == "tuition_finance":
+        due = data.get("total_revenue_due", 0)
+        collected = data.get("total_revenue_collected", 0)
+        outstanding = data.get("outstanding_balance", 0)
+        high_risk = data.get("high_risk_tuition", 0)
+        status = data.get("payment_status_breakdown", {})
+        collection_pct = round(collected / due * 100, 1) if due > 0 else 0
+
+        return [
+            {"heading": "Financial Overview",
+             "content": f"Total tuition revenue due is ₱{due:,.2f}. The school has collected ₱{collected:,.2f}, representing a {collection_pct}% collection rate. Outstanding balance stands at ₱{outstanding:,.2f}."},
+            {"heading": "Collection Analysis",
+             "content": f"Payment status breakdown: {status}. {'Collection is on track.' if collection_pct >= 80 else 'Collection is below target and requires immediate attention.'}"},
+            {"heading": "Risk Assessment",
+             "content": f"{high_risk} tuition account(s) have been flagged as high-risk (≥80% probability of default) by the AI Gradient Boosting Regressor model."},
+            {"heading": "Payment Pattern Trends",
+             "content": "Payment patterns should be monitored across grading terms to identify seasonal trends in delinquency. Early-term payments tend to be more consistent than late-term payments."},
+            {"heading": "Financial Recommendations",
+             "content": "1. Prioritize follow-up on high-risk accounts identified by the AI system.\n2. Consider flexible payment plan options for families with moderate risk scores.\n3. Send payment reminders before each term deadline.\n4. Review the overdue accounts and initiate parent-teacher conferences where appropriate."},
+        ]
+
+    elif report_type == "attendance_analysis":
+        att_rate = data.get("attendance_rate", 0)
+        absences = data.get("absence_count", 0)
+        lates = data.get("late_count", 0)
+        present = data.get("present_count", 0)
+        section_att = data.get("section_attendance", {})
+        chronic = data.get("chronic_absentees", [])
+
+        return [
+            {"heading": "Attendance Overview",
+             "content": f"The overall school attendance rate is {att_rate}%. A total of {present} present records, {absences} absences, and {lates} late arrivals have been logged."},
+            {"heading": "Section-Level Breakdown",
+             "content": f"Attendance by section: {section_att if section_att else 'No section-level data available.'}"},
+            {"heading": "Chronic Absenteeism",
+             "content": f"{len(chronic)} student(s) show chronic absenteeism patterns (>20% absence rate). These students require immediate intervention and parent notification."},
+            {"heading": "Late Arrival Analysis",
+             "content": f"A total of {lates} late arrivals have been recorded. Consistent tardiness may indicate transportation issues or other systemic problems that should be addressed."},
+            {"heading": "Attendance Recommendations",
+             "content": "1. Contact parents/guardians of chronically absent students.\n2. Implement an attendance reward system to incentivize consistent attendance.\n3. Review late arrival patterns to determine if schedule adjustments are needed.\n4. Consider home visits for students with extended absences."},
+        ]
+
+    elif report_type == "student_profile":
+        name = data.get("student_name", "Unknown Student")
+        grade = data.get("student_grade", "N/A")
+        section = data.get("student_section", "N/A")
+        status = data.get("enrollment_status", "N/A")
+        academics = data.get("student_academics", "No academic records")
+        attendance_info = data.get("student_attendance", "No attendance records")
+        tuition_info = data.get("student_tuition", "No tuition records")
+        risk = data.get("student_risk", "No risk assessment available")
+
+        return [
+            {"heading": "Student Overview",
+             "content": f"Student: {name}\nGrade Level: {grade} | Section: {section}\nEnrollment Status: {status}"},
+            {"heading": "Academic Performance",
+             "content": f"Academic records: {academics}"},
+            {"heading": "AI Risk Assessment",
+             "content": f"{risk}"},
+            {"heading": "Attendance Record",
+             "content": f"{attendance_info}"},
+            {"heading": "Tuition Status",
+             "content": f"{tuition_info}"},
+            {"heading": "Holistic Assessment & Recommendations",
+             "content": f"Based on the available data, {name} should continue to be monitored through the AI Early Warning System. Any flagged issues should be addressed promptly through academic counseling and parent communication."},
+        ]
+
+    return [{"heading": "Report", "content": "No data available for this report type."}]

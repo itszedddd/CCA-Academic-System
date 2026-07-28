@@ -14,6 +14,7 @@ import LoginPage from './pages/LoginPage';
 import UserManagement from './pages/UserManagement';
 import Settings from './pages/Settings';
 import AIEngine from './pages/AIEngine';
+import AIReports from './pages/AIReports';
 import Archive from './pages/Archive';
 
 const API = '/api';
@@ -132,6 +133,7 @@ export default function App() {
     { name: 'Student Portal',     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', roles: ['Student', 'Parent'] },
     { name: 'Online Enrollment',  icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['Student', 'Parent'] },
     { name: 'AI Engine Diagnostics', icon: 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z', roles: ['Superadmin', 'Principal', 'Teacher'] },
+    { name: 'AI Report Generator', icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['Principal', 'Teacher', 'Registrar', 'Cashier'] },
     { name: 'Student Archive', icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4', roles: ['Principal', 'Registrar'] },
     { name: 'Settings',           icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z', roles: ['Superadmin', 'Principal', 'Teacher', 'Registrar', 'Admission', 'Cashier', 'Student', 'Parent'] },
   ];
@@ -208,6 +210,7 @@ export default function App() {
             { activeTab === 'Student Portal'     && <StudentPortal {...sharedProps} /> }
             { activeTab === 'Online Enrollment'   && <StudentEnrollment {...sharedProps} /> }
             { activeTab === 'AI Engine Diagnostics' && <AIEngine {...sharedProps} /> }
+            { activeTab === 'AI Report Generator' && <AIReports {...sharedProps} /> }
             { activeTab === 'Student Archive'    && <Archive {...sharedProps} /> }
             { activeTab === 'Settings'           && <Settings {...sharedProps} /> }
           </div>
