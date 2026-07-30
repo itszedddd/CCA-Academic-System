@@ -12,6 +12,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
   const [recommendations, setRecommendations] = useState([]);
   const [myAttendance, setMyAttendance] = useState([]);
   const [tuitions, setTuitions] = useState([]);
+  const [myForms, setMyForms] = useState([]);
   
   const [activeDate, setActiveDate] = useState(new Date());
   const handlePrevMonth = () => setActiveDate(new Date(activeDate.getFullYear(), activeDate.getMonth() - 1, 1));
@@ -43,6 +44,8 @@ export default function StudentPortal({ students, attendance, currentRole, user,
     authFetch(`${API}/resource_recommendations/${demoStudent.id}`).then(r => r?.ok ? r.json() : []).then(setRecommendations).catch(() => {});
     authFetch(`${API}/attendance/student/${demoStudent.id}`).then(r => r?.ok ? r.json() : []).then(setMyAttendance).catch(() => {});
     authFetch(`${API}/tuition/`).then(r => r?.ok ? r.json() : []).then(data => setTuitions(data.filter(t => t.student_id === demoStudent.id))).catch(() => {});
+    // Fetch enrollment forms for this student
+    authFetch(`${API}/enrollment_forms/`).then(r => r?.ok ? r.json() : []).then(data => setMyForms(data.filter(f => f.student_id === demoStudent.id))).catch(() => {});
   }, [demoStudent?.id]);
 
   if (!demoStudent || !studentData) {
@@ -115,6 +118,70 @@ export default function StudentPortal({ students, attendance, currentRole, user,
           ))}
         </div>
       </div>
+
+      {/* Enrollment Status Tracker (shown if not yet enrolled) */}
+      {studentData.enrollment_status !== 'Enrolled' && myForms.length > 0 && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+            <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              Enrollment Application Status
+            </h3>
+          </div>
+          <div className="p-6">
+            {myForms.map(form => {
+              const steps = [
+                { label: 'Pre-Registered', done: true },
+                { label: 'Assessment', done: form.assessment_status === 'Passed', failed: form.assessment_status === 'Failed', pending: !form.assessment_status || form.assessment_status === 'Pending' },
+                { label: 'Interview', done: form.interview_status === 'Passed', failed: form.interview_status === 'Failed', pending: !form.interview_status || form.interview_status === 'Pending' },
+                { label: 'Enrolled', done: form.status === 'Success' },
+              ];
+              return (
+                <div key={form.id} className="mb-4 last:mb-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Applying for: {form.grade_applying_for || 'N/A'}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                      form.status === 'Success' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      form.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                    }`}>{form.status}</span>
+                  </div>
+                  <div className="flex items-center gap-0">
+                    {steps.map((s, i) => (
+                      <div key={i} className="flex items-center flex-1">
+                        <div className={`flex flex-col items-center flex-1`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                            s.done ? 'bg-green-500 border-green-500 text-white' :
+                            s.failed ? 'bg-red-500 border-red-500 text-white' :
+                            'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-400'
+                          }`}>
+                            {s.done ? (
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                            ) : s.failed ? (
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                            ) : (
+                              <span>{i + 1}</span>
+                            )}
+                          </div>
+                          <span className={`mt-1.5 text-[11px] font-semibold ${s.done ? 'text-green-600 dark:text-green-400' : s.failed ? 'text-red-600' : 'text-slate-400 dark:text-slate-500'}`}>{s.label}</span>
+                        </div>
+                        {i < steps.length - 1 && (
+                          <div className={`h-0.5 flex-1 -mt-4 ${steps[i+1].done || steps[i+1].failed ? (steps[i+1].failed ? 'bg-red-300' : 'bg-green-400') : 'bg-slate-200 dark:bg-slate-600'}`} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {form.remarks && (
+                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-2 rounded-lg">
+                      <span className="font-bold">Remarks:</span> {form.remarks}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Academic Records */}

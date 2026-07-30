@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import PreRegistrationForm from '../components/PreRegistrationForm';
 
 export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -9,6 +10,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgotPwdModal, setShowForgotPwdModal] = useState(false);
+  const [mobileTab, setMobileTab] = useState('login'); // 'login' or 'register'
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -46,7 +48,7 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative order-2">
+      <div className={`lg:w-[50%] w-full flex-col items-center justify-center p-6 sm:p-12 relative order-1 lg:order-2 ${mobileTab === 'login' ? 'flex' : 'hidden lg:flex'}`}>
         {/* Theme Toggle */}
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)} 
@@ -62,6 +64,16 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
         <div className={`w-full max-w-md ${isRegistering ? 'max-w-2xl' : ''}`}>
           <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-colors animate-zoom-in">
             
+            {isRegistering ? (
+              <div className="animate-fade-in">
+                <button onClick={() => setIsRegistering(false)} className="mb-6 flex items-center text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                  Back to Sign In
+                </button>
+                <PreRegistrationForm isDarkMode={isDarkMode} />
+              </div>
+            ) : (
+              <>
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-slate-800 dark:text-white transition-colors mb-2">Welcome Back</h2>
               <p className="text-slate-500 dark:text-slate-400 text-sm transition-colors">
@@ -127,6 +139,10 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
                     </>
                   )}
                 </button>
+
+                <button type="button" onClick={() => setIsRegistering(true)} className="w-full relative py-4 bg-transparent border-2 border-slate-200 dark:border-slate-700 hover:border-[#022868] dark:hover:border-blue-400 text-slate-600 dark:text-slate-300 hover:text-[#022868] dark:hover:text-blue-400 font-bold tracking-widest rounded-xl transition-all flex justify-center items-center mt-3">
+                  PRE-REGISTER
+                </button>
               </form>
 
 
@@ -158,6 +174,8 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode }) {
                 </div>
               </div>
             </div>
+            </>
+            )}
           </div>
         </div>
       </div>

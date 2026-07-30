@@ -7,16 +7,16 @@ export default defineConfig({
   server: {
     allowedHosts: ['rainless-jeremiah-uncogged.ngrok-free.dev'],
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/uploads': 'http://localhost:8000',
+      '/api': 'http://127.0.0.1:8000',
+      '/uploads': 'http://127.0.0.1:8000',
     },
   },
   preview: {
     port: 5173,
     allowedHosts: ['rainless-jeremiah-uncogged.ngrok-free.dev'],
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/uploads': 'http://localhost:8000',
+      '/api': 'http://127.0.0.1:8000',
+      '/uploads': 'http://127.0.0.1:8000',
     },
   },
 })

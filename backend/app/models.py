@@ -66,6 +66,14 @@ class EnrollmentForm(Base):
     form_type = Column(String)
     status = Column(String, default="Needs Review")  # Needs Review, Success, Hold, Rejected
 
+    # Admission Pipeline
+    assessment_status = Column(String, default="Pending")   # Pending, Passed, Failed
+    interview_status = Column(String, default="Pending")    # Pending, Passed, Failed
+    assessment_remarks = Column(String, nullable=True)
+    interview_remarks = Column(String, nullable=True)
+    assessed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    interviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
     # Structured enrollment data
     sex = Column(String, nullable=True)
     birth_date = Column(String, nullable=True)

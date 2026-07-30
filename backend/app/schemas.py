@@ -119,6 +119,14 @@ class EnrollmentFormBase(BaseModel):
     form_type: str
     status: Optional[str] = "Needs Review"
 
+    # Admission Pipeline
+    assessment_status: Optional[str] = "Pending"
+    interview_status: Optional[str] = "Pending"
+    assessment_remarks: Optional[str] = None
+    interview_remarks: Optional[str] = None
+    assessed_by: Optional[int] = None
+    interviewed_by: Optional[int] = None
+
     # Structured student data
     sex: Optional[str] = None
     birth_date: Optional[str] = None
@@ -200,6 +208,38 @@ class EnrollmentFormCreate(BaseModel):
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0
     req_pictures: Optional[int] = 0
+
+class AdmissionUpdatePayload(BaseModel):
+    status: str
+    remarks: Optional[str] = None
+
+class PublicEnrollmentSubmit(BaseModel):
+    """Schema for the public pre-registration form."""
+    student_first_name: str
+    student_last_name: str
+    grade_applying_for: Optional[str] = None
+    sex: Optional[str] = None
+    birth_date: Optional[str] = None
+    birth_place: Optional[str] = None
+    home_address: Optional[str] = None
+    father_name: Optional[str] = None
+    father_contact: Optional[str] = None
+    father_occupation: Optional[str] = None
+    father_employer: Optional[str] = None
+    mother_name: Optional[str] = None
+    mother_contact: Optional[str] = None
+    mother_occupation: Optional[str] = None
+    mother_employer: Optional[str] = None
+    church_attended: Optional[str] = None
+    church_member: Optional[str] = None
+    pastor_name: Optional[str] = None
+    previous_school: Optional[str] = None
+    repeated_grade: Optional[str] = None
+    expelled_dismissed: Optional[str] = None
+    learning_disabilities: Optional[str] = None
+    special_talents: Optional[str] = None
+    how_heard: Optional[str] = None
+    reason_selecting: Optional[str] = None
 
 class EnrollmentFormVerify(BaseModel):
     status: str

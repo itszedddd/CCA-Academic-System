@@ -10,7 +10,7 @@ const InputField = ({ label, field, type="text", required=false, encodeData, set
 );
 
 export default function Registration({ forms, fetchForms, authFetch, currentRole, students }) {
-  const [activeTab, setActiveTab] = useState(currentRole === 'Registrar' ? 'Verify' : 'Encode');
+  const [activeTab, setActiveTab] = useState(['Registrar', 'Admission'].includes(currentRole) ? 'Verify' : 'Encode');
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -119,6 +119,53 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
+  // Admission Pipeline State
+  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [admissionStatus, setAdmissionStatus] = useState('Passed');
+  const [admissionRemarks, setAdmissionRemarks] = useState('');
+
+  const handleRecordAssessment = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: admissionStatus, remarks: admissionRemarks })
+      });
+      if (res?.ok) {
+        setShowAssessmentModal(false);
+        fetchForms();
+        // Update selected form locally to refresh view without unselecting
+        const updated = await res.json();
+        setSelectedForm(updated);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecordInterview = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/interview`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: admissionStatus, remarks: admissionRemarks })
+      });
+      if (res?.ok) {
+        setShowInterviewModal(false);
+        fetchForms();
+        const updated = await res.json();
+        setSelectedForm(updated);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVerify = async (status) => {
     setLoading(true);
     try {
@@ -174,7 +221,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
             {['Admission', 'Principal'].includes(currentRole) && (
               <button onClick={() => setActiveTab('Encode')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Encode' ? 'bg-white dark:bg-slate-800 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}>Encode Form</button>
             )}
-            {['Registrar', 'Principal'].includes(currentRole) && (
+            {['Registrar', 'Admission', 'Principal'].includes(currentRole) && (
               <button onClick={() => setActiveTab('Verify')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Verify' ? 'bg-white dark:bg-slate-800 shadow text-brand-600 dark:text-brand-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white'}`}>Verify Records</button>
             )}
           </div>
@@ -322,6 +369,8 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   <th className="px-6 py-3">Form ID</th>
                   <th className="px-6 py-3">Student Name</th>
                   <th className="px-6 py-3">Grade</th>
+                  <th className="px-6 py-3">Assessment</th>
+                  <th className="px-6 py-3">Interview</th>
                   <th className="px-6 py-3">Status</th>
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
@@ -335,7 +384,9 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                     const st = students.find(s => s.id === form.student_id);
                     if (st) name = `${st.last_name}, ${st.first_name}`;
                   }
-                  if (name === "Unknown" && form.father_name) name = `Child of ${form.father_name}`;
+                  if (name === "Unknown" && (form.student_first_name || form.student_last_name)) {
+                    name = `${form.student_last_name || ''}, ${form.student_first_name || ''}`;
+                  } else if (name === "Unknown" && form.father_name) name = `Child of ${form.father_name}`;
                   
                   const searchLower = searchQuery.toLowerCase();
                   return name.toLowerCase().includes(searchLower) || String(form.id).includes(searchLower);
@@ -349,7 +400,9 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                       grade = st.grade_level;
                     }
                   }
-                  if (name === "Unknown" && form.father_name) {
+                  if (name === "Unknown" && (form.student_first_name || form.student_last_name)) {
+                     name = `${form.student_last_name || ''}, ${form.student_first_name || ''}`.replace(/^, |, $/g, '');
+                  } else if (name === "Unknown" && form.father_name) {
                      name = `Child of ${form.father_name}`;
                   }
                   return (
@@ -357,6 +410,12 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                       <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(form.id).padStart(4,'0')}</td>
                       <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{name}</td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{form.grade_applying_for || grade}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${form.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' : form.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.assessment_status || 'Pending'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${form.interview_status === 'Passed' ? 'bg-green-100 text-green-700' : form.interview_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.interview_status || 'Pending'}</span>
+                      </td>
                       <td className="px-6 py-4">
                         <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${getStatusColor(form.status)}`}>{form.status}</span>
                       </td>
@@ -380,8 +439,36 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
              <div className="flex flex-col lg:flex-row gap-8">
                
                <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+                 
+                 {/* Pipeline Status Bar */}
+                 <div className="mb-6 p-4 rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+                   <h4 className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-widest mb-3">Admission Pipeline</h4>
+                   <div className="flex flex-wrap items-center gap-2 text-sm">
+                     <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full font-semibold text-slate-700 dark:text-slate-300">Pre-Registered</span>
+                     <span className="text-slate-400">→</span>
+                     <span className={`px-3 py-1 rounded-full font-semibold ${selectedForm.assessment_status === 'Passed' ? 'bg-green-200 text-green-800' : selectedForm.assessment_status === 'Failed' ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'}`}>
+                       Assessment: {selectedForm.assessment_status || 'Pending'}
+                     </span>
+                     <span className="text-slate-400">→</span>
+                     <span className={`px-3 py-1 rounded-full font-semibold ${selectedForm.interview_status === 'Passed' ? 'bg-green-200 text-green-800' : selectedForm.interview_status === 'Failed' ? 'bg-red-200 text-red-800' : 'bg-yellow-200 text-yellow-800'}`}>
+                       Interview: {selectedForm.interview_status || 'Pending'}
+                     </span>
+                     <span className="text-slate-400">→</span>
+                     <span className={`px-3 py-1 rounded-full font-semibold ${selectedForm.status === 'Success' ? 'bg-green-200 text-green-800' : 'bg-slate-200 text-slate-600'}`}>
+                       Enrolled
+                     </span>
+                   </div>
+                   {['Admission', 'Principal'].includes(currentRole) && (
+                     <div className="mt-4 flex gap-2">
+                       <button onClick={() => setShowAssessmentModal(true)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm">Record Assessment</button>
+                       <button onClick={() => setShowInterviewModal(true)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm">Record Interview</button>
+                     </div>
+                   )}
+                 </div>
+
                  <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Encoded Data Review</h4>
                  <div className="grid grid-cols-2 gap-y-3 text-sm text-slate-800 dark:text-slate-200">
+                    <div className="text-slate-500 dark:text-slate-400">Student Name:</div><div className="font-semibold">{selectedForm.student_first_name || ''} {selectedForm.student_last_name || 'N/A'}</div>
                     <div className="text-slate-500 dark:text-slate-400">Form Type:</div><div className="font-semibold">{selectedForm.form_type}</div>
                     <div className="text-slate-500 dark:text-slate-400">Grade Applying For:</div><div className="font-semibold">{selectedForm.grade_applying_for || 'N/A'}</div>
                     <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
@@ -424,8 +511,8 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                    </div>
                    
                    <div className="grid grid-cols-3 gap-2 pt-4">
-                      <button onClick={() => handleVerify('Success')} disabled={loading} className="py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-sm transition">Approve & Enroll</button>
-                      <button onClick={() => handleVerify('Approved Incomplete')} disabled={loading} className="py-2.5 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg text-sm transition">Approved (Incomplete)</button>
+                      <button onClick={() => handleVerify('Success')} disabled={loading || selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed'} className={`py-2.5 font-bold rounded-lg text-sm transition ${selectedForm.assessment_status === 'Passed' && selectedForm.interview_status === 'Passed' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`} title={selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed' ? "Assessment and Interview must be Passed first" : ""}>Approve & Enroll</button>
+                      <button onClick={() => handleVerify('Approved Incomplete')} disabled={loading || selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed'} className={`py-2.5 font-bold rounded-lg text-sm transition ${selectedForm.assessment_status === 'Passed' && selectedForm.interview_status === 'Passed' ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>Approved (Incomplete)</button>
                       <button onClick={() => handleVerify('Hold')} disabled={loading} className="py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg text-sm transition">Hold (Incomplete)</button>
                       <button onClick={() => handleVerify('Rejected')} disabled={loading} className="py-2.5 col-span-3 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-sm transition">Reject Application</button>
                     </div>
@@ -436,6 +523,60 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
            </div>
         )}
       </div>
+
+      {/* Assessment Modal */}
+      {showAssessmentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-100 dark:border-slate-700">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Record Assessment Results</h3>
+            <form onSubmit={handleRecordAssessment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                <select className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
+                  <option value="Passed">Passed</option>
+                  <option value="Failed">Failed</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks</label>
+                <textarea className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowAssessmentModal(false)} className="px-4 py-2 font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Interview Modal */}
+      {showInterviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-100 dark:border-slate-700">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Record Interview Results</h3>
+            <form onSubmit={handleRecordInterview} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Status</label>
+                <select className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
+                  <option value="Passed">Passed</option>
+                  <option value="Failed">Failed</option>
+                  <option value="Pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks</label>
+                <textarea className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
+                <button type="submit" disabled={loading} className="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

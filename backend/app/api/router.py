@@ -860,7 +860,44 @@ def create_enrollment_form(
     db.add(db_form)
     db.commit()
     db.refresh(db_form)
+    db.refresh(db_form)
     return db_form
+
+@aesms_router.get("/enrollment_forms/my-forms", response_model=List[schemas.EnrollmentForm])
+def get_my_forms(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Get all enrollment forms submitted by or for the current student user."""
+    if current_user.role not in ["Student", "Parent"]:
+        raise HTTPException(status_code=403, detail="Only students or parents can view their forms")
+    if not current_user.student_id:
+        return []
+    return db.query(models.EnrollmentForm).filter(models.EnrollmentForm.student_id == current_user.student_id).order_by(models.EnrollmentForm.id.desc()).all()
+
+@aesms_router.post("/enrollment_forms/student-submit", response_model=schemas.EnrollmentForm)
+def student_submit_form(payload: schemas.PublicEnrollmentSubmit, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Submit an enrollment form for the currently logged in student."""
+    if current_user.role not in ["Student", "Parent"]:
+        raise HTTPException(status_code=403, detail="Only students or parents can submit via this endpoint")
+    if not current_user.student_id:
+        raise HTTPException(status_code=400, detail="User account is not linked to a student record")
+    
+    # Update student status to pre-registered if they were just pending
+    student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+    if student and student.enrollment_status == "Pending":
+        student.enrollment_status = "Pre-Registered"
+        
+    db_form = models.EnrollmentForm(
+        student_id=current_user.student_id,
+        form_type="Online Enrollment",
+        status="Needs Review",
+        assessment_status="Pending",
+        interview_status="Pending",
+        **payload.model_dump()
+    )
+    db.add(db_form)
+    db.commit()
+    db.refresh(db_form)
+    return db_form
+
 
 @aesms_router.post("/enrollment_forms/{form_id}/upload_document")
 async def upload_enrollment_document(
@@ -911,6 +948,85 @@ def check_duplicate_form(student_id: int, form_type: str, db: Session = Depends(
     ).first()
     return {"exists": existing is not None, "form_id": existing.id if existing else None}
 
+@aesms_router.post("/enrollment_forms/public-preregister", response_model=schemas.EnrollmentForm)
+def public_preregister(
+    payload: schemas.PublicEnrollmentSubmit,
+    db: Session = Depends(get_db)
+):
+    """Public pre-registration endpoint (no auth required)."""
+    # Check if student already exists
+    existing = check_duplicate_student(
+        db, models.Student, payload.student_first_name, payload.student_last_name
+    )
+    if existing:
+        student_id = existing.id
+        existing.enrollment_status = "Pre-Registered"
+    else:
+        new_student = models.Student(
+            first_name=payload.student_first_name.strip(),
+            last_name=payload.student_last_name.strip(),
+            grade_level=payload.grade_applying_for or "Pending",
+            enrollment_status="Pre-Registered"
+        )
+        db.add(new_student)
+        db.flush()
+        student_id = new_student.id
+
+    db_form = models.EnrollmentForm(
+        student_id=student_id,
+        form_type="Online Pre-Registration",
+        status="Needs Review",
+        assessment_status="Pending",
+        interview_status="Pending",
+        **payload.model_dump()
+    )
+    db.add(db_form)
+    db.commit()
+    db.refresh(db_form)
+    return db_form
+
+@aesms_router.get("/enrollment_forms/check-status/{reference_id}", response_model=schemas.EnrollmentForm)
+def check_preregister_status(reference_id: int, db: Session = Depends(get_db)):
+    """Public endpoint to check enrollment status by form ID."""
+    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == reference_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return form
+
+@aesms_router.put("/enrollment_forms/{form_id}/assessment", response_model=schemas.EnrollmentForm)
+def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+    
+    form.assessment_status = payload.status
+    if payload.remarks:
+        form.assessment_remarks = payload.remarks
+    form.assessed_by = current_user.id
+    
+    db.commit()
+    db.refresh(form)
+    return form
+
+@aesms_router.put("/enrollment_forms/{form_id}/interview", response_model=schemas.EnrollmentForm)
+def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Principal", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+    
+    form.interview_status = payload.status
+    if payload.remarks:
+        form.interview_remarks = payload.remarks
+    form.interviewed_by = current_user.id
+    
+    db.commit()
+    db.refresh(form)
+    return form
+
 @aesms_router.put("/enrollment_forms/{form_id}/verify", response_model=schemas.EnrollmentForm)
 def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Principal", "Registrar"]:
@@ -932,6 +1048,10 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
         form.remarks = payload.remarks
     
     if payload.status in ["Success", "Hold", "Approved Incomplete"]:
+        if payload.status == "Success":
+            if form.assessment_status != "Passed" or form.interview_status != "Passed":
+                raise HTTPException(status_code=400, detail="Cannot enroll student: Assessment and Interview must be Passed first.")
+        
         if form.student_id:
             student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
             if student:

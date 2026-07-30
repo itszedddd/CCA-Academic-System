@@ -195,28 +195,51 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
               {myForms.map(form => (
-                <div key={form.id} className="p-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.status === 'Success' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : form.status === 'Needs Review' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
-                      {form.status === 'Success' ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      ) : form.status === 'Needs Review' ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      )}
+                <div key={form.id} className="p-5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${form.status === 'Success' ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : form.status === 'Needs Review' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}>
+                        {form.status === 'Success' ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        ) : form.status === 'Needs Review' ? (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-800 dark:text-white text-sm">{form.form_type}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Applying for: {form.grade_applying_for || 'N/A'}
+                          {form.remarks && <span className="ml-2 text-brand-600 dark:text-brand-400">• {form.remarks}</span>}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-800 dark:text-white text-sm">{form.form_type}</p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Applying for: {form.grade_applying_for || 'N/A'}
-                        {form.remarks && <span className="ml-2 text-brand-600 dark:text-brand-400">• {form.remarks}</span>}
-                      </p>
-                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[form.status] || 'bg-slate-100 text-slate-500'}`}>
+                      {form.status}
+                    </span>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[form.status] || 'bg-slate-100 text-slate-500'}`}>
-                    {form.status}
-                  </span>
+                  {/* Admission Pipeline Progress */}
+                  <div className="ml-14 mt-2 flex items-center gap-1 flex-wrap">
+                    {[
+                      { label: 'Submitted', done: true },
+                      { label: 'Assessment', done: form.assessment_status === 'Passed', failed: form.assessment_status === 'Failed', status: form.assessment_status },
+                      { label: 'Interview', done: form.interview_status === 'Passed', failed: form.interview_status === 'Failed', status: form.interview_status },
+                      { label: 'Enrolled', done: form.status === 'Success' },
+                    ].map((s, i) => (
+                      <div key={i} className="flex items-center gap-1">
+                        {i > 0 && <div className={`w-6 h-0.5 ${s.done ? 'bg-green-400' : s.failed ? 'bg-red-400' : 'bg-slate-200 dark:bg-slate-600'}`} />}
+                        <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${s.done ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : s.failed ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                          {s.done ? (
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                          ) : s.failed ? (
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                          ) : null}
+                          {s.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
