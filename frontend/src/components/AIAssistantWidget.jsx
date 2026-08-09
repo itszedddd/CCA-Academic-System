@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
 
 export default function AIAssistantWidget({ API_URL, token }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,13 +27,21 @@ export default function AIAssistantWidget({ API_URL, token }) {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        `${API_URL}/ai/chat`,
-        { message: userMessage },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetch(`${API_URL}/ai/chat`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ message: userMessage })
+      });
       
-      setMessages(prev => [...prev, { role: 'assistant', content: res.data.response }]);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      } else {
+        setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't process your request right now." }]);
+      }
     } catch (err) {
       console.error("Chat error:", err);
       setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't process your request right now." }]);
@@ -64,12 +71,14 @@ export default function AIAssistantWidget({ API_URL, token }) {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-80 sm:w-96 bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col z-50 overflow-hidden" style={{ height: '500px', maxHeight: 'calc(100vh - 120px)' }}>
+        <div className="fixed bottom-24 right-6 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 flex flex-col z-50 overflow-hidden" style={{ height: '500px', maxHeight: 'calc(100vh - 120px)' }}>
           {/* Header */}
           <div className="bg-blue-600 text-white p-4 flex items-center justify-between shadow-md">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                <img src="/assets/Profile Icon [2 Clear].png" alt="CCA Logo" className="w-6 h-6 object-contain" />
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 15.3m14.8 0l.853 10.218A.809.809 0 0119.846 27h-15.692a.809.809 0 01-.807-1.482L5 15.3" />
+                </svg>
               </div>
               <div>
                 <h3 className="font-bold text-sm">CCA AI Assistant</h3>
@@ -84,17 +93,17 @@ export default function AIAssistantWidget({ API_URL, token }) {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 flex flex-col gap-3">
+          <div className="flex-1 p-4 overflow-y-auto bg-gray-50 dark:bg-slate-900 flex flex-col gap-3">
             {messages.map((msg, idx) => (
               <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-none shadow-sm'}`}>
+                <div className={`max-w-[80%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-800 dark:text-gray-200 rounded-tl-none shadow-sm'}`}>
                   {msg.content}
                 </div>
               </div>
             ))}
             {loading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 text-gray-500 p-3 rounded-lg rounded-tl-none shadow-sm flex items-center gap-1">
+                <div className="bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-gray-500 p-3 rounded-lg rounded-tl-none shadow-sm flex items-center gap-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
@@ -105,13 +114,13 @@ export default function AIAssistantWidget({ API_URL, token }) {
           </div>
 
           {/* Input Area */}
-          <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-200 flex gap-2">
+          <form onSubmit={handleSend} className="p-3 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything about CCA..."
-              className="flex-1 bg-gray-100 border-transparent focus:bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-full px-4 py-2 text-sm outline-none transition-colors"
+              className="flex-1 bg-gray-100 dark:bg-slate-700 border-transparent focus:bg-white dark:focus:bg-slate-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-full px-4 py-2 text-sm dark:text-white outline-none transition-colors"
               disabled={loading}
             />
             <button

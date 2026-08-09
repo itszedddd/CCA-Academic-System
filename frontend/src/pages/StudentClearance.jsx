@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
-export default function StudentClearance({ sharedProps }) {
-  const { API_URL, currentUser, students } = sharedProps;
+export default function StudentClearance({ API, authFetch, token, students, currentRole, user }) {
   const [clearances, setClearances] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,8 +17,11 @@ export default function StudentClearance({ sharedProps }) {
   const fetchClearances = async (studentId) => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_URL}/clearances/student/${studentId}`);
-      setClearances(res.data);
+      const res = await authFetch(`${API}/clearances/student/${studentId}`);
+      if (res?.ok) {
+        const data = await res.json();
+        setClearances(data);
+      }
     } catch (err) {
       console.error("Error fetching clearances", err);
     } finally {
@@ -32,12 +33,16 @@ export default function StudentClearance({ sharedProps }) {
     if (!selectedStudent) return;
     setCreating(true);
     try {
-      await axios.post(`${API_URL}/clearances/`, {
-        student_id: parseInt(selectedStudent),
-        school_year: "2026-2027", // Hardcoded for demo
-        term: "End of Year",
+      const res = await authFetch(`${API}/clearances/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: parseInt(selectedStudent),
+          school_year: "2026-2027",
+          term: "End of Year",
+        })
       });
-      fetchClearances(selectedStudent);
+      if (res?.ok) fetchClearances(selectedStudent);
     } catch (err) {
       console.error("Error creating clearance", err);
     } finally {
@@ -47,15 +52,16 @@ export default function StudentClearance({ sharedProps }) {
 
   const updateItemStatus = async (itemId, newStatus, remarks) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API_URL}/clearances/items/${itemId}`, {
-        department: "", // handled by backend
-        status: newStatus,
-        remarks: remarks || ""
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
+      const res = await authFetch(`${API}/clearances/items/${itemId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          department: "",
+          status: newStatus,
+          remarks: remarks || ""
+        })
       });
-      fetchClearances(selectedStudent);
+      if (res?.ok) fetchClearances(selectedStudent);
     } catch (err) {
       console.error("Error updating clearance item", err);
     }
@@ -63,12 +69,12 @@ export default function StudentClearance({ sharedProps }) {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">Student Clearance System</h1>
+      <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-6">Student Clearance System</h1>
       
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">Select Student</label>
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 mb-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Student</label>
         <select 
-          className="w-full md:w-1/2 border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full md:w-1/2 border border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded p-2 focus:ring-blue-500 focus:border-blue-500"
           value={selectedStudent}
           onChange={(e) => setSelectedStudent(e.target.value)}
         >
@@ -80,8 +86,8 @@ export default function StudentClearance({ sharedProps }) {
         
         {selectedStudent && clearances.length === 0 && !loading && (
           <div className="mt-4">
-            <p className="text-gray-500 mb-2">No clearance records found for this student.</p>
-            {["Principal", "Registrar", "Teacher"].includes(currentUser?.role) && (
+            <p className="text-gray-500 dark:text-gray-400 mb-2">No clearance records found for this student.</p>
+            {["Principal", "Registrar", "Teacher", "Superadmin"].includes(currentRole) && (
               <button 
                 onClick={handleCreateClearance}
                 disabled={creating}
@@ -94,13 +100,13 @@ export default function StudentClearance({ sharedProps }) {
         )}
       </div>
 
-      {loading && <div className="text-gray-500">Loading clearances...</div>}
+      {loading && <div className="text-gray-500 dark:text-gray-400">Loading clearances...</div>}
 
       {clearances.map(clearance => (
-        <div key={clearance.id} className="bg-white rounded-lg shadow mb-6 overflow-hidden">
-          <div className={`p-4 ${clearance.status === 'Cleared' ? 'bg-green-50' : 'bg-yellow-50'} border-b flex justify-between items-center`}>
+        <div key={clearance.id} className="bg-white dark:bg-slate-800 rounded-lg shadow mb-6 overflow-hidden">
+          <div className={`p-4 ${clearance.status === 'Cleared' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-yellow-50 dark:bg-yellow-900/20'} border-b dark:border-slate-700 flex justify-between items-center`}>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
                 Clearance: {clearance.school_year} - {clearance.term}
               </h2>
               <span className={`inline-block px-2 py-1 text-xs font-semibold rounded-full mt-1
@@ -109,28 +115,22 @@ export default function StudentClearance({ sharedProps }) {
                 {clearance.status}
               </span>
             </div>
-            
-            {clearance.status === 'Cleared' && (
-              <button className="bg-gray-800 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
-                Print Clearance Form
-              </button>
-            )}
           </div>
           
           <div className="p-0">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-700">
+              <thead className="bg-gray-50 dark:bg-slate-700">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Remarks</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
                 {clearance.items && clearance.items.map(item => (
                   <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                       {item.department}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -140,12 +140,11 @@ export default function StudentClearance({ sharedProps }) {
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {item.remarks || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {/* Only allow relevant roles to clear their respective departments */}
-                      {((currentUser?.role === item.department) || (currentUser?.role === 'Principal') || (currentUser?.role === 'Superadmin')) ? (
+                      {((currentRole === item.department) || (currentRole === 'Principal') || (currentRole === 'Superadmin')) ? (
                         <div className="flex space-x-2">
                           {item.status !== 'Cleared' && (
                             <button 

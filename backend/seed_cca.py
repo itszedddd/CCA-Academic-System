@@ -19,149 +19,97 @@ def seed_data():
     db = SessionLocal()
 
     try:
-        # Create Users
-        superadmin_user = User(
-            username="superadmin",
-            full_name="System Superadmin",
-            hashed_password=get_password_hash("superadmin123"),
-            role="Superadmin",
-            is_active=1
-        )
-        admin_user = User(
-            username="principal",
-            full_name="Elias Principal",
-            hashed_password=get_password_hash("principal123"),
-            role="Principal",
-            is_active=1
-        )
-        teacher_user = User(
-            username="teacher",
-            full_name="Clara Teacher",
-            hashed_password=get_password_hash("teacher123"),
-            role="Teacher",
-            is_active=1
-        )
-        cashier_user = User(
-            username="cashier",
-            full_name="Jane Cashier",
-            hashed_password=get_password_hash("cashier123"),
-            role="Cashier",
-            is_active=1
-        )
-        registrar_user = User(
-            username="registrar",
-            full_name="Bob Registrar",
-            hashed_password=get_password_hash("registrar123"),
-            role="Registrar",
-            is_active=1
-        )
-        admission_registrar_user = User(
-            username="admission",
-            full_name="Alice Admission",
-            hashed_password=get_password_hash("admission123"),
-            role="Admission",
-            is_active=1
-        )
-        student_user = User(
-            username="student",
-            full_name="Juan Dela Cruz",
-            hashed_password=get_password_hash("student123"),
-            role="Student",
-            is_active=1,
-            student_id=1 # Pointing to Juan Dela Cruz
-        )
+        from app.school_config import SECTIONS
 
-        db.add_all([superadmin_user, admin_user, teacher_user, cashier_user, registrar_user, admission_registrar_user, student_user])
-        db.commit()
-
-        # --- Create Staff Users ---
-        teacher_user.section = "Humility"  # Assign teacher to Grade 7 - Humility
-
-        # --- Create Students: 22 in Grade 7 - Meekness (for load testing) ---
-        humility_students_data = [
-            ("Juan",        "Dela Cruz",     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg"),
-            ("Maria",       "Clara",         "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/La_Bulaquena_by_Juan_Luna.jpg/220px-La_Bulaquena_by_Juan_Luna.jpg"),
-            ("Emilio",      "Aguinaldo",     "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/Emilio_Aguinaldo_1919.jpg/220px-Emilio_Aguinaldo_1919.jpg"),
-            ("Apolinario",  "Mabini",        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Apolinario_Mabini.jpg/220px-Apolinario_Mabini.jpg"),
-            ("Antonio",     "Luna",          "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Gen._Antonio_Luna.jpg/220px-Gen._Antonio_Luna.jpg"),
-            ("Melchora",    "Aquino",        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Melchora_Aquino.jpg/220px-Melchora_Aquino.jpg"),
-            ("Gabriela",    "Silang",        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Gabriela_Silang.jpg/220px-Gabriela_Silang.jpg"),
-            ("Marcelo",     "Del Pilar",     "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Graciano_Lopez_Jaena.jpg/220px-Graciano_Lopez_Jaena.jpg"),
-            ("Graciano",    "Lopez Jaena",   "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Graciano_Lopez-Jaena.jpg/220px-Graciano_Lopez-Jaena.jpg"),
-            ("Diego",       "Silang",        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Diego_Silang.jpg/220px-Diego_Silang.jpg"),
-            ("Lapu-Lapu",   "Mactan",        "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Lapu-Lapu_Cebu_City.jpg/220px-Lapu-Lapu_Cebu_City.jpg"),
-            ("Rajah",       "Soliman",       "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Rajah_Sulayman_Monument.jpg/220px-Rajah_Sulayman_Monument.jpg"),
-            ("Francisco",   "Balagtas",      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/BalagtasPortrait.jpg/220px-BalagtasPortrait.jpg"),
-            ("Leona",       "Florentino",    "https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Leona_Florentino.jpg/220px-Leona_Florentino.jpg"),
-            ("Trinidad",    "Tecson",        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Trinidad_Tecson.jpg/220px-Trinidad_Tecson.jpg"),
-            ("Gregoria",    "De Jesus",      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Gregoria_De_Jesus_01.jpg/220px-Gregoria_De_Jesus_01.jpg"),
-            ("Servillano",  "Aquino",        "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Benigno_Aquino_Jr.jpg/220px-Benigno_Aquino_Jr.jpg"),
-            ("Teodora",     "Alonso",        "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Teodora_Alonso.jpg/220px-Teodora_Alonso.jpg"),
-            ("Miguel",      "Malvar",        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Miguel_Malvar.jpg/220px-Miguel_Malvar.jpg"),
-            ("Pio",         "Del Pilar",     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Pio_del_Pilar.jpg/220px-Pio_del_Pilar.jpg"),
-            ("Macario",     "Sakay",         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Macario_Sakay.jpg/220px-Macario_Sakay.jpg"),
-            ("Juan",        "Calle",         None),
+        # --- Create Base Users ---
+        base_users = [
+            User(username="superadmin", full_name="System Superadmin", hashed_password=get_password_hash("superadmin123"), role="Superadmin", is_active=1),
+            User(username="principal", full_name="Elias Principal", hashed_password=get_password_hash("principal123"), role="Principal", is_active=1),
+            User(username="cashier", full_name="Jane Cashier", hashed_password=get_password_hash("cashier123"), role="Cashier", is_active=1),
+            User(username="registrar", full_name="Bob Registrar", hashed_password=get_password_hash("registrar123"), role="Registrar", is_active=1),
+            User(username="admission", full_name="Alice Admission", hashed_password=get_password_hash("admission123"), role="Admission", is_active=1)
         ]
+        db.add_all(base_users)
+        db.commit()
 
         import random
         random.seed(42)
 
-        humility_students = []
-        for fn, ln, img in humility_students_data:
-            # 80% chance they have all docs, 20% they lack some
-            has_all_docs = random.random() > 0.2
-            s = Student(
-                first_name=fn, last_name=ln, grade_level="Grade 7", section="Meekness",
-                contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
-                enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
-                school_year="2026-2027",
-                req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
-                req_form_138=1 if has_all_docs else random.choice([0, 1]),
-                req_good_moral=1 if has_all_docs else random.choice([0, 1]),
-                req_pictures=1 if has_all_docs else random.choice([0, 1]),
-                account_username=f"{fn.lower()}_{ln.lower()}",
-                initial_password="cca2026",
-                membership_type=random.choice(["CBC Member", "Non-Member"])
+        # --- Create Teachers for all sections ---
+        teachers = []
+        for grade, info in SECTIONS.items():
+            section = info['name']
+            t_user = User(
+                username=f"teacher_{grade.lower().replace(' ', '')}",
+                full_name=f"Teacher {section}",
+                hashed_password=get_password_hash("teacher123"),
+                role="Teacher",
+                section=section,
+                is_active=1
             )
-            humility_students.append(s)
-        db.add_all(humility_students)
-
-        # --- Additional students in other sections ---
-        other_students_data = [
-            ("Andres",  "Bonifacio",   "Grade 8",  "Courage",     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Andr%C3%A9s_Bonifacio.jpg/220px-Andr%C3%A9s_Bonifacio.jpg"),
-            ("Emilio",  "Jacinto",     "Grade 8",  "Courage",     "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Emilio_Jacinto.jpg/220px-Emilio_Jacinto.jpg"),
-            ("Heneral", "Pio",         "Grade 8",  "Courage",     None),
-            ("Jose",    "Rizal",       "Grade 9",  "Benevolence", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg"),
-            ("Caridad", "Cruz",        "Grade 9",  "Benevolence", None),
-            ("Lucio",   "San Pedro",   "Grade 10", "Perseverance",None),
-            ("Imelda",  "Marcos",      "Grade 10", "Perseverance",None),
-        ]
-        other_students = []
-        for fn, ln, gl, sec, img in other_students_data:
-            has_all_docs = random.random() > 0.2
-            s = Student(
-                first_name=fn, last_name=ln, grade_level=gl, section=sec,
-                contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
-                enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
-                school_year="2026-2027",
-                req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
-                req_form_138=1 if has_all_docs else random.choice([0, 1]),
-                req_good_moral=1 if has_all_docs else random.choice([0, 1]),
-                req_pictures=1 if has_all_docs else random.choice([0, 1]),
-                account_username=f"{fn.lower()}_{ln.lower()}",
-                initial_password="cca2026",
-                membership_type=random.choice(["CBC Member", "Non-Member"])
-            )
-            other_students.append(s)
-        db.add_all(other_students)
+            teachers.append(t_user)
+        db.add_all(teachers)
         db.commit()
 
-        # Link student user to first student (Juan Dela Cruz)
-        student_user.student_id = humility_students[0].id
+        # --- Create Students for all sections ---
+        first_names = [
+            "John", "Mary", "Michael", "Sarah", "James", "Jessica", "David", "Emily", "Daniel", "Emma",
+            "Joseph", "Olivia", "Matthew", "Sophia", "Christopher", "Isabella", "Andrew", "Mia", "Joshua", "Ava",
+            "Nathan", "Lily", "Ryan", "Chloe", "William", "Zoe", "Ethan", "Grace", "Alexander", "Hannah",
+            "Gabriel", "Aria", "Christian", "Ella", "Anthony", "Victoria", "Tyler", "Madison", "Dylan", "Scarlett",
+            "Samuel", "Layla", "Brandon", "Riley", "Benjamin", "Penelope", "Zachary", "Lillian", "Logan", "Aurora",
+            "Justin", "Natalie", "Jose", "Brooklyn", "Kevin", "Leah", "Elijah", "Savannah", "Austin", "Audrey",
+            "Luke", "Claire", "Evan", "Skylar", "Thomas", "Lucy", "Aaron", "Paisley", "Jackson", "Everly",
+            "Jack", "Anna", "Hunter", "Caroline", "Cameron", "Nova", "Connor", "Genesis", "Isaac", "Emilia",
+            "Jason", "Kennedy", "Julian", "Samantha", "Gavin", "Maya", "Charles", "Willow", "Isaiah", "Kinsley",
+            "Adam", "Naomi", "Jeremiah", "Aaliyah", "Ian", "Elena", "Wyatt", "Sarah", "Jonathan", "Ariana",
+            "Leo", "Allison", "Mateo", "Gabriella", "Lincoln", "Alice", "Sebastian", "Madelyn", "Levi", "Cora"
+        ]
+        
+        last_names = [
+            "Smith", "Johnson", "Williams", "Jones", "Brown", "Davis", "Miller", "Wilson", "Moore", "Taylor",
+            "Anderson", "Thomas", "Jackson", "White", "Harris", "Martin", "Thompson", "Garcia", "Martinez", "Robinson",
+            "Clark", "Rodriguez", "Lewis", "Lee", "Walker", "Hall", "Allen", "Young", "Hernandez", "King",
+            "Wright", "Lopez", "Hill", "Scott", "Green", "Adams", "Baker", "Gonzalez", "Nelson", "Carter",
+            "Mitchell", "Perez", "Roberts", "Turner", "Phillips", "Campbell", "Parker", "Evans", "Edwards", "Collins",
+            "Stewart", "Sanchez", "Morris", "Rogers", "Reed", "Cook", "Morgan", "Bell", "Murphy", "Bailey",
+            "Rivera", "Cooper", "Richardson", "Cox", "Howard", "Ward", "Torres", "Peterson", "Gray", "Ramirez",
+            "James", "Watson", "Brooks", "Kelly", "Sanders", "Price", "Bennett", "Wood", "Barnes", "Ross",
+            "Henderson", "Coleman", "Jenkins", "Perry", "Powell", "Long", "Patterson", "Hughes", "Flores", "Washington",
+            "Butler", "Simmons", "Foster", "Gonzales", "Bryant", "Alexander", "Russell", "Griffin", "Diaz", "Hayes"
+        ]
+        
+        all_students = []
+        for grade, info in SECTIONS.items():
+            section = info['name']
+            # Create 10-15 students per section
+            num_students = random.randint(10, 15)
+            for i in range(num_students):
+                fn = random.choice(first_names)
+                ln = random.choice(last_names)
+                has_all_docs = random.random() > 0.2
+                s = Student(
+                    first_name=f"{fn} {i+1}", last_name=f"{ln} {grade.split()[-1]}", 
+                    grade_level=grade, section=section,
+                    contact_email=f"parent_{fn.lower()}{i}@cca.edu.ph", profile_image=None, 
+                    enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
+                    school_year="2026-2027",
+                    req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
+                    req_form_138=1 if has_all_docs else random.choice([0, 1]),
+                    req_good_moral=1 if has_all_docs else random.choice([0, 1]),
+                    req_pictures=1 if has_all_docs else random.choice([0, 1]),
+                    account_username=f"{fn.lower()}{i}_{ln.lower()}{grade.split()[-1]}",
+                    initial_password="cca2026",
+                    membership_type=random.choice(["CBC Member", "Non-Member"])
+                )
+                all_students.append(s)
+        
+        db.add_all(all_students)
+        db.commit()
 
         # --- Create Users for all mock students ---
         student_users = []
-        for s in humility_students + other_students:
+        for s in all_students:
             user = User(
                 username=s.account_username,
                 hashed_password=get_password_hash(s.initial_password),
@@ -173,7 +121,9 @@ def seed_data():
         db.add_all(student_users)
         db.commit()
 
-        # --- Academic Records for Meekness section & Others (for AI warning testing) ---
+        # Save first student reference for academic records
+        humility_students = [s for s in all_students if s.section == "Meekness"]
+        other_students = [s for s in all_students if s.section != "Meekness"]
         from app.school_config import SUBJECTS
         
         import random
