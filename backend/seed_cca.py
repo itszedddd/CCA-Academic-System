@@ -14,6 +14,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def seed_data():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
@@ -76,7 +77,7 @@ def seed_data():
         # --- Create Staff Users ---
         teacher_user.section = "Humility"  # Assign teacher to Grade 7 - Humility
 
-        # --- Create Students: 22 in Grade 7 - Humility (for load testing) ---
+        # --- Create Students: 22 in Grade 7 - Meekness (for load testing) ---
         humility_students_data = [
             ("Juan",        "Dela Cruz",     "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg"),
             ("Maria",       "Clara",         "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/La_Bulaquena_by_Juan_Luna.jpg/220px-La_Bulaquena_by_Juan_Luna.jpg"),
@@ -110,16 +111,17 @@ def seed_data():
             # 80% chance they have all docs, 20% they lack some
             has_all_docs = random.random() > 0.2
             s = Student(
-                first_name=fn, last_name=ln, grade_level="Grade 7", section="Humility",
+                first_name=fn, last_name=ln, grade_level="Grade 7", section="Meekness",
                 contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
                 enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
-                school_year="2025-2026",
+                school_year="2026-2027",
                 req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
                 req_form_138=1 if has_all_docs else random.choice([0, 1]),
                 req_good_moral=1 if has_all_docs else random.choice([0, 1]),
                 req_pictures=1 if has_all_docs else random.choice([0, 1]),
                 account_username=f"{fn.lower()}_{ln.lower()}",
-                initial_password="cca2026"
+                initial_password="cca2026",
+                membership_type=random.choice(["CBC Member", "Non-Member"])
             )
             humility_students.append(s)
         db.add_all(humility_students)
@@ -129,10 +131,10 @@ def seed_data():
             ("Andres",  "Bonifacio",   "Grade 8",  "Courage",     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Andr%C3%A9s_Bonifacio.jpg/220px-Andr%C3%A9s_Bonifacio.jpg"),
             ("Emilio",  "Jacinto",     "Grade 8",  "Courage",     "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Emilio_Jacinto.jpg/220px-Emilio_Jacinto.jpg"),
             ("Heneral", "Pio",         "Grade 8",  "Courage",     None),
-            ("Jose",    "Rizal",       "Grade 9",  "Goodwill",    "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg"),
-            ("Caridad", "Cruz",        "Grade 9",  "Goodwill",    None),
-            ("Lucio",   "San Pedro",   "Grade 10", "Persistence", None),
-            ("Imelda",  "Marcos",      "Grade 10", "Persistence", None),
+            ("Jose",    "Rizal",       "Grade 9",  "Benevolence", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Jose_Rizal_full.jpg/220px-Jose_Rizal_full.jpg"),
+            ("Caridad", "Cruz",        "Grade 9",  "Benevolence", None),
+            ("Lucio",   "San Pedro",   "Grade 10", "Perseverance",None),
+            ("Imelda",  "Marcos",      "Grade 10", "Perseverance",None),
         ]
         other_students = []
         for fn, ln, gl, sec, img in other_students_data:
@@ -141,13 +143,14 @@ def seed_data():
                 first_name=fn, last_name=ln, grade_level=gl, section=sec,
                 contact_email=f"parent_{fn.lower()}@cca.edu.ph", profile_image=img, 
                 enrollment_status="Enrolled" if has_all_docs else "Hold: Incomplete Req",
-                school_year="2025-2026",
+                school_year="2026-2027",
                 req_birth_cert=1 if has_all_docs else random.choice([0, 1]),
                 req_form_138=1 if has_all_docs else random.choice([0, 1]),
                 req_good_moral=1 if has_all_docs else random.choice([0, 1]),
                 req_pictures=1 if has_all_docs else random.choice([0, 1]),
                 account_username=f"{fn.lower()}_{ln.lower()}",
-                initial_password="cca2026"
+                initial_password="cca2026",
+                membership_type=random.choice(["CBC Member", "Non-Member"])
             )
             other_students.append(s)
         db.add_all(other_students)
@@ -170,19 +173,21 @@ def seed_data():
         db.add_all(student_users)
         db.commit()
 
-        # --- Academic Records for Humility section & Others (for AI warning testing) ---
-        subjects = ["Mathematics", "Science", "Filipino", "English", "Araling Panlipunan (AP)", "Edukasyon sa Pagpapakatao (EsP)", "Technology and Livelihood Education (TLE)", "MAPEH"]
+        # --- Academic Records for Meekness section & Others (for AI warning testing) ---
+        from app.school_config import SUBJECTS
+        
         import random
         from datetime import date, timedelta
         random.seed(42)
         records = []
         for s in humility_students + other_students:
+            subjects = SUBJECTS.get(s.grade_level, [])
             for subj in subjects:
-                for term in ["1st Quarter", "2nd Quarter", "3rd Quarter", "4th Quarter"]:
+                for term in ["Term 1", "Term 2", "Term 3"]:
                     # Create a failing trend for Science and Math randomly
                     score_base = random.randint(76, 95)
                     if subj in ["Mathematics", "Science"] and s.first_name in ["Juan", "Maria"]:
-                        score_base = max(65, 80 - (int(term[0]) * 5)) # Dropping scores
+                        score_base = max(65, 80 - (int(term[-1]) * 5)) # Dropping scores
                     records.append(AcademicRecord(student_id=s.id, subject=subj, score=round(score_base, 1), term=term))
         db.add_all(records)
 

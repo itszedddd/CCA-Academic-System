@@ -1642,3 +1642,203 @@ def get_my_enrollment_forms(db: Session = Depends(get_db), current_user: models.
         models.EnrollmentForm.submitted_by == current_user.id
     ).order_by(models.EnrollmentForm.id.desc()).all()
 
+
+# ---------------------------------------------------------------------------
+# School Config
+# ---------------------------------------------------------------------------
+from ..school_config import get_school_config, SECTIONS, SUBJECTS
+
+@aesms_router.get("/school/config")
+def read_school_config(db: Session = Depends(get_db)):
+    """Returns the static school configuration for sections and subjects."""
+    return get_school_config()
+
+@aesms_router.get("/school/sections")
+def read_school_sections(db: Session = Depends(get_db)):
+    """Returns sections with their current enrollment counts."""
+    # Count students per section
+    section_counts = dict(db.query(models.Student.section, func.count(models.Student.id)).group_by(models.Student.section).all())
+    
+    sections_with_counts = {}
+    for grade, section_data in SECTIONS.items():
+        name = section_data["name"]
+        sections_with_counts[name] = {
+            "grade": grade,
+            "max_students": section_data["max_students"],
+            "current_enrolled": section_counts.get(name, 0)
+        }
+    return sections_with_counts
+
+@aesms_router.get("/school/subjects/{grade_level}")
+def read_school_subjects(grade_level: str, db: Session = Depends(get_db)):
+    """Returns the curriculum subjects for a specific grade level."""
+    return SUBJECTS.get(grade_level, [])
+
+# ---------------------------------------------------------------------------
+# Fees & Payments
+# ---------------------------------------------------------------------------
+from ..fee_structure import FEE_STRUCTURE, compute_total_fees
+
+@aesms_router.get("/fees/structure")
+def read_fee_structure():
+    """Returns the static school fee structure."""
+    return FEE_STRUCTURE
+
+@aesms_router.post("/fees/compute/{student_id}")
+def compute_student_fees(student_id: int, include_books: bool = False, full_payment: bool = False, db: Session = Depends(get_db)):
+    """Computes the total fees for a specific student."""
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+        
+    return compute_total_fees(student.grade_level, student.membership_type, include_books, full_payment)
+
+@aesms_router.get("/payments/student/{student_id}/breakdown")
+def get_payment_breakdown(student_id: int, db: Session = Depends(get_db)):
+    """Returns detailed payment breakdown for a student."""
+    tuition = db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == student_id).first()
+    if not tuition:
+        raise HTTPException(status_code=404, detail="Tuition record not found")
+    return tuition
+
+@aesms_router.get("/payments/summary")
+def get_payment_summary(db: Session = Depends(get_db)):
+    """Returns school-wide payment collection summary."""
+    total_due = db.query(func.sum(models.TuitionPayment.amount_due)).scalar() or 0
+    total_paid = db.query(func.sum(models.TuitionPayment.amount_paid)).scalar() or 0
+    return {
+        "total_due": total_due,
+        "total_paid": total_paid,
+        "collection_rate": (total_paid / total_due) * 100 if total_due > 0 else 0
+    }
+
+# ---------------------------------------------------------------------------
+# Digitalized Forms
+# ---------------------------------------------------------------------------
+from ..forms import FORM_TEMPLATES, generate_form_html
+from fastapi.responses import HTMLResponse
+
+@aesms_router.get("/forms/templates")
+def read_form_templates():
+    """Returns available digital form templates."""
+    return FORM_TEMPLATES
+
+@aesms_router.get("/forms/{form_type}/student/{student_id}", response_class=HTMLResponse)
+def get_student_form(form_type: str, student_id: int, db: Session = Depends(get_db)):
+    """Generates a filled HTML form for a specific student."""
+    student = db.query(models.Student).filter(models.Student.id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+        
+    student_data = {
+        "first_name": student.first_name,
+        "last_name": student.last_name,
+        "grade_level": student.grade_level,
+        "section": student.section,
+        "contact_email": student.contact_email,
+        "enrollment_status": student.enrollment_status,
+        "school_year": student.school_year,
+        "req_birth_cert": student.req_birth_cert,
+        "req_form_138": student.req_form_138,
+        "req_good_moral": student.req_good_moral,
+        "req_pictures": student.req_pictures,
+    }
+    
+    return generate_form_html(form_type, student_data)
+
+@aesms_router.get("/forms/{form_type}/blank", response_class=HTMLResponse)
+def get_blank_form(form_type: str):
+    """Generates a blank HTML form template."""
+    return generate_form_html(form_type, {})
+
+# ---------------------------------------------------------------------------
+# Student Clearance
+# ---------------------------------------------------------------------------
+@aesms_router.get("/clearances/student/{student_id}", response_model=List[schemas.StudentClearance])
+def get_student_clearance(student_id: int, db: Session = Depends(get_db)):
+    """Get all clearance records for a student."""
+    return db.query(models.StudentClearance).filter(models.StudentClearance.student_id == student_id).all()
+
+@aesms_router.post("/clearances/", response_model=schemas.StudentClearance)
+def create_student_clearance(clearance: schemas.StudentClearanceCreate, db: Session = Depends(get_db)):
+    """Create a new clearance record for a student."""
+    db_clearance = models.StudentClearance(**clearance.model_dump())
+    db.add(db_clearance)
+    db.commit()
+    db.refresh(db_clearance)
+    
+    # Auto-generate items for standard departments
+    departments = ["Cashier", "Library", "Clinic", "Registrar", "Principal"]
+    for dept in departments:
+        item = models.ClearanceItem(
+            clearance_id=db_clearance.id,
+            department=dept,
+            status="Pending"
+        )
+        db.add(item)
+    db.commit()
+    db.refresh(db_clearance)
+    
+    return db_clearance
+
+@aesms_router.put("/clearances/items/{item_id}", response_model=schemas.ClearanceItem)
+def update_clearance_item(item_id: int, payload: schemas.ClearanceItemBase, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Update a specific clearance item (e.g. mark as Cleared by Cashier)."""
+    item = db.query(models.ClearanceItem).filter(models.ClearanceItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Clearance item not found")
+        
+    item.status = payload.status
+    item.remarks = payload.remarks
+    item.cleared_by = current_user.id if payload.status == "Cleared" else None
+    item.date_cleared = datetime.now().isoformat() if payload.status == "Cleared" else None
+    
+    db.commit()
+    db.refresh(item)
+    
+    # Check if all items are cleared to update the main clearance status
+    clearance = db.query(models.StudentClearance).filter(models.StudentClearance.id == item.clearance_id).first()
+    all_cleared = all(i.status == "Cleared" for i in clearance.items)
+    if all_cleared:
+        clearance.status = "Cleared"
+    else:
+        clearance.status = "Pending"
+    db.commit()
+    
+    return item
+
+# ---------------------------------------------------------------------------
+# Report Generation
+# ---------------------------------------------------------------------------
+from ..report_templates import get_enrollment_report, get_financial_report, get_clearance_report
+
+@aesms_router.get("/reports/enrollment")
+def read_enrollment_report(school_year: str = "2026-2027", db: Session = Depends(get_db)):
+    """Generates an enrollment summary report."""
+    return get_enrollment_report(db, school_year)
+
+@aesms_router.get("/reports/financial")
+def read_financial_report(db: Session = Depends(get_db)):
+    """Generates a financial collection summary report."""
+    return get_financial_report(db)
+
+@aesms_router.get("/reports/clearance")
+def read_clearance_report(school_year: str = "2026-2027", db: Session = Depends(get_db)):
+    """Generates a student clearance status report."""
+    return get_clearance_report(db, school_year)
+
+# ---------------------------------------------------------------------------
+# AI Assistant (Chat)
+# ---------------------------------------------------------------------------
+from ..ai_assistant import chat_with_assistant
+from pydantic import BaseModel
+
+class ChatMessage(BaseModel):
+    message: str
+
+@aesms_router.post("/ai/chat")
+def ai_chat(payload: ChatMessage, current_user: models.User = Depends(get_current_active_user)):
+    """Endpoint for the floating AI assistant widget."""
+    response = chat_with_assistant(payload.message, current_user.role)
+    return {"response": response}
+

@@ -92,8 +92,33 @@ class PaymentRecord(PaymentRecordBase):
     class Config:
         from_attributes = True
 
+class PaymentScheduleBase(BaseModel):
+    due_date: str
+    amount_due: float
+    amount_paid: float = 0.0
+    status: Optional[str] = "Pending"
+
+class PaymentScheduleCreate(PaymentScheduleBase):
+    tuition_id: int
+
+class PaymentSchedule(PaymentScheduleBase):
+    id: int
+    tuition_id: int
+
+    class Config:
+        from_attributes = True
+
 class TuitionPaymentBase(BaseModel):
     student_id: int
+    
+    # Detailed Fee Breakdown
+    reg_fee: float = 0.0
+    tuition_fee: float = 0.0
+    energy_fee: float = 0.0
+    books_fee: float = 0.0
+    esc_subsidy: float = 0.0
+    discount: float = 0.0
+    
     amount_due: float
     amount_paid: float
     term: str
@@ -106,10 +131,47 @@ class TuitionPaymentCreate(TuitionPaymentBase):
 class TuitionPayment(TuitionPaymentBase):
     id: int
     payments: List[PaymentRecord] = []
+    schedules: List[PaymentSchedule] = []
 
     class Config:
         from_attributes = True
 
+
+# ---------------------------------------------------------------------------
+# Student Clearance
+# ---------------------------------------------------------------------------
+class ClearanceItemBase(BaseModel):
+    department: str
+    status: Optional[str] = "Pending"
+    remarks: Optional[str] = None
+    cleared_by: Optional[int] = None
+    date_cleared: Optional[str] = None
+
+class ClearanceItemCreate(ClearanceItemBase):
+    clearance_id: int
+
+class ClearanceItem(ClearanceItemBase):
+    id: int
+    clearance_id: int
+
+    class Config:
+        from_attributes = True
+
+class StudentClearanceBase(BaseModel):
+    student_id: int
+    school_year: str
+    term: str
+    status: Optional[str] = "Pending"
+
+class StudentClearanceCreate(StudentClearanceBase):
+    pass
+
+class StudentClearance(StudentClearanceBase):
+    id: int
+    items: List[ClearanceItem] = []
+
+    class Config:
+        from_attributes = True
 
 # ---------------------------------------------------------------------------
 # Enrollment Forms (Structured Digital Form)

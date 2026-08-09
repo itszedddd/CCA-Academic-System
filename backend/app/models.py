@@ -15,6 +15,7 @@ class Student(Base):
     contact_email = Column(String, nullable=True)    # Parent/Guardian email
     profile_image = Column(String, nullable=True)    # External URL mapping
     enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped, Hold: Incomplete Req
+    membership_type = Column(String, default="Non-Member") # CBC Member, Non-Member
 
     # Admission Checklist Requirements
     req_birth_cert = Column(Integer, default=0)
@@ -29,6 +30,7 @@ class Student(Base):
     academic_records = relationship("AcademicRecord", back_populates="student")
     attendance_records = relationship("Attendance", back_populates="student")
     tuition_payments = relationship("TuitionPayment", back_populates="student")
+    clearances = relationship("StudentClearance", back_populates="student")
 
 
 class AcademicRecord(Base):
@@ -124,11 +126,33 @@ class PaymentRecord(Base):
     recorder = relationship("User")
 
 
+class PaymentSchedule(Base):
+    __tablename__ = "payment_schedules"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tuition_id = Column(Integer, ForeignKey("tuition_payments.id"))
+    due_date = Column(String)  # ISO date string e.g. "2026-08-30"
+    amount_due = Column(Float)
+    amount_paid = Column(Float, default=0.0)
+    status = Column(String, default="Pending") # Paid, Pending, Overdue
+    
+    tuition = relationship("TuitionPayment", back_populates="schedules")
+
+
 class TuitionPayment(Base):
     __tablename__ = "tuition_payments"
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"))
+    
+    # Detailed Fee Breakdown
+    reg_fee = Column(Float, default=0.0)
+    tuition_fee = Column(Float, default=0.0)
+    energy_fee = Column(Float, default=0.0)
+    books_fee = Column(Float, default=0.0)
+    esc_subsidy = Column(Float, default=0.0)
+    discount = Column(Float, default=0.0)
+    
     amount_due = Column(Float)
     amount_paid = Column(Float)
     term = Column(String)
@@ -137,6 +161,35 @@ class TuitionPayment(Base):
 
     student = relationship("Student", back_populates="tuition_payments")
     payments = relationship("PaymentRecord", back_populates="tuition")
+    schedules = relationship("PaymentSchedule", back_populates="tuition")
+
+
+class StudentClearance(Base):
+    __tablename__ = "student_clearance"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"))
+    school_year = Column(String)
+    term = Column(String)
+    status = Column(String, default="Pending") # Cleared, Pending, Hold
+    
+    items = relationship("ClearanceItem", back_populates="clearance")
+    student = relationship("Student", back_populates="clearances")
+
+
+class ClearanceItem(Base):
+    __tablename__ = "clearance_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    clearance_id = Column(Integer, ForeignKey("student_clearance.id"))
+    department = Column(String) # Cashier, Library, Clinic, Registrar, Principal, Subjects...
+    status = Column(String, default="Pending") # Cleared, Pending, Hold
+    remarks = Column(String, nullable=True)
+    cleared_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    date_cleared = Column(String, nullable=True)
+    
+    clearance = relationship("StudentClearance", back_populates="items")
+    signer = relationship("User")
 
 
 class User(Base):
