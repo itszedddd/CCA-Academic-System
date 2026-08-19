@@ -214,6 +214,21 @@ class EnrollmentFormBase(BaseModel):
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
     
+    # New Fields (V2.0 Major Inspection Report)
+    middle_name: Optional[str] = None
+    contact_number: Optional[str] = None
+    nationality: Optional[str] = None
+    religion: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_number: Optional[str] = None
+    allergies: Optional[str] = None
+    medical_conditions: Optional[str] = None
+    current_medications: Optional[str] = None
+    physician_name: Optional[str] = None
+    physician_contact: Optional[str] = None
+    waiver_agreed: Optional[bool] = None
+    consent_agreed: Optional[bool] = None
+    
     # Document Requirements checklist
     req_birth_cert: Optional[int] = 0
     req_form_138: Optional[int] = 0
@@ -302,6 +317,21 @@ class PublicEnrollmentSubmit(BaseModel):
     special_talents: Optional[str] = None
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+
+    # New Fields (V2.0 Major Inspection Report)
+    middle_name: Optional[str] = None
+    contact_number: Optional[str] = None
+    nationality: Optional[str] = None
+    religion: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_number: Optional[str] = None
+    allergies: Optional[str] = None
+    medical_conditions: Optional[str] = None
+    current_medications: Optional[str] = None
+    physician_name: Optional[str] = None
+    physician_contact: Optional[str] = None
+    waiver_agreed: Optional[bool] = None
+    consent_agreed: Optional[bool] = None
 
 class EnrollmentFormVerify(BaseModel):
     status: str

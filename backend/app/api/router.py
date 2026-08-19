@@ -972,13 +972,15 @@ def public_preregister(
         db.flush()
         student_id = new_student.id
 
+    payload_data = payload.model_dump(exclude={"student_first_name", "student_last_name"})
+    
     db_form = models.EnrollmentForm(
         student_id=student_id,
         form_type="Online Pre-Registration",
         status="Needs Review",
         assessment_status="Pending",
         interview_status="Pending",
-        **payload.model_dump()
+        **payload_data
     )
     db.add(db_form)
     db.commit()

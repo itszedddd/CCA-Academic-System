@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import AIAssistantWidget from './AIAssistantWidget';
 
 const ROLE_COLORS = {
   Principal: 'bg-purple-600',
@@ -43,6 +44,11 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
         <button onClick={onClose} className="ml-auto md:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
+      </div>
+
+      {/* AI Chatbot Button (Above Menus) */}
+      <div className="px-4 pt-4 pb-2">
+        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="sidebar-button" />
       </div>
 
       {/* Nav */}

@@ -47,11 +47,26 @@ export default function UserManagement({ authFetch, currentRole }) {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this user account?")) return;
-    const res = await authFetch(`${API}/users/${id}`, { method: 'DELETE' });
+  const handleArchive = async (id) => {
+    if (!window.confirm("Are you sure you want to archive this user account? They will no longer be able to log in.")) return;
+    const res = await authFetch(`${API}/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: 1, is_active: 0 })
+    });
     if (res?.ok) fetchUsers();
-    else alert("Failed to delete user. You cannot delete your currently active account.");
+    else alert("Failed to archive user.");
+  };
+
+  const handleRestore = async (id) => {
+    if (!window.confirm("Restore this user account? They will be re-activated.")) return;
+    const res = await authFetch(`${API}/users/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: 0, is_active: 1 })
+    });
+    if (res?.ok) fetchUsers();
+    else alert("Failed to restore user.");
   };
 
   const handleResetPassword = async (id) => {
@@ -139,14 +154,21 @@ export default function UserManagement({ authFetch, currentRole }) {
               className="w-full px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
             />
           </div>
-          <select 
-            value={roleFilter} 
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="w-full md:w-auto px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
-          >
-            <option value="All">All Roles</option>
-            {['Superadmin', 'Principal', 'Teacher', 'Registrar', 'Admission', 'Cashier', 'Student', 'Parent'].map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {['All', 'Faculties', 'Teachers', 'Grade Level', 'Archived'].map(cat => {
+              const isActive = roleFilter === cat;
+              return (
+                <button key={cat} onClick={() => setRoleFilter(cat)}
+                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all ${
+                    isActive 
+                      ? 'bg-brand-600 text-white border-brand-600 shadow-md' 
+                      : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:text-brand-600'
+                  }`}>
+                  {cat}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -165,7 +187,13 @@ export default function UserManagement({ authFetch, currentRole }) {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {users.filter(u => {
                 const matchesSearch = (u.username.toLowerCase().includes(searchQuery.toLowerCase()) || (u.full_name && u.full_name.toLowerCase().includes(searchQuery.toLowerCase())));
-                const matchesRole = roleFilter === 'All' || u.role === roleFilter;
+                let matchesRole = true;
+                if (roleFilter === 'All') matchesRole = !u.is_archived;
+                else if (roleFilter === 'Faculties') matchesRole = ['Principal', 'Registrar', 'Admission', 'Cashier'].includes(u.role) && !u.is_archived;
+                else if (roleFilter === 'Teachers') matchesRole = u.role === 'Teacher' && !u.is_archived;
+                else if (roleFilter === 'Grade Level') matchesRole = ['Student', 'Parent'].includes(u.role) && !u.is_archived;
+                else if (roleFilter === 'Archived') matchesRole = !!u.is_archived;
+                else matchesRole = u.role === roleFilter && !u.is_archived;
                 return matchesSearch && matchesRole;
               }).map(u => (
                 <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
@@ -192,15 +220,25 @@ export default function UserManagement({ authFetch, currentRole }) {
                   </td>
 
                   <td className="px-6 py-4">
-                    <span className={`flex items-center text-xs font-bold ${u.is_active === 1 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-                      <div className={`w-2 h-2 rounded-full mr-1.5 ${u.is_active === 1 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      {u.is_active === 1 ? 'Active' : 'Suspended'}
+                    <span className={`flex items-center text-xs font-bold ${
+                      u.is_archived ? 'text-slate-400 dark:text-slate-500' :
+                      u.is_active === 1 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'
+                    }`}>
+                      <div className={`w-2 h-2 rounded-full mr-1.5 ${
+                        u.is_archived ? 'bg-slate-400' :
+                        u.is_active === 1 ? 'bg-green-500' : 'bg-red-500'
+                      }`}></div>
+                      {u.is_archived ? 'Archived' : u.is_active === 1 ? 'Active' : 'Suspended'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right space-x-3">
                     <button onClick={() => handleResetPassword(u.id)} className="text-amber-500 hover:text-amber-700 text-sm font-bold transition">Reset Password</button>
                     <button onClick={() => openEditModal(u)} className="text-brand-600 hover:text-brand-800 text-sm font-bold transition">Edit</button>
-                    <button onClick={() => handleDelete(u.id)} className="text-red-500 hover:text-red-700 text-sm font-bold transition">Revoke</button>
+                    {u.is_archived ? (
+                      <button onClick={() => handleRestore(u.id)} className="text-green-500 hover:text-green-700 text-sm font-bold transition">Restore</button>
+                    ) : (
+                      <button onClick={() => handleArchive(u.id)} className="text-red-500 hover:text-red-700 text-sm font-bold transition">Archive</button>
+                    )}
                   </td>
                 </tr>
               ))}

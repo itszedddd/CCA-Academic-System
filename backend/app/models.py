@@ -16,6 +16,7 @@ class Student(Base):
     profile_image = Column(String, nullable=True)    # External URL mapping
     enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped, Hold: Incomplete Req
     membership_type = Column(String, default="Non-Member") # CBC Member, Non-Member
+    is_archived = Column(Integer, default=0) # 0 for false, 1 for true
 
     # Admission Checklist Requirements
     req_birth_cert = Column(Integer, default=0)
@@ -100,6 +101,21 @@ class EnrollmentForm(Base):
     special_talents = Column(String, nullable=True)
     how_heard = Column(String, nullable=True)
     reason_selecting = Column(String, nullable=True)
+
+    # New Fields (V2.0 Major Inspection Report)
+    middle_name = Column(String, nullable=True)
+    contact_number = Column(String, nullable=True)
+    nationality = Column(String, nullable=True)
+    religion = Column(String, nullable=True)
+    emergency_contact_name = Column(String, nullable=True)
+    emergency_contact_number = Column(String, nullable=True)
+    allergies = Column(String, nullable=True)
+    medical_conditions = Column(String, nullable=True)
+    current_medications = Column(String, nullable=True)
+    physician_name = Column(String, nullable=True)
+    physician_contact = Column(String, nullable=True)
+    waiver_agreed = Column(Integer, default=0) # bool
+    consent_agreed = Column(Integer, default=0) # bool
 
     # Document attachments and checklist
     req_birth_cert = Column(Integer, default=0)
@@ -202,6 +218,7 @@ class User(Base):
     role = Column(String)  # Administrator, Teacher, Parent, Student
     student_id = Column(Integer, ForeignKey("students.id"), nullable=True)  # Link for Student/Parent roles
     is_active = Column(Integer, default=1)
+    is_archived = Column(Integer, default=0) # 0 for false, 1 for true
     section = Column(String, nullable=True)  # For Teacher role: restricts visible students to this section
     profile_picture = Column(String, nullable=True)
     schedule = Column(String, nullable=True)

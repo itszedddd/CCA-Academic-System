@@ -71,6 +71,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
 
   const handleEncodeSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true); setErrorMsg(''); setSuccessMsg('');
     try {
       const res = await authFetch(`${API}/enrollment_forms/`, {
@@ -127,6 +128,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
 
   const handleRecordAssessment = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     try {
       const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, {
@@ -148,6 +150,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
 
   const handleRecordInterview = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     try {
       const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/interview`, {
@@ -167,6 +170,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
   };
 
   const handleVerify = async (status) => {
+    if (loading) return;
     setLoading(true);
     try {
       const payload = {

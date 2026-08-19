@@ -19,8 +19,10 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('All');
   const [sectionFilter, setSectionFilter] = useState('All');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('Active'); // 'Active', 'Rejected', 'Archived'
   const [sortOrder, setSortOrder] = useState('asc');
   const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
@@ -99,13 +101,19 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
 
   const filteredStudents = students
     .filter(s => {
-      const archivedStatuses = ['Archived', 'Graduated', 'Dropped', 'Transferred'];
-      if (archivedStatuses.includes(s.enrollment_status)) return false;
+      // Status filtering logic
+      const isArchived = s.enrollment_status === 'Archived' || s.enrollment_status === 'Graduated' || s.enrollment_status === 'Dropped' || s.enrollment_status === 'Transferred' || s.is_archived;
+      const isRejected = s.enrollment_status === 'Rejected';
+      
+      if (statusFilter === 'Archived' && !isArchived) return false;
+      if (statusFilter === 'Rejected' && !isRejected) return false;
+      if (statusFilter === 'Active' && (isArchived || isRejected)) return false;
 
       const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || String(s.id).includes(searchQuery);
       const matchesSection = sectionFilter === 'All' || s.section === sectionFilter;
       const matchesYear = schoolYearFilter === 'All' || s.school_year === schoolYearFilter;
-      return matchesSearch && matchesSection && matchesYear;
+      const matchesGrade = gradeFilter === 'All' || s.grade_level === gradeFilter;
+      return matchesSearch && matchesSection && matchesYear && matchesGrade;
     })
     .sort((a, b) => {
       const nameA = a.last_name.toLowerCase();
@@ -235,6 +243,14 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                             </div>
                           )}
                         </div>
+                      ) : (
+                        <>
+                      {/* Only show SF9 for Enrolled students, clarify for upcoming */}
+                      {selectedStudent.enrollment_status !== 'Enrolled' ? (
+                         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                            <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400">Notice</h4>
+                            <p className="text-xs text-amber-600 dark:text-amber-300">Student is currently in {selectedStudent.enrollment_status} status. The SF9 Report Card is only available for fully enrolled active students.</p>
+                         </div>
                       ) : (
                         <>
                       <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card (SF9 Format)</h4>
@@ -444,41 +460,83 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         </div>
         
         {/* Filtering & Search Toolbar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col sm:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            <div className="relative flex-1 w-full">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </div>
+              <input 
+                type="text" 
+                placeholder="Search students by name or ID..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
             </div>
-            <input 
-              type="text" 
-              placeholder="Search students by name or ID..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
+            
+            <div className="flex w-full sm:w-auto gap-3 flex-wrap sm:flex-nowrap">
+              <select 
+                value={schoolYearFilter} 
+                onChange={(e) => setSchoolYearFilter(e.target.value)}
+                className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 flex-1 sm:flex-none font-medium"
+              >
+                {uniqueSchoolYears.map(yr => <option key={yr} value={yr}>{yr === 'All' ? 'All Years' : `SY ${yr}`}</option>)}
+              </select>
+              <button 
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center"
+              >
+                Sort A-Z
+                <svg className={`ml-2 h-4 w-4 transform transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
+              </button>
+            </div>
           </div>
-          <div className="flex w-full sm:w-auto gap-3 flex-wrap sm:flex-nowrap">
-            <select 
-              value={schoolYearFilter} 
-              onChange={(e) => setSchoolYearFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 flex-1 sm:flex-none font-medium"
-            >
-              {uniqueSchoolYears.map(yr => <option key={yr} value={yr}>{yr === 'All' ? 'All Years' : `SY ${yr}`}</option>)}
-            </select>
-            <select 
-              value={sectionFilter} 
-              onChange={(e) => setSectionFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 flex-1 sm:flex-none"
-            >
-              {uniqueSections.map(sec => <option key={sec} value={sec}>{sec === 'All' ? 'All Sections' : sec}</option>)}
-            </select>
-            <button 
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center"
-            >
-              Sort A-Z
-              <svg className={`ml-2 h-4 w-4 transform transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
-            </button>
+
+          <div className="flex flex-wrap gap-2">
+            {['Active', 'Rejected', 'Archived'].map(status => (
+              <button 
+                key={status} 
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all ${
+                  statusFilter === status 
+                    ? 'bg-brand-600 text-white border-brand-600 shadow-md' 
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:text-brand-600'
+                }`}
+              >
+                {status}
+              </button>
+            ))}
+            <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2 self-center hidden sm:block"></div>
+            {['All', ...GRADES].map(grade => (
+              <button 
+                key={grade} 
+                onClick={() => setGradeFilter(grade)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                  gradeFilter === grade 
+                    ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' 
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                {grade === 'All' ? 'All Grades' : grade}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-1">
+            {uniqueSections.map(sec => (
+              <button 
+                key={sec} 
+                onClick={() => setSectionFilter(sec)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
+                  sectionFilter === sec 
+                    ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' 
+                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+              >
+                {sec === 'All' ? 'All Sections' : sec}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -525,7 +583,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
                   <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
-                    {['Enrolled','Pending','Hold: Incomplete Req', 'Dropped', 'Transferred', 'Archived', 'Graduated'].map(s => <option key={s}>{s}</option>)}
+                    {['Enrolled','Pending','Hold: Incomplete Req', 'Dropped', 'Transferred', 'Archived', 'Graduated', 'Rejected'].map(s => <option key={s}>{s}</option>)}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
