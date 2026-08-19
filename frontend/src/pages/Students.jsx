@@ -424,6 +424,8 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                       )}
                       </>
                       )}
+                      </>
+                      )}
                     </div>
                   </td>
                 </tr>

@@ -1756,6 +1756,11 @@ def get_blank_form(form_type: str):
 # ---------------------------------------------------------------------------
 # Student Clearance
 # ---------------------------------------------------------------------------
+@aesms_router.get("/clearances/", response_model=List[schemas.StudentClearance])
+def get_all_clearances(db: Session = Depends(get_db)):
+    """Get all clearance records."""
+    return db.query(models.StudentClearance).all()
+
 @aesms_router.get("/clearances/student/{student_id}", response_model=List[schemas.StudentClearance])
 def get_student_clearance(student_id: int, db: Session = Depends(get_db)):
     """Get all clearance records for a student."""

@@ -169,6 +169,7 @@ class StudentClearanceCreate(StudentClearanceBase):
 class StudentClearance(StudentClearanceBase):
     id: int
     items: List[ClearanceItem] = []
+    student: Optional[StudentBase] = None
 
     class Config:
         from_attributes = True

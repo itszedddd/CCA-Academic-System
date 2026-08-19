@@ -48,6 +48,16 @@ def seed_data():
                 is_active=1
             )
             teachers.append(t_user)
+        teachers.append(
+            User(
+                username="teacher",
+                full_name="Teacher Meekness",
+                hashed_password=get_password_hash("teacher123"),
+                role="Teacher",
+                section="Meekness",
+                is_active=1
+            )
+        )
         db.add_all(teachers)
         db.commit()
 

@@ -118,3 +118,33 @@ html.accessible-mode .dark {
   background-color: rgb(15 23 42 / var(--tw-bg-opacity)); /* slate-900 for more contrast */
 }
 
+/* Global Scrollbar Styles */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.7);
+}
+.dark *::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.4);
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
+/* Firefox global scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+}
+

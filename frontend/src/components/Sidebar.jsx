@@ -31,15 +31,9 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm">
       {/* Logo */}
-      <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex items-center">
-        <div className="w-12 h-12 bg-transparent overflow-hidden flex-shrink-0">
-          <img src="/assets/Profile Icon [2 Clear].png" alt="CCA Logo" className="w-full h-full object-contain dark:hidden" />
-          <img src="/assets/Profile Icon [1 Clear].png" alt="CCA Logo" className="w-full h-full object-contain hidden dark:block" />
-        </div>
-        <div className="ml-3">
-          <h1 className="text-lg font-extrabold text-brand-900 dark:text-white tracking-widest font-cinzel">CCA PORTAL</h1>
-          <p className="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase tracking-tight leading-tight">Calvary Christian Academy</p>
-        </div>
+      <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-center items-center">
+        <img src="/cca-logo-v2-light.png" alt="CCA EduSys" className="h-20 w-auto object-contain dark:hidden py-1" />
+        <img src="/cca-logo-v2-dark.png" alt="CCA EduSys" className="h-20 w-auto object-contain hidden dark:block py-1" />
         {/* Close button - mobile only */}
         <button onClick={onClose} className="ml-auto md:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -52,7 +46,7 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 overflow-y-auto font-cinzel">
+      <nav className="flex-1 py-4 overflow-y-auto font-cinzel sidebar-scroll">
         <ul className="space-y-0.5 px-3">
           {navigation.map(item => (
             <li key={item.name}>
