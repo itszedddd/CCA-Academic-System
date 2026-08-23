@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import AIAssistantWidget from '../components/AIAssistantWidget';
 
 export default function Dashboard({ students, warnings, attendance, forms, setActiveTab, currentRole, user, authFetch }) {
   const [loadingReport, setLoadingReport] = useState(false);
@@ -367,7 +368,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         );
       })()}
 
-      {(currentRole === 'Registrar' || currentRole === 'Admission') && (() => {
+      {currentRole === 'Registrar' && (() => {
         const pend = students.filter(s => s.enrollment_status === 'Pending' || s.enrollment_status === 'Hold: Incomplete Req').length;
         const lackingDocsCount = students.filter(s => !s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures).length;
         
@@ -377,6 +378,71 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <StatCard label="Active Status" value={enrolledCount} sub="Fully Enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             <StatCard label="Pending Action" value={pend} sub="Awaiting Enrollment" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             <StatCard label="Lacking Docs" value={lackingDocsCount} sub="Incomplete requirements" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </div>
+        );
+      })()}
+
+      {/* Admission 2-Column Dashboard Layout */}
+      {currentRole === 'Admission' && (() => {
+        const preRegistered = forms.filter(f => f.status === 'Pre-Registered' || f.status === 'Pending').length;
+        const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
+        const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
+        const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
+        
+        return (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column: Stats + Trends */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* 2x2 Stat Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <StatCard label="Total Pre-Registered" value={preRegistered || forms.length} sub="Online applications received" color="text-brand-600" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                <StatCard label="Ready for Assessment" value={readyForAssessment} sub="Cleared for on-site exam" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <StatCard label="Pending Requirements" value={pendingReqs} sub="Awaiting documents" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </div>
+
+              {/* Enrollment Trends Block */}
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+                <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider mb-4 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  Enrollment Trends
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => {
+                    const count = forms.filter(f => f.grade_applying_for === grade).length;
+                    return (
+                      <div key={grade} className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-700">
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{grade}</span>
+                        <span className="text-sm font-black text-brand-600 dark:text-brand-400">{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: AI Assistant */}
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
+                    <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
+                  </div>
+                </div>
+                
+                <div className="flex-1 min-h-0">
+                  <AIAssistantWidget 
+                    API_URL={window.location.origin + '/api'} 
+                    token={localStorage.getItem('token')} 
+                    mode="embedded"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         );
       })()}

@@ -45,7 +45,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     physician_name: '',
     physician_contact: '',
     
-    waiver_agreed: false,
+    waiver_agreed_1: false,
+    waiver_agreed_2: false,
+    waiver_agreed_3: false,
+    waiver_agreed_4: false,
     consent_agreed: false
   });
 
@@ -56,8 +59,8 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.waiver_agreed || !formData.consent_agreed) {
-      setError("You must agree to the Waiver and Consent forms to proceed.");
+    if (!formData.waiver_agreed_1 || !formData.waiver_agreed_2 || !formData.waiver_agreed_3 || !formData.waiver_agreed_4 || !formData.consent_agreed) {
+      setError("You must agree to all conditions in the Waiver and Consent forms to proceed.");
       return;
     }
     
@@ -132,7 +135,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
 
       {/* Main Content */}
       <main className="flex-grow flex items-start justify-center p-4 md:p-8 overflow-y-auto">
-        <div className={`w-full max-w-4xl mx-auto p-6 md:p-10 rounded-3xl shadow-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+        <div className={`w-full mx-auto p-6 md:p-10 rounded-3xl shadow-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
           
           <div className="flex justify-between items-center mb-8 print:hidden">
             <h2 className={`text-3xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-[#022868]'}`}>
@@ -371,21 +374,25 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <h4 className="font-bold text-center uppercase">Parental Consent and Waiver</h4>
                     <p>I/We, the parents/guardians of the above-named student, hereby allow my/our child to participate in the progressive implementation of face-to-face classes at Calvary Christian Academy.</p>
                     <p>I/We acknowledge the following:</p>
-                    <ul className="list-disc pl-5 space-y-2">
-                      <li>The school has implemented safety protocols to mitigate the risk of COVID-19 and other communicable diseases.</li>
-                      <li>Participation in face-to-face classes carries inherent risks, and I/we voluntarily assume these risks on behalf of my/our child.</li>
-                      <li>I/We will ensure that my/our child complies with all health and safety guidelines established by the school.</li>
-                      <li>I/We will immediately inform the school and keep my/our child at home if they exhibit any symptoms of illness.</li>
+                    <ul className="list-disc pl-5 space-y-4">
+                      <li className="flex items-start gap-3">
+                        <input type="checkbox" name="waiver_agreed_1" checked={formData.waiver_agreed_1} onChange={handleChange} className="mt-1 cursor-pointer" />
+                        <span>The school has implemented safety protocols to mitigate the risk of COVID-19 and other communicable diseases.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <input type="checkbox" name="waiver_agreed_2" checked={formData.waiver_agreed_2} onChange={handleChange} className="mt-1 cursor-pointer" />
+                        <span>Participation in face-to-face classes carries inherent risks, and I/we voluntarily assume these risks on behalf of my/our child.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <input type="checkbox" name="waiver_agreed_3" checked={formData.waiver_agreed_3} onChange={handleChange} className="mt-1 cursor-pointer" />
+                        <span>I/We will ensure that my/our child complies with all health and safety guidelines established by the school.</span>
+                      </li>
+                      <li className="flex items-start gap-3">
+                        <input type="checkbox" name="waiver_agreed_4" checked={formData.waiver_agreed_4} onChange={handleChange} className="mt-1 cursor-pointer" />
+                        <span>I/We will immediately inform the school and keep my/our child at home if they exhibit any symptoms of illness.</span>
+                      </li>
                     </ul>
                     <p>I/We release Calvary Christian Academy, its administrators, teachers, and staff from any liability, claims, or demands related to any illness or injury that may arise from my/our child's participation in face-to-face classes, provided the school has acted with due diligence and care.</p>
-                  </div>
-
-                  <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.waiver_agreed ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({...formData, waiver_agreed: !formData.waiver_agreed})}>
-                    <input type="checkbox" name="waiver_agreed" checked={formData.waiver_agreed} onChange={handleChange} className="mt-1 w-5 h-5 cursor-pointer" />
-                    <div>
-                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I agree to the Waiver Terms *</h5>
-                      <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>By checking this box, I acknowledge that I have read, understood, and agreed to the waiver conditions.</p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -409,7 +416,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                   <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.consent_agreed ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({...formData, consent_agreed: !formData.consent_agreed})}>
                     <input type="checkbox" name="consent_agreed" checked={formData.consent_agreed} onChange={handleChange} className="mt-1 w-5 h-5 cursor-pointer" />
                     <div>
-                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I agree to the Data Privacy & Consent Terms *</h5>
+                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I understand all the Consent & Data Privacy form. *</h5>
                       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>By checking this box, I grant consent for data processing and media release as described above.</p>
                     </div>
                   </div>
@@ -536,6 +543,68 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
             </div>
           )}
         </div>
+
+        {/* Printable Format (Hidden on Screen, Visible on Print) */}
+        {(step >= 1 && step <= 4) && (
+          <div className="hidden print:block w-full text-black bg-white p-8">
+            <div className="flex items-center gap-4 border-b-2 border-black pb-4 mb-6">
+              <img src="/assets/[CCA L1] CCA EduSys Logo V1.png" alt="CCA Logo" className="h-16 w-auto" />
+              <div>
+                <h1 className="text-2xl font-bold font-serif uppercase tracking-wider">Calvary Christian Academy</h1>
+                <p className="text-sm">Official Pre-Registration Form</p>
+              </div>
+            </div>
+
+            <h2 className="text-xl font-bold mb-4 bg-gray-200 p-2">1. Student & ID Information</h2>
+            <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
+              <div><strong>Name:</strong> {formData.student_first_name} {formData.middle_name} {formData.student_last_name}</div>
+              <div><strong>Grade Applying For:</strong> {formData.grade_applying_for}</div>
+              <div><strong>Sex:</strong> {formData.sex}</div>
+              <div><strong>Birth Date:</strong> {formData.birth_date}</div>
+              <div><strong>Contact Number:</strong> {formData.contact_number}</div>
+              <div><strong>Address:</strong> {formData.home_address}</div>
+              <div><strong>Emergency Contact:</strong> {formData.emergency_contact_name} ({formData.emergency_contact_number})</div>
+            </div>
+
+            <h2 className="text-xl font-bold mb-4 bg-gray-200 p-2">2. Medical History</h2>
+            <div className="mb-6 text-sm">
+              <p><strong>Allergies:</strong> {formData.allergies || 'None'}</p>
+              <p><strong>Conditions:</strong> {formData.medical_conditions || 'None'}</p>
+              <p><strong>Medications:</strong> {formData.current_medications || 'None'}</p>
+            </div>
+
+            <h2 className="text-xl font-bold mb-4 bg-gray-200 p-2">3. Agreements & Consent</h2>
+            <div className="mb-6 text-sm">
+              <p>☑ I agree to the Waiver for Progressive Implementation of Face-to-Face Classes.</p>
+              <p>☑ I understand all the Consent & Data Privacy form.</p>
+            </div>
+
+            <div className="mt-16 flex justify-around">
+              <div className="text-center">
+                <div className="border-b border-black w-64 mb-2"></div>
+                <p>Student Signature over Printed Name</p>
+              </div>
+              <div className="text-center">
+                <div className="border-b border-black w-64 mb-2"></div>
+                <p>Parent/Guardian Signature over Printed Name</p>
+              </div>
+            </div>
+            
+            {/* Page Breaks for forms */}
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F1] Student Information Form.jpg" className="w-full h-auto mb-8" />
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F2] Medical History Form.jpg" className="w-full h-auto mb-8" />
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F3] Waiver for Progressive Implementation of Face-to-Face Class Form.jpg" className="w-full h-auto mb-8" />
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F4.1] Data Privacy Form Page 1.jpg" className="w-full h-auto mb-8" />
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F4.2] Data Privacy Form Page 2.jpg" className="w-full h-auto mb-8" />
+            <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
+            <img src="/assets/[CCA F6] ID Information Form.jpg" className="w-full h-auto mb-8" />
+          </div>
+        )}
       </main>
     </div>
   );

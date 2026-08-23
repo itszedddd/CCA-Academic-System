@@ -11,6 +11,16 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+
+  // Password validation function
+  const validatePassword = (pwd) => {
+    if (!pwd) return "Password cannot be empty.";
+    if (pwd.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[A-Za-z]/.test(pwd)) return "Password must contain at least one letter.";
+    if (!/[0-9]/.test(pwd)) return "Password must contain at least one number.";
+    return "";
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -29,6 +39,7 @@ export default function UserManagement({ authFetch, currentRole }) {
     setEditingUser(null);
     setFormData({ username: '', full_name: '', password: '', confirm_password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
     setShowPassword(false);
+    setPasswordError('');
     setShowModal(true);
   };
 
@@ -44,6 +55,7 @@ export default function UserManagement({ authFetch, currentRole }) {
       is_active: user.is_active,
       section: user.section || ''
     });
+    setPasswordError('');
     setShowModal(true);
   };
 
@@ -90,12 +102,24 @@ export default function UserManagement({ authFetch, currentRole }) {
     };
     delete payload.confirm_password;
     
-    if (!editingUser && formData.password !== formData.confirm_password) {
-      alert("Passwords do not match");
-      return;
+    setPasswordError('');
+
+    if (formData.password) {
+      if (formData.password !== formData.confirm_password) {
+        setPasswordError("Passwords do not match.");
+        return;
+      }
+      const pError = validatePassword(formData.password);
+      if (pError) {
+        setPasswordError(pError);
+        return;
+      }
     }
     
     if (editingUser) {
+      // Only include password if it was filled out
+      if (!payload.password) delete payload.password;
+      
       await authFetch(`${API}/users/${editingUser.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -103,7 +127,7 @@ export default function UserManagement({ authFetch, currentRole }) {
       });
     } else {
       if (!payload.password) {
-        alert("Password is required for new accounts");
+        setPasswordError("Password is required for new accounts");
         return;
       }
       await authFetch(`${API}/users/`, {
@@ -260,6 +284,11 @@ export default function UserManagement({ authFetch, currentRole }) {
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
+              {passwordError && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold border border-red-200">
+                  {passwordError}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
@@ -271,27 +300,25 @@ export default function UserManagement({ authFetch, currentRole }) {
                 </div>
               </div>
               
-              {!editingUser && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Set Password</label>
-                    <div className="relative">
-                      <input type={showPassword ? "text" : "password"} required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="••••••••" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-slate-400 hover:text-brand-600">
-                        {showPassword ? (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
-                    <input type={showPassword ? "text" : "password"} required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.confirm_password} onChange={e => setFormData({...formData, confirm_password: e.target.value})} placeholder="••••••••" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{editingUser ? 'New Password (Optional)' : 'Set Password'}</label>
+                  <div className="relative">
+                    <input type={showPassword ? "text" : "password"} required={!editingUser} className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.password} onChange={e => {setFormData({...formData, password: e.target.value}); setPasswordError('');}} placeholder="••••••••" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-2 text-slate-400 hover:text-brand-600">
+                      {showPassword ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
+                      )}
+                    </button>
                   </div>
                 </div>
-              )}
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm Password</label>
+                  <input type={showPassword ? "text" : "password"} required={!editingUser && formData.password.length > 0} className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={formData.confirm_password} onChange={e => setFormData({...formData, confirm_password: e.target.value})} placeholder="••••••••" disabled={editingUser && !formData.password} />
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">System Role</label>
                 <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-semibold" value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 export default function AIAssistantWidget({ API_URL, token, mode = 'floating' }) {
-  // mode can be 'floating', 'sidebar-button', 'inline', 'dashboard-button'
-  const [isOpen, setIsOpen] = useState(mode === 'inline');
+  // mode can be 'floating', 'sidebar-button', 'inline', 'dashboard-button', 'embedded'
+  const [isOpen, setIsOpen] = useState(mode === 'inline' || mode === 'embedded');
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hello! I am the CCA AI Assistant. How can I help you today?' }
   ]);
@@ -53,7 +53,7 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating' })
 
   const ChatUI = (
     <div className={`flex flex-col bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 overflow-hidden ${
-      mode === 'inline' 
+      (mode === 'inline' || mode === 'embedded')
         ? 'w-full h-full rounded-2xl shadow-sm border flex-1 min-h-[400px]' 
         : 'fixed bottom-24 right-6 w-80 sm:w-96 rounded-xl shadow-2xl border z-50 h-[500px] max-h-[calc(100vh-120px)]'
     }`}>
@@ -70,7 +70,7 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating' })
             <p className="text-xs text-brand-100">Powered by Gemini</p>
           </div>
         </div>
-        {mode !== 'inline' && (
+        {mode !== 'inline' && mode !== 'embedded' && (
           <button onClick={() => setIsOpen(false)} className="text-brand-100 hover:text-white focus:outline-none transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -104,6 +104,27 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating' })
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Pre-Command Suggestions (embedded mode only) */}
+      {mode === 'embedded' && (
+        <div className="px-3 pt-2 pb-1 bg-white dark:bg-slate-800 flex flex-wrap gap-2">
+          {[
+            'How many pre-registered?',
+            'Pending requirements?',
+            'Enrollment summary',
+            'Assessment schedule'
+          ].map((cmd, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => { setInput(cmd); }}
+              className="text-[11px] font-bold px-3 py-1.5 bg-brand-50 dark:bg-slate-700 text-brand-700 dark:text-brand-300 rounded-full border border-brand-200 dark:border-slate-600 hover:bg-brand-100 dark:hover:bg-slate-600 transition-colors"
+            >
+              {cmd}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Input Area */}
       <form onSubmit={handleSend} className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex gap-2">
         <input
@@ -127,7 +148,7 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating' })
     </div>
   );
 
-  if (mode === 'inline') return ChatUI;
+  if (mode === 'inline' || mode === 'embedded') return ChatUI;
 
   return (
     <>
