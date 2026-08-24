@@ -40,11 +40,11 @@ export default function LoginPage({ onLogin, isDarkMode, setIsDarkMode, onNaviga
       
       {/* Left Panel - Branding */}
       <div className="lg:w-[45%] w-full bg-[#022868] flex flex-col items-center justify-center p-12 lg:min-h-screen min-h-[30vh] relative overflow-hidden text-center order-1">
-        <div className="max-w-md w-full z-10 animate-fade-in-down flex items-center justify-center">
+        <div className="max-w-md w-full z-10 animate-fade-in-down flex items-center justify-center -mt-16 lg:-mt-32">
           <img 
             src="/assets/[CCA L1] CCA EduSys Logo V1.png" 
             alt="CCA Logo" 
-            className="w-full h-auto object-contain max-h-[80vh] rounded-3xl shadow-xl" 
+            className="w-full h-auto object-contain drop-shadow-2xl" 
           />
         </div>
       </div>

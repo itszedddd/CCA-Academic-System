@@ -29,7 +29,7 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 shadow-sm">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
       {/* Logo */}
       <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-center items-center">
         <img src="/cca-logo-v2-light.png" alt="CCA EduSys" className="h-20 w-auto object-contain dark:hidden py-1" />
@@ -41,9 +41,11 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
       </div>
 
       {/* AI Chatbot Button (Above Menus) */}
-      <div className="px-4 pt-4 pb-2">
-        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="sidebar-button" />
-      </div>
+      {currentRole !== 'Admission' && (
+        <div className="px-4 pt-4 pb-2">
+          <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="sidebar-button" />
+        </div>
+      )}
 
       {/* Nav */}
       <nav className="flex-1 py-4 overflow-y-auto font-cinzel sidebar-scroll">
@@ -98,16 +100,16 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
   return (
     <>
       {/* Desktop: static sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-shrink-0">
+      <div className="hidden md:flex md:w-64 md:flex-shrink-0 print:hidden">
         {sidebarContent}
       </div>
 
       {/* Mobile: backdrop + drawer */}
       <div
-        className={`sidebar-backdrop md:hidden ${isOpen ? 'sidebar-backdrop-visible' : 'sidebar-backdrop-hidden'}`}
+        className={`sidebar-backdrop md:hidden print:hidden ${isOpen ? 'sidebar-backdrop-visible' : 'sidebar-backdrop-hidden'}`}
         onClick={onClose}
       />
-      <div className={`sidebar-drawer md:hidden ${isOpen ? 'sidebar-drawer-open' : 'sidebar-drawer-closed'}`}>
+      <div className={`sidebar-drawer md:hidden print:hidden ${isOpen ? 'sidebar-drawer-open' : 'sidebar-drawer-closed'}`}>
         {sidebarContent}
       </div>
     </>

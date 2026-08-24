@@ -189,7 +189,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
           <div className="p-5 border-b border-slate-100 dark:border-slate-700 overflow-x-auto">
             <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center mb-4">
               <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-              Student Report Card (Philippine SF9 Format)
+              Student Report Card
             </h3>
             <table className="w-full text-center border-collapse min-w-[600px]">
               <thead>

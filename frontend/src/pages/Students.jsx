@@ -249,11 +249,11 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                       {selectedStudent.enrollment_status !== 'Enrolled' ? (
                          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
                             <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400">Notice</h4>
-                            <p className="text-xs text-amber-600 dark:text-amber-300">Student is currently in {selectedStudent.enrollment_status} status. The SF9 Report Card is only available for fully enrolled active students.</p>
+                            <p className="text-xs text-amber-600 dark:text-amber-300">Student is currently in {selectedStudent.enrollment_status} status. The Report Card is only available for fully enrolled active students.</p>
                          </div>
                       ) : (
                         <>
-                      <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card (SF9 Format)</h4>
+                      <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card</h4>
                       
                       <div className="overflow-x-auto mb-6 border border-slate-200 dark:border-slate-700 rounded-lg">
                         <table className="w-full text-center border-collapse min-w-[600px] bg-white dark:bg-slate-900">

@@ -139,8 +139,8 @@ export default function Reports({ API, authFetch }) {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 print:p-0 print:m-0">
+      <div className="flex justify-between items-center mb-6 print:hidden">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">School-Wide Reports</h1>
         <button 
           onClick={handlePrint}
@@ -153,8 +153,8 @@ export default function Reports({ API, authFetch }) {
         </button>
       </div>
       
-      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6">
-        <div className="flex gap-4 border-b dark:border-slate-700 pb-4 mb-4">
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-6 mb-6 print:border-none print:shadow-none print:p-0">
+        <div className="flex gap-4 border-b dark:border-slate-700 pb-4 mb-4 print:hidden">
           <button 
             className={`px-4 py-2 rounded font-medium ${reportType === 'enrollment' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
             onClick={() => setReportType('enrollment')}

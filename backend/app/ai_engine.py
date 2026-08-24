@@ -472,7 +472,7 @@ def get_ai_model_summary() -> dict:
                 ],
                 "output": "Natural language insights with actionable recommendations",
                 "hyperparameters": {
-                    "model": "gemini-2.0-flash",
+                    "model": "gemini-3.6-flash",
                     "temperature": 0.7,
                     "max_output_tokens": 1024
                 }
@@ -491,7 +491,7 @@ def get_ai_model_summary() -> dict:
                 ],
                 "output": "Structured multi-section narrative reports with actionable recommendations",
                 "hyperparameters": {
-                    "model": "gemini-2.0-flash",
+                    "model": "gemini-3.6-flash",
                     "report_types": 5,
                     "fallback": "rule-based"
                 }
@@ -576,7 +576,7 @@ Return ONLY the JSON array, no markdown, no code blocks, just the raw JSON."""
         try:
             import google.generativeai as genai
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            model = genai.GenerativeModel("gemini-3.6-flash")
             response = model.generate_content(prompt)
             
             import json
@@ -846,7 +846,7 @@ def generate_ai_report(report_type: str, data: dict) -> dict:
             import json
 
             genai.configure(api_key=api_key)
-            model = genai.GenerativeModel("gemini-2.0-flash")
+            model = genai.GenerativeModel("gemini-3.6-flash")
             response = model.generate_content(prompt)
 
             text = response.text.strip()

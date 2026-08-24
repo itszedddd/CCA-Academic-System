@@ -166,7 +166,7 @@ export default function App() {
   if (!token) return <LoginPage onLogin={handleLogin} isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onNavigatePreRegister={() => setIsPreRegistrationMode(true)} />;
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 font-sans transition-colors duration-300">
+    <div className="flex h-screen print:h-auto print:block bg-slate-50 dark:bg-slate-900 font-sans transition-colors duration-300">
       <Sidebar
         navigation={navigation}
         activeTab={activeTab}
@@ -178,7 +178,7 @@ export default function App() {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:h-auto">
         <Header
           activeTab={activeTab}
           isDarkMode={isDarkMode}
@@ -204,7 +204,7 @@ export default function App() {
           onMenuToggle={() => setSidebarOpen(o => !o)}
         />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-8 transition-colors duration-300">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-8 transition-colors duration-300">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'Dashboard'          && <Dashboard {...sharedProps} setActiveTab={setActiveTab} />}
             {activeTab === 'Students'           && <Students {...sharedProps} />}

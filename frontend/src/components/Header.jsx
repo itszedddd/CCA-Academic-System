@@ -3,7 +3,7 @@ import React from 'react';
 export default function Header({ activeTab, isDarkMode, setIsDarkMode, isAccessibleMode, setIsAccessibleMode, warnings, showNotifications, setShowNotifications, setActiveTab, searchQuery, setSearchQuery, showSearchResults, setShowSearchResults, searchResults, currentRole, onMenuToggle }) {
 
   return (
-    <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm z-30">
+    <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center justify-between px-4 md:px-8 z-30 print:hidden">
       <div className="flex items-center space-x-3 min-w-0">
         {/* Hamburger - mobile only */}
         <button

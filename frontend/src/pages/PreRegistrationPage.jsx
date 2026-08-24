@@ -120,7 +120,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
       {/* Header */}
       <header className={`py-4 px-6 md:px-12 flex justify-between items-center shadow-sm z-10 print:hidden ${isDarkMode ? 'bg-slate-800 border-b border-slate-700' : 'bg-white border-b border-slate-200'}`}>
         <div className="flex items-center gap-4">
-          <img src="/cca-logo-v1.png" alt="CCA Logo" className="h-10 w-auto object-contain" />
+          <img src="/assets/[CCA L1] CCA EduSys Logo V1.png" alt="CCA Logo" className="h-10 w-auto object-contain" />
           <h1 className={`font-cinzel font-bold text-xl hidden sm:block ${isDarkMode ? 'text-white' : 'text-[#022868]'}`}>Calvary Christian Academy</h1>
         </div>
         <div className="flex items-center gap-4">
