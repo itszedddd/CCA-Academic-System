@@ -65,9 +65,15 @@ export default function StudentClearance({ API, authFetch, token, students, curr
           remarks: remarks || ""
         })
       });
-      if (res?.ok) fetchAllClearances();
+      if (res?.ok) {
+        fetchAllClearances();
+      } else {
+        const data = await res.json();
+        alert(data.detail || "Error updating clearance.");
+      }
     } catch (err) {
       console.error("Error updating clearance item", err);
+      alert("Error updating clearance item.");
     }
   };
 
@@ -134,9 +140,14 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
-                {clearance.items && clearance.items.map(item => (
-                  <tr key={item.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                {clearance.items && clearance.items.map((item, index) => {
+                  const isLocked = index > 0 && clearance.items[index - 1].status !== 'Cleared';
+                  const canAct = (currentRole === item.department) || (item.department === 'Subjects' && currentRole === 'Teacher') || (currentRole === 'Principal') || (currentRole === 'Superadmin');
+                  
+                  return (
+                  <tr key={item.id} className={isLocked ? "opacity-50 bg-gray-50 dark:bg-slate-900/50" : ""}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
+                      {isLocked && <svg className="w-4 h-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
                       {item.department}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -150,12 +161,15 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                       {item.remarks || "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {((currentRole === item.department) || (currentRole === 'Principal') || (currentRole === 'Superadmin')) ? (
+                      {canAct ? (
                         <div className="flex space-x-2">
                           {item.status !== 'Cleared' && (
                             <button 
-                              onClick={() => updateItemStatus(item.id, 'Cleared', '')}
-                              className="text-green-600 hover:text-green-900 font-medium"
+                              onClick={() => {
+                                if (isLocked) alert(`Cannot clear ${item.department}. Previous step must be cleared first.`);
+                                else updateItemStatus(item.id, 'Cleared', '');
+                              }}
+                              className={`${isLocked ? 'text-gray-400 cursor-not-allowed' : 'text-green-600 hover:text-green-900'} font-medium`}
                             >
                               Mark Cleared
                             </button>
@@ -163,10 +177,13 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                           {item.status !== 'Hold' && (
                             <button 
                               onClick={() => {
-                                const reason = prompt("Enter reason for holding clearance:");
-                                if (reason !== null) updateItemStatus(item.id, 'Hold', reason);
+                                if (isLocked) alert(`Cannot put ${item.department} on hold. Previous step must be cleared first.`);
+                                else {
+                                  const reason = prompt("Enter reason for holding clearance:");
+                                  if (reason !== null) updateItemStatus(item.id, 'Hold', reason);
+                                }
                               }}
-                              className="text-red-600 hover:text-red-900 font-medium"
+                              className={`${isLocked ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900'} font-medium`}
                             >
                               Put on Hold
                             </button>
@@ -177,7 +194,7 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                       )}
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>

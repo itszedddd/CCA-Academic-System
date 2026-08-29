@@ -410,9 +410,18 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                      name = `Child of ${form.father_name}`;
                   }
                   return (
-                    <tr key={form.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                    <tr key={form.id} className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 transition ${form.form_type === 'New Student' ? 'bg-green-50/50 dark:bg-green-900/10 border-l-4 border-l-green-500' : ''}`}>
                       <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(form.id).padStart(4,'0')}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{name}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">
+                        <div className="flex items-center space-x-2">
+                          <span>{name}</span>
+                          {form.form_type === 'New Student' ? (
+                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wider">New</span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wider">Old</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{form.grade_applying_for || grade}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 text-xs font-bold rounded-md ${form.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' : form.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.assessment_status || 'Pending'}</span>

@@ -12,9 +12,13 @@ export default function Reports({ API, authFetch }) {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const res = await authFetch(`${API}/reports/${reportType}`);
+      const endpoint = reportType === 'analytics' ? `${API}/analytics/report` : `${API}/reports/${reportType}`;
+      const res = await authFetch(endpoint);
       if (res?.ok) {
         const data = await res.json();
+        if (reportType === 'analytics' && !data.title) {
+          data.title = 'Academics & General Analytics Report';
+        }
         setReportData(data);
       } else {
         setReportData(null);
@@ -138,8 +142,60 @@ export default function Reports({ API, authFetch }) {
     );
   };
 
+  const renderAnalyticsReport = () => {
+    if (!reportData) return null;
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r">
+            <p className="text-sm text-blue-700 dark:text-blue-400 font-semibold uppercase">Total Students</p>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-200">{reportData.total_students}</p>
+          </div>
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r">
+            <p className="text-sm text-green-700 dark:text-green-400 font-semibold uppercase">Enrolled Students</p>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-200">{reportData.enrolled_students}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Academic Performance</h3>
+            <ul className="space-y-4">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Global Academic Average</span>
+                <span className="font-bold text-lg dark:text-white">{reportData.global_academic_average}%</span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Active Academic Warnings</span>
+                <span className="font-bold text-lg text-red-600">{reportData.active_academic_warnings}</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Financial Overview</h3>
+            <ul className="space-y-4">
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Total Tuition Due</span>
+                <span className="font-bold dark:text-white">₱{reportData.total_tuition_due?.toLocaleString()}</span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Total Collected</span>
+                <span className="font-bold text-green-600">₱{reportData.total_tuition_collected?.toLocaleString()}</span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Outstanding Balance</span>
+                <span className="font-bold text-red-600">₱{reportData.outstanding_balance?.toLocaleString()}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="p-6 print:p-0 print:m-0">
+    <div className="p-6 print:p-0 print:m-0 print:bg-white print:text-black">
       <div className="flex justify-between items-center mb-6 print:hidden">
         <h1 className="text-3xl font-bold text-gray-800 dark:text-white">School-Wide Reports</h1>
         <button 
@@ -173,6 +229,12 @@ export default function Reports({ API, authFetch }) {
           >
             Clearance Status
           </button>
+          <button 
+            className={`px-4 py-2 rounded font-medium ${reportType === 'analytics' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            onClick={() => setReportType('analytics')}
+          >
+            Academics & Analytics
+          </button>
         </div>
         
         {loading ? (
@@ -186,8 +248,9 @@ export default function Reports({ API, authFetch }) {
             {reportType === 'enrollment' && renderEnrollmentReport()}
             {reportType === 'financial' && renderFinancialReport()}
             {reportType === 'clearance' && renderClearanceReport()}
+            {reportType === 'analytics' && renderAnalyticsReport()}
             
-            <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 text-center text-sm text-gray-500 dark:text-gray-400">
+            <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 print:border-black text-center text-sm text-gray-500 dark:text-gray-400 print:text-black">
               Generated on {new Date().toLocaleDateString()} | CCA EduSys
             </div>
           </div>

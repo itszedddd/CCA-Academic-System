@@ -14,17 +14,16 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
   const [showEdit, setShowEdit] = useState(false);
   const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [selectedGradeTile, setSelectedGradeTile] = useState(null);
   const [historyYear, setHistoryYear] = useState('');
+  const [studentHistory, setStudentHistory] = useState([]);
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
-  const [gradeFilter, setGradeFilter] = useState('All');
   const [sectionFilter, setSectionFilter] = useState('All');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('Active'); // 'Active', 'Rejected', 'Archived'
   const [sortOrder, setSortOrder] = useState('asc');
-  const [gradeView, setGradeView] = useState('overall'); // 'overall' | 'grade'
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
   const [editingStudentFile, setEditingStudentFile] = useState(null);
@@ -43,6 +42,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       setExpandedStudentId(null);
       setSelectedStudent(null);
       setHistoryYear('');
+      setStudentHistory([]);
     } else {
       const res = await authFetch(`${API}/students/${id}`);
       if (res?.ok) {
@@ -50,6 +50,12 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         setSelectedStudent(student);
         setExpandedStudentId(id);
         setHistoryYear(student.school_year || '');
+        if (['Registrar', 'Principal'].includes(currentRole)) {
+          const hRes = await authFetch(`${API}/student-history/${id}`);
+          if (hRes?.ok) {
+            setStudentHistory(await hRes.json());
+          }
+        }
       }
     }
   };
@@ -112,8 +118,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || String(s.id).includes(searchQuery);
       const matchesSection = sectionFilter === 'All' || s.section === sectionFilter;
       const matchesYear = schoolYearFilter === 'All' || s.school_year === schoolYearFilter;
-      const matchesGrade = gradeFilter === 'All' || s.grade_level === gradeFilter;
-      return matchesSearch && matchesSection && matchesYear && matchesGrade;
+      return matchesSearch && matchesSection && matchesYear;
     })
     .sort((a, b) => {
       const nameA = a.last_name.toLowerCase();
@@ -123,18 +128,14 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       return 0;
     });
 
-
-  // Group by grade for per-grade view
-  const gradeGroups = GRADES.map(g => ({
-    grade: g,
-    students: filteredStudents.filter(s => s.grade_level === g)
-  })).filter(g => g.students.length > 0);
+  const isTableView = selectedGradeTile !== null || searchQuery.length > 0;
 
   const renderStudentTable = (rows) => (
-    <table className="w-full text-left">
-      <thead>
-        <tr className="bg-slate-50 dark:bg-slate-700 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-          <th className="px-6 py-3">ID</th>
+    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] custom-scrollbar border-b border-slate-200 dark:border-slate-700">
+      <table className="w-full text-left relative">
+        <thead className="sticky top-0 z-10">
+          <tr className="bg-slate-100 dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400 shadow-sm">
+            <th className="px-6 py-3">ID</th>
           <th className="px-6 py-3">Name</th>
           <th className="px-6 py-3">Grade</th>
           <th className="px-6 py-3">Section</th>
@@ -348,11 +349,53 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                         </div>
                       )}
 
-                      {/* Historical Records (Admission/Registrar/Principal) */}
+                      {/* Historical Records & Actions (Admission/Registrar/Principal) */}
                       {['Admission', 'Registrar', 'Principal'].includes(currentRole) && (
                         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                          <h4 className="font-bold text-slate-800 dark:text-white mb-3">Historical Record Details</h4>
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="font-bold text-slate-800 dark:text-white">Historical Record Details</h4>
+                            {currentRole === 'Registrar' && (
+                              <div className="flex space-x-2">
+                                <button onClick={async () => {
+                                  if (confirm("Are you sure you want to end the school year for this student?")) {
+                                    const res = await authFetch(`${API}/students/${s.id}`, { 
+                                      method: 'PUT', 
+                                      headers: {'Content-Type': 'application/json'}, 
+                                      body: JSON.stringify({ enrollment_status: 'Completed' }) 
+                                    });
+                                    if (res?.ok) {
+                                      alert("Student advanced.");
+                                      handleView(s.id);
+                                      fetchStudents();
+                                    }
+                                  }
+                                }} className="px-3 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 text-xs font-bold rounded">End School Year</button>
+                                <button onClick={async () => {
+                                  if (confirm("Archive this student?")) {
+                                    await authFetch(`${API}/students/${s.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
+                                    handleView(s.id);
+                                    fetchStudents();
+                                  }
+                                }} className="px-3 py-1 bg-slate-200 text-slate-700 hover:bg-slate-300 text-xs font-bold rounded">Archive</button>
+                                <button onClick={() => setExpandedStudentId(null)} className="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold rounded">Close</button>
+                              </div>
+                            )}
+                          </div>
+                          
                           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-sm text-slate-600 dark:text-slate-400">
+                            {/* Payment Status for Non-Cashier Roles */}
+                            {currentRole !== 'Cashier' && selectedStudent.tuition_payments && selectedStudent.tuition_payments.length > 0 && (
+                              <div className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Financial Status</span>
+                                <div className="flex gap-2 flex-wrap">
+                                  {selectedStudent.tuition_payments.map(tp => (
+                                    <span key={tp.id} className={`px-3 py-1 text-xs font-bold rounded-full ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                                      {tp.term}: {tp.status === 'Paid' ? 'Totally Cleared' : (tp.status === 'Partial' ? 'Temporarily Cleared' : 'Not Cleared')}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                               <div>
                                 <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Tracked School Year</span>
@@ -378,6 +421,22 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                                 </select>
                               </div>
                             </div>
+                            
+                            {/* Action History Log */}
+                            {['Registrar', 'Principal'].includes(currentRole) && studentHistory.length > 0 && (
+                              <div className="mt-6 mb-6">
+                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2 border-b pb-1">History of Actions</span>
+                                <div className="max-h-32 overflow-y-auto space-y-2">
+                                  {studentHistory.map(h => (
+                                    <div key={h.id} className="text-xs bg-slate-50 dark:bg-slate-800 p-2 rounded flex flex-col">
+                                      <span className="font-bold text-slate-700 dark:text-slate-300">{h.action} <span className="font-normal text-slate-500">— {h.description}</span></span>
+                                      <span className="text-[10px] text-slate-400 mt-1">{new Date(h.date_recorded).toLocaleString()} • Recorded by {h.recorder_name || 'System'}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                             {forms && forms.filter(f => f.student_id === s.id).length > 0 ? (
                               <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
                                 <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Past Digital Enrollment Forms</span>
@@ -391,7 +450,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                                 </ul>
                               </div>
                             ) : (
-                              <p className="text-xs text-slate-500 italic mt-4">No past enrollment forms found in the digital registry.</p>
+                              <p className="text-xs text-slate-500 italic mt-4 border-t pt-4">No past enrollment forms found in the digital registry.</p>
                             )}
                           </div>
                         </div>
@@ -436,33 +495,62 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
         {rows.length === 0 && <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</td></tr>}
       </tbody>
     </table>
+    </div>
   );
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">Student Directory</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage student profiles, academic records, and enrollment.</p>
+      {!isTableView ? (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 md:p-10 min-h-[calc(100vh-120px)]">
+          <div className="mb-8">
+            <h2 className="text-2xl font-black font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">Student Directory</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Select a grade level below to view the list of students.</p>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-            {/* Overall / Per Grade toggle */}
-            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden text-xs font-bold">
-              <button onClick={() => setGradeView('overall')} className={`px-3 py-1.5 transition ${gradeView === 'overall' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Overall</button>
-              <button onClick={() => setGradeView('grade')} className={`px-3 py-1.5 transition border-l border-slate-200 dark:border-slate-700 ${gradeView === 'grade' ? 'bg-brand-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>Per Grade</button>
-            </div>
-            {['Registrar', 'Principal'].includes(currentRole) && (
-              <button onClick={() => setShowEndYearConfirm(true)} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium shadow-sm flex items-center text-sm w-full sm:w-auto justify-center">
-                <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                End School Year
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            {GRADES.map(grade => (
+              <button
+                key={grade}
+                onClick={() => setSelectedGradeTile(grade)}
+                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center hover:bg-brand-600 hover:text-white hover:border-brand-600 dark:hover:bg-brand-600 dark:hover:text-white transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1"
+              >
+                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-500 transition-colors shadow-sm">
+                  <svg className="w-8 h-8 text-brand-600 dark:text-brand-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  </svg>
+                </div>
+                <span className="font-bold text-lg text-slate-800 dark:text-slate-200 group-hover:text-white transition-colors">{grade}</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-brand-100 mt-2 transition-colors">
+                  {students.filter(s => s.grade_level === grade).length} Students
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-[calc(100vh-120px)]">
+        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+          <div className="flex items-center gap-4">
+            {selectedGradeTile && (
+              <button 
+                onClick={() => { setSelectedGradeTile(null); setSearchQuery(''); }}
+                className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+                title="Back to Grade Levels"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
               </button>
             )}
+            <div>
+              <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white uppercase">
+                {selectedGradeTile ? `${selectedGradeTile} Students` : 'Search Results'}
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage student profiles, academic records, and enrollment.</p>
+            </div>
           </div>
         </div>
         
         {/* Filtering & Search Toolbar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-4">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-4 shrink-0">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -509,20 +597,6 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 {status}
               </button>
             ))}
-            <div className="h-6 w-px bg-slate-300 dark:bg-slate-700 mx-2 self-center hidden sm:block"></div>
-            {['All', ...GRADES].map(grade => (
-              <button 
-                key={grade} 
-                onClick={() => setGradeFilter(grade)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                  gradeFilter === grade 
-                    ? 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' 
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                {grade === 'All' ? 'All Grades' : grade}
-              </button>
-            ))}
           </div>
 
           <div className="flex flex-wrap gap-2 mt-1">
@@ -542,26 +616,16 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          {gradeView === 'overall' ? (
-            renderStudentTable(filteredStudents)
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-700">
-              {gradeGroups.map(group => (
-                <div key={group.grade}>
-                  <div className="px-6 py-3 bg-slate-50 dark:bg-slate-700/50">
-                    <span className="text-xs font-bold font-cinzel tracking-widest text-brand-700 dark:text-brand-400 uppercase">{group.grade}</span>
-                    <span className="ml-2 text-xs text-slate-400">({group.students.length} students)</span>
-                  </div>
-                  {renderStudentTable(group.students)}
-                </div>
-              ))}
-              {gradeGroups.length === 0 && <div className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</div>}
-            </div>
+        {/* Scrollable Table Area */}
+        <div className="flex-1 min-h-0 relative bg-white dark:bg-slate-900 overflow-y-auto">
+          {renderStudentTable(
+            selectedGradeTile 
+              ? filteredStudents.filter(s => s.grade_level === selectedGradeTile) 
+              : filteredStudents
           )}
         </div>
       </div>
-
+      )}
     {/* The View modal was here. Now it is moved to inline sub-row */}
 
       {/* Edit Modal */}

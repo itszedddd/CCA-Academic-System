@@ -29,7 +29,7 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
   };
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
       {/* Logo */}
       <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-center items-center">
         <img src="/cca-logo-v2-light.png" alt="CCA EduSys" className="h-20 w-auto object-contain dark:hidden py-1" />

@@ -141,10 +141,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
             <h2 className={`text-3xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-[#022868]'}`}>
               {step === 6 ? 'Check Application Status' : 'Online Pre-Registration'}
             </h2>
-            {step >= 1 && step <= 4 && (
-              <button type="button" onClick={() => window.print()} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${isDarkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+            {step >= 1 && step <= 5 && (
+              <button type="button" onClick={() => window.print()} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all print:hidden ${isDarkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                Print Form
+                Print PDF / Download Form
               </button>
             )}
           </div>
@@ -180,7 +180,6 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
               <div className="hidden md:flex justify-between items-center mb-10 relative print:hidden">
                 <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 z-0 rounded-full"></div>
                 <div className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-[#022868] z-0 rounded-full transition-all duration-500" style={{ width: `${((step - 1) / 3) * 100}%` }}></div>
-                
                 {[
                   { num: 1, label: 'Student Info' },
                   { num: 2, label: 'Medical History' },
@@ -198,93 +197,48 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                 ))}
               </div>
 
-              {/* Step 1: Student Information & ID */}
+              {/* Step 1: Student Information */}
               {step === 1 && (
                 <div className="space-y-6 animate-fade-in-up">
                   <div className="pb-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-end">
                     <div>
-                      <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Student & ID Information</h3>
+                      <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Student &amp; ID Information</h3>
                       <p className="text-slate-500 text-sm mt-1">Please fill out all required details accurately for official records.</p>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <label className={labelClass}>First Name *</label>
-                      <input required name="student_first_name" value={formData.student_first_name} onChange={handleChange} className={inputClass} placeholder="e.g. Juan" />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Middle Name</label>
-                      <input name="middle_name" value={formData.middle_name} onChange={handleChange} className={inputClass} placeholder="e.g. Dela" />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Last Name *</label>
-                      <input required name="student_last_name" value={formData.student_last_name} onChange={handleChange} className={inputClass} placeholder="e.g. Cruz" />
-                    </div>
+                    <div><label className={labelClass}>First Name *</label><input required name="student_first_name" value={formData.student_first_name} onChange={handleChange} className={inputClass} placeholder="e.g. Juan" /></div>
+                    <div><label className={labelClass}>Middle Name</label><input name="middle_name" value={formData.middle_name} onChange={handleChange} className={inputClass} placeholder="e.g. Dela" /></div>
+                    <div><label className={labelClass}>Last Name *</label><input required name="student_last_name" value={formData.student_last_name} onChange={handleChange} className={inputClass} placeholder="e.g. Cruz" /></div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div>
                       <label className={labelClass}>Grade Applying For *</label>
                       <select required name="grade_applying_for" value={formData.grade_applying_for} onChange={handleChange} className={inputClass}>
                         <option value="">Select Grade</option>
-                        <option>Pre-Kinder</option>
-                        <option>Kinder</option>
-                        <option>Grade 1</option>
-                        <option>Grade 2</option>
-                        <option>Grade 3</option>
-                        <option>Grade 4</option>
-                        <option>Grade 5</option>
-                        <option>Grade 6</option>
-                        <option>Grade 7</option>
-                        <option>Grade 8</option>
-                        <option>Grade 9</option>
-                        <option>Grade 10</option>
-                        <option>Grade 11</option>
-                        <option>Grade 12</option>
+                        <option>Pre-Kinder</option><option>Kinder</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
                       </select>
                     </div>
-                    <div>
-                      <label className={labelClass}>Sex *</label>
-                      <select required name="sex" value={formData.sex} onChange={handleChange} className={inputClass}>
-                        <option>Male</option>
-                        <option>Female</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>Birth Date *</label>
-                      <input required type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} className={inputClass} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Contact Number *</label>
-                      <input required name="contact_number" value={formData.contact_number} onChange={handleChange} className={inputClass} placeholder="e.g. 09123456789" />
-                    </div>
+                    <div><label className={labelClass}>Sex *</label><select required name="sex" value={formData.sex} onChange={handleChange} className={inputClass}><option>Male</option><option>Female</option></select></div>
+                    <div><label className={labelClass}>Birth Date *</label><input required type="date" name="birth_date" value={formData.birth_date} onChange={handleChange} className={inputClass} /></div>
+                    <div><label className={labelClass}>Contact Number *</label><input required name="contact_number" value={formData.contact_number} onChange={handleChange} className={inputClass} placeholder="e.g. 09123456789" /></div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><label className={labelClass}>Birth Place</label><input name="birth_place" value={formData.birth_place} onChange={handleChange} className={inputClass} /></div>
                     <div>
-                      <label className={labelClass}>Birth Place</label>
-                      <input name="birth_place" value={formData.birth_place} onChange={handleChange} className={inputClass} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Nationality & Religion</label>
+                      <label className={labelClass}>Nationality &amp; Religion</label>
                       <div className="flex gap-2">
                         <input name="nationality" value={formData.nationality} onChange={handleChange} className={`${inputClass} w-1/2`} placeholder="Nationality" />
                         <input name="religion" value={formData.religion} onChange={handleChange} className={`${inputClass} w-1/2`} placeholder="Religion" />
                       </div>
                     </div>
                   </div>
-
-                  <div>
-                    <label className={labelClass}>Complete Home Address *</label>
-                    <input required name="home_address" value={formData.home_address} onChange={handleChange} className={inputClass} placeholder="House No., Street, Brgy, City/Municipality, Province" />
-                  </div>
-
+                  <div><label className={labelClass}>Complete Home Address *</label><input required name="home_address" value={formData.home_address} onChange={handleChange} className={inputClass} placeholder="House No., Street, Brgy, City/Municipality, Province" /></div>
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                    <h4 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Parents & Guardian Info</h4>
+                    <h4 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Parents &amp; Guardian Info</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                        <label className={labelClass}>Father's Name</label>
+                        <label className={labelClass}>Father&apos;s Name</label>
                         <input name="father_name" value={formData.father_name} onChange={handleChange} className={`${inputClass} mb-3`} />
                         <label className={labelClass}>Contact Number</label>
                         <input name="father_contact" value={formData.father_contact} onChange={handleChange} className={`${inputClass} mb-3`} />
@@ -294,9 +248,8 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                           <input name="father_employer" value={formData.father_employer} onChange={handleChange} className={`${inputClass} w-1/2`} placeholder="Employer" />
                         </div>
                       </div>
-                      
                       <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                        <label className={labelClass}>Mother's Maiden Name</label>
+                        <label className={labelClass}>Mother&apos;s Maiden Name</label>
                         <input name="mother_name" value={formData.mother_name} onChange={handleChange} className={`${inputClass} mb-3`} />
                         <label className={labelClass}>Contact Number</label>
                         <input name="mother_contact" value={formData.mother_contact} onChange={handleChange} className={`${inputClass} mb-3`} />
@@ -308,22 +261,11 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                       </div>
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className={labelClass}>Emergency Contact Name *</label>
-                      <input required name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className={inputClass} placeholder="Person to contact in case of emergency" />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Emergency Contact Number *</label>
-                      <input required name="emergency_contact_number" value={formData.emergency_contact_number} onChange={handleChange} className={inputClass} />
-                    </div>
+                    <div><label className={labelClass}>Emergency Contact Name *</label><input required name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className={inputClass} placeholder="Person to contact in case of emergency" /></div>
+                    <div><label className={labelClass}>Emergency Contact Number *</label><input required name="emergency_contact_number" value={formData.emergency_contact_number} onChange={handleChange} className={inputClass} /></div>
                   </div>
-                  
-                  <div>
-                      <label className={labelClass}>Previous School Attended</label>
-                      <input name="previous_school" value={formData.previous_school} onChange={handleChange} className={inputClass} placeholder="Name of previous school" />
-                  </div>
+                  <div><label className={labelClass}>Previous School Attended</label><input name="previous_school" value={formData.previous_school} onChange={handleChange} className={inputClass} placeholder="Name of previous school" /></div>
                 </div>
               )}
 
@@ -331,34 +273,15 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
               {step === 2 && (
                 <div className="space-y-6 animate-fade-in-up">
                   <div className="pb-4 border-b border-slate-200 dark:border-slate-700">
-                    <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Medical & Health Form</h3>
+                    <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Medical &amp; Health Form</h3>
                     <p className="text-slate-500 text-sm mt-1">This information helps us ensure the safety and well-being of the student.</p>
                   </div>
-
-                  <div>
-                    <label className={labelClass}>Known Allergies</label>
-                    <textarea name="allergies" value={formData.allergies} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="List any food, medication, or environmental allergies. Type 'None' if none." />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Medical Conditions</label>
-                    <textarea name="medical_conditions" value={formData.medical_conditions} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="E.g., Asthma, Diabetes, Epilepsy, etc. Type 'None' if none." />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Current Medications</label>
-                    <textarea name="current_medications" value={formData.current_medications} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="List any maintenance or current medications." />
-                  </div>
-
+                  <div><label className={labelClass}>Known Allergies</label><textarea name="allergies" value={formData.allergies} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="List any food, medication, or environmental allergies. Type 'None' if none." /></div>
+                  <div><label className={labelClass}>Medical Conditions</label><textarea name="medical_conditions" value={formData.medical_conditions} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="E.g., Asthma, Diabetes, Epilepsy, etc. Type 'None' if none." /></div>
+                  <div><label className={labelClass}>Current Medications</label><textarea name="current_medications" value={formData.current_medications} onChange={handleChange} className={`${inputClass} min-h-[100px]`} placeholder="List any maintenance or current medications." /></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className={labelClass}>Family Physician Name (Optional)</label>
-                      <input name="physician_name" value={formData.physician_name} onChange={handleChange} className={inputClass} />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Physician Contact Number (Optional)</label>
-                      <input name="physician_contact" value={formData.physician_contact} onChange={handleChange} className={inputClass} />
-                    </div>
+                    <div><label className={labelClass}>Family Physician Name (Optional)</label><input name="physician_name" value={formData.physician_name} onChange={handleChange} className={inputClass} /></div>
+                    <div><label className={labelClass}>Physician Contact Number (Optional)</label><input name="physician_contact" value={formData.physician_contact} onChange={handleChange} className={inputClass} /></div>
                   </div>
                 </div>
               )}
@@ -369,30 +292,17 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                   <div className="pb-4 border-b border-slate-200 dark:border-slate-700">
                     <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Waiver for Progressive Face-to-Face Classes</h3>
                   </div>
-
                   <div className={`p-6 rounded-xl border h-96 overflow-y-auto text-sm leading-relaxed space-y-4 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
                     <h4 className="font-bold text-center uppercase">Parental Consent and Waiver</h4>
                     <p>I/We, the parents/guardians of the above-named student, hereby allow my/our child to participate in the progressive implementation of face-to-face classes at Calvary Christian Academy.</p>
                     <p>I/We acknowledge the following:</p>
                     <ul className="list-disc pl-5 space-y-4">
-                      <li className="flex items-start gap-3">
-                        <input type="checkbox" name="waiver_agreed_1" checked={formData.waiver_agreed_1} onChange={handleChange} className="mt-1 cursor-pointer" />
-                        <span>The school has implemented safety protocols to mitigate the risk of COVID-19 and other communicable diseases.</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <input type="checkbox" name="waiver_agreed_2" checked={formData.waiver_agreed_2} onChange={handleChange} className="mt-1 cursor-pointer" />
-                        <span>Participation in face-to-face classes carries inherent risks, and I/we voluntarily assume these risks on behalf of my/our child.</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <input type="checkbox" name="waiver_agreed_3" checked={formData.waiver_agreed_3} onChange={handleChange} className="mt-1 cursor-pointer" />
-                        <span>I/We will ensure that my/our child complies with all health and safety guidelines established by the school.</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <input type="checkbox" name="waiver_agreed_4" checked={formData.waiver_agreed_4} onChange={handleChange} className="mt-1 cursor-pointer" />
-                        <span>I/We will immediately inform the school and keep my/our child at home if they exhibit any symptoms of illness.</span>
-                      </li>
+                      <li className="flex items-start gap-3"><input type="checkbox" name="waiver_agreed_1" checked={formData.waiver_agreed_1} onChange={handleChange} className="mt-1 cursor-pointer" /><span>The school has implemented safety protocols to mitigate the risk of COVID-19 and other communicable diseases.</span></li>
+                      <li className="flex items-start gap-3"><input type="checkbox" name="waiver_agreed_2" checked={formData.waiver_agreed_2} onChange={handleChange} className="mt-1 cursor-pointer" /><span>Participation in face-to-face classes carries inherent risks, and I/we voluntarily assume these risks on behalf of my/our child.</span></li>
+                      <li className="flex items-start gap-3"><input type="checkbox" name="waiver_agreed_3" checked={formData.waiver_agreed_3} onChange={handleChange} className="mt-1 cursor-pointer" /><span>I/We will ensure that my/our child complies with all health and safety guidelines established by the school.</span></li>
+                      <li className="flex items-start gap-3"><input type="checkbox" name="waiver_agreed_4" checked={formData.waiver_agreed_4} onChange={handleChange} className="mt-1 cursor-pointer" /><span>I/We will immediately inform the school and keep my/our child at home if they exhibit any symptoms of illness.</span></li>
                     </ul>
-                    <p>I/We release Calvary Christian Academy, its administrators, teachers, and staff from any liability, claims, or demands related to any illness or injury that may arise from my/our child's participation in face-to-face classes, provided the school has acted with due diligence and care.</p>
+                    <p>I/We release Calvary Christian Academy, its administrators, teachers, and staff from any liability, claims, or demands related to any illness or injury that may arise from my/our child&apos;s participation in face-to-face classes, provided the school has acted with due diligence and care.</p>
                   </div>
                 </div>
               )}
@@ -401,9 +311,8 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
               {step === 4 && (
                 <div className="space-y-6 animate-fade-in-up">
                   <div className="pb-4 border-b border-slate-200 dark:border-slate-700">
-                    <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Data Privacy & Consent Form</h3>
+                    <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Data Privacy &amp; Consent Form</h3>
                   </div>
-
                   <div className={`p-6 rounded-xl border h-96 overflow-y-auto text-sm leading-relaxed space-y-4 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
                     <h4 className="font-bold text-center uppercase">Consent and Data Privacy Policy</h4>
                     <p>In compliance with the Data Privacy Act of 2012 (R.A. 10173), Calvary Christian Academy (CCA) is committed to protecting your personal information.</p>
@@ -412,11 +321,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <p><strong>Photo and Video Release:</strong> I/We grant CCA the right to take photographs and videos of my/our child during school activities. I/We authorize the school to use these materials for educational and promotional purposes in print and digital media, including the official school website and social media pages.</p>
                     <p><strong>Consent:</strong> By submitting this form, I/we hereby give consent to CCA to collect, process, and store the information provided.</p>
                   </div>
-
                   <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.consent_agreed ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({...formData, consent_agreed: !formData.consent_agreed})}>
                     <input type="checkbox" name="consent_agreed" checked={formData.consent_agreed} onChange={handleChange} className="mt-1 w-5 h-5 cursor-pointer" />
                     <div>
-                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I understand all the Consent & Data Privacy form. *</h5>
+                      <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I understand all the Consent &amp; Data Privacy form. *</h5>
                       <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>By checking this box, I grant consent for data processing and media release as described above.</p>
                     </div>
                   </div>
@@ -438,6 +346,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
               </div>
             </form>
           )}
+
 
           {/* Step 5: Success Page */}
           {step === 5 && (

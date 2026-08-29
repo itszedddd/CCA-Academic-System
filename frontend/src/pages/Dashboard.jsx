@@ -13,6 +13,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   const [aiInsights, setAiInsights] = useState([]);
   const [enrollmentTrends, setEnrollmentTrends] = useState(null);
   const [studentPopulation, setStudentPopulation] = useState(null);
+  const [registrarStats, setRegistrarStats] = useState(null);
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   
@@ -95,6 +96,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             }
           }).catch(()=>{});
       }
+    }
+
+    if (currentRole === 'Registrar') {
+      authFetch('/api/registrar/dashboard-stats').then(r => r?.ok ? r.json() : null).then(setRegistrarStats).catch(()=>{});
     }
 
     // Fetch new dashboard widgets
@@ -307,8 +312,14 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       ) : (
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest">Institution Overview</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">AI-driven analytics and academic health tracking.</p>
+            <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest">
+              {currentRole === 'Registrar' ? "REGISTRAR'S DASHBOARD" : "Institution Overview"}
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+              {currentRole === 'Registrar' 
+                ? new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 
+                : "AI-driven analytics and academic health tracking."}
+            </p>
           </div>
           {currentRole === 'Principal' && (
             <button 
@@ -369,15 +380,38 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       })()}
 
       {currentRole === 'Registrar' && (() => {
-        const pend = students.filter(s => s.enrollment_status === 'Pending' || s.enrollment_status === 'Hold: Incomplete Req').length;
-        const lackingDocsCount = students.filter(s => !s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures).length;
-        
+        if (!registrarStats) return <div className="animate-pulse h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>;
         return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            <StatCard label="Total Body" value={students.length} sub="Registered Students" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            <StatCard label="Active Status" value={enrolledCount} sub="Fully Enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <StatCard label="Pending Action" value={pend} sub="Awaiting Enrollment" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <StatCard label="Lacking Docs" value={lackingDocsCount} sub="Incomplete requirements" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <StatCard label="Total Old Students" value={registrarStats.old_students} sub="Continuing Students" color="text-indigo-500" icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                <StatCard label="Total New Students" value={registrarStats.new_students} sub="Incoming Students" color="text-green-500" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                <StatCard label="All Students With Incomplete Requirements" value={registrarStats.incomplete_requirements} sub="Missing documents" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <StatCard label="All Students Requesting Documents" value={registrarStats.pending_document_requests} sub="Document requests" color="text-amber-500" icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 min-h-[400px] flex flex-col">
+                <div className="flex items-center mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
+                    <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
+                  </div>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
+                  <p className="font-bold">Sample Commands:</p>
+                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Generate enrollment report"</p>
+                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show students with incomplete requirements"</p>
+                </div>
+                <div className="flex-1 min-h-0 relative">
+                  <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" />
+                </div>
+              </div>
+            </div>
           </div>
         );
       })()}
@@ -600,8 +634,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
       </div>
 
-      {/* Population & Enrollment Trends (Registrar / Admission) */}
-      {(currentRole === 'Registrar' || currentRole === 'Admission' || currentRole === 'Principal') && (
+      {/* Population & Enrollment Trends (Registrar / Principal) */}
+      {(currentRole === 'Registrar' || currentRole === 'Principal') && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Student Population Breakdown */}
@@ -866,12 +900,21 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                 </div>
               )}
 
-              {currentRole === 'Teacher' && user?.section && (
+              {(currentRole === 'Teacher' || currentRole === 'Registrar') && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1">Target Section</label>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Target Audience</label>
                   <select className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.target_section} onChange={e => setPostForm({...postForm, target_section: e.target.value})}>
-                    <option value="">All Sections (Public)</option>
-                    <option value={user.section}>{user.section} (My Section Only)</option>
+                    <option value="">All Students (Public)</option>
+                    {currentRole === 'Teacher' && user?.section && (
+                      <option value={user.section}>{user.section} (My Section Only)</option>
+                    )}
+                    {currentRole === 'Registrar' && (
+                      <>
+                        {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => (
+                          <option key={grade} value={grade}>{grade}</option>
+                        ))}
+                      </>
+                    )}
                   </select>
                 </div>
               )}

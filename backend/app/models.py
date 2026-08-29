@@ -257,3 +257,30 @@ class Event(Base):
     target_section = Column(String, nullable=True)  # Section name or None for all
 
     creator = relationship("User")
+
+class DocumentRequest(Base):
+    __tablename__ = "document_requests"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"))
+    document_type = Column(String) # TOR, Form 137, Certified True Copies, etc.
+    status = Column(String, default="Pending") # Pending, Processing, Ready, Released, Rejected
+    date_requested = Column(String)
+    date_processed = Column(String, nullable=True)
+    processed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    remarks = Column(String, nullable=True)
+
+    student = relationship("Student")
+    processor = relationship("User")
+
+class StudentHistory(Base):
+    __tablename__ = "student_history"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"))
+    action = Column(String)
+    description = Column(String, nullable=True)
+    date_recorded = Column(String)
+    recorded_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    student = relationship("Student")
+    recorder = relationship("User")
+

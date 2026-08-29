@@ -7,7 +7,7 @@ api_key = os.environ.get("GEMINI_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)
     # Using the standard gemini model for text
-    model = genai.GenerativeModel('gemini-3.6-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     model = None
 
@@ -51,4 +51,18 @@ def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, An
         return response.text
     except Exception as e:
         print(f"AI Assistant Error: {e}")
-        return "I'm sorry, I'm having trouble processing your request right now. Please try again later."
+        
+        # Fallback offline logic if quota exceeded or key missing
+        msg_lower = message.lower()
+        if "role" in msg_lower or "who am i" in msg_lower:
+            return f"You are currently logged in as a {user_role}. This gives you access to specific features in the CCA EduSys portal."
+        elif "fee" in msg_lower or "tuition" in msg_lower:
+            return "Tuition fees depend on the Grade Level and your Membership Type (CBC Member vs Non-Member). Please check the Financial Collection section or contact the Cashier."
+        elif "enroll" in msg_lower or "register" in msg_lower:
+            return "To enroll or register, please navigate to the Digital Forms or Student Enrollment section on your dashboard."
+        elif "clearance" in msg_lower:
+            return "Student clearances require approvals from Subjects, Library, Clinic, Cashier, Principal, and Registrar. Check the Clearance module for your status."
+        elif "hello" in msg_lower or "hi" in msg_lower or "hey" in msg_lower:
+            return "Hello! I'm the CCA EduSys AI Assistant. How can I help you today?"
+            
+        return "I'm sorry, the AI service is currently experiencing high traffic or is offline. Please try again later or contact the administrator."

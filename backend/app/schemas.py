@@ -461,3 +461,48 @@ class StudentEnrollmentSubmit(BaseModel):
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
 
+
+# ---------------------------------------------------------------------------
+# Document Requests
+# ---------------------------------------------------------------------------
+class DocumentRequestBase(BaseModel):
+    student_id: int
+    document_type: str
+    remarks: Optional[str] = None
+
+class DocumentRequestCreate(DocumentRequestBase):
+    pass
+
+class DocumentRequestUpdate(BaseModel):
+    status: Optional[str] = None
+    remarks: Optional[str] = None
+
+class DocumentRequest(DocumentRequestBase):
+    id: int
+    status: str = "Pending"
+    date_requested: str
+    date_processed: Optional[str] = None
+    processed_by: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# Student History / Action Log
+# ---------------------------------------------------------------------------
+class StudentHistoryBase(BaseModel):
+    student_id: int
+    action: str
+    description: Optional[str] = None
+
+class StudentHistoryCreate(StudentHistoryBase):
+    pass
+
+class StudentHistory(StudentHistoryBase):
+    id: int
+    date_recorded: str
+    recorded_by: Optional[int] = None
+
+    class Config:
+        from_attributes = True

@@ -9,6 +9,7 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [historyYear, setHistoryYear] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('All');
 
   const archivedStatuses = ['Archived', 'Graduated', 'Dropped', 'Transferred'];
 
@@ -17,12 +18,16 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
 
   const filteredOldStudents = oldStudents.filter(s => {
     const search = searchQuery.toLowerCase();
-    return `${s.first_name} ${s.last_name}`.toLowerCase().includes(search) || String(s.id).includes(search);
+    const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(search) || String(s.id).includes(search);
+    const matchesGrade = gradeFilter === 'All' || s.grade_level === gradeFilter;
+    return matchesSearch && matchesGrade;
   });
 
   const filteredActiveStudents = activeStudents.filter(s => {
     const search = searchQuery.toLowerCase();
-    return `${s.first_name} ${s.last_name}`.toLowerCase().includes(search) || String(s.id).includes(search);
+    const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(search) || String(s.id).includes(search);
+    const matchesGrade = gradeFilter === 'All' || s.grade_level === gradeFilter;
+    return matchesSearch && matchesGrade;
   });
 
   const handleView = async (id) => {
@@ -48,41 +53,69 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
     }
   };
 
-  const renderStudentTable = (rows) => (
-    <table className="w-full text-left">
-      <thead>
-        <tr className="bg-slate-50 dark:bg-slate-700/50 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-          <th className="px-6 py-3">ID</th>
-          <th className="px-6 py-3">Name</th>
-          <th className="px-6 py-3">Current Grade</th>
-          <th className="px-6 py-3">Status</th>
-          <th className="px-6 py-3 text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
-        {rows.map(s => {
-          const isExpanded = expandedStudentId === s.id && selectedStudent?.id === s.id;
-          
-          return (
-            <Fragment key={s.id}>
-              <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer" onClick={() => handleView(s.id)}>
-                <td className="px-6 py-4 text-sm font-bold text-slate-500">#{String(s.id).padStart(4,'0')}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                  {s.grade_level}
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full ${s.enrollment_status === 'Graduated' ? 'bg-amber-100 text-amber-700 border border-amber-200' : s.enrollment_status === 'Archived' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' : 'bg-red-100 text-red-700'}`}>{s.enrollment_status}</span>
-                </td>
-                <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                  <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-brand-600 hover:text-brand-800 transition font-bold">{isExpanded ? 'Hide Records' : 'View Records'}</button>
-                </td>
-              </tr>
-              {isExpanded && (
+  const renderStudentTable = (rows) => {
+    const grouped = {};
+    rows.forEach(r => {
+      const g = r.grade_level || 'Unassigned';
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(r);
+    });
+    
+    // Sort grades
+    const sortedGrades = Object.keys(grouped).sort((a,b) => {
+      const idxA = GRADES.indexOf(a);
+      const idxB = GRADES.indexOf(b);
+      return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+    });
+
+    if (sortedGrades.length === 0) {
+      return (
+        <table className="w-full text-left">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+            <tr><td className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No records found.</td></tr>
+          </tbody>
+        </table>
+      );
+    }
+
+    return (
+      <div className="space-y-6 bg-slate-50 dark:bg-slate-900/50 p-6">
+        {sortedGrades.map(grade => (
+          <div key={grade} className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="bg-slate-100 dark:bg-slate-800/80 px-6 py-3 font-bold text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <span>{grade}</span>
+              <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs px-2 py-0.5 rounded-full">{grouped[grade].length} students</span>
+            </div>
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-white dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                  <th className="px-6 py-3 w-32">ID</th>
+                  <th className="px-6 py-3">Name</th>
+                  <th className="px-6 py-3">Status</th>
+                  <th className="px-6 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {grouped[grade].map(s => {
+                  const isExpanded = expandedStudentId === s.id && selectedStudent?.id === s.id;
+                  
+                  return (
+                    <Fragment key={s.id}>
+                      <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => handleView(s.id)}>
+                        <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(s.id).padStart(4,'0')}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full ${s.enrollment_status === 'Graduated' ? 'bg-amber-100 text-amber-700 border border-amber-200' : s.enrollment_status === 'Archived' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' : 'bg-red-100 text-red-700'}`}>{s.enrollment_status}</span>
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
+                          <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-brand-600 hover:text-brand-800 transition font-bold">{isExpanded ? 'Hide Records' : 'View Records'}</button>
+                        </td>
+                      </tr>
+                      {isExpanded && (
                 <tr>
                   <td colSpan="5" className="p-0 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                     <div className="p-6">
@@ -182,12 +215,15 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
                 </tr>
               )}
             </Fragment>
-          );
-        })}
-        {rows.length === 0 && <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No records found.</td></tr>}
-      </tbody>
-    </table>
-  );
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -218,6 +254,16 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
+          </div>
+          <div className="flex-shrink-0">
+            <select 
+              value={gradeFilter} 
+              onChange={(e) => setGradeFilter(e.target.value)}
+              className="px-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <option value="All">All Grades</option>
+              {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
           </div>
         </div>
 

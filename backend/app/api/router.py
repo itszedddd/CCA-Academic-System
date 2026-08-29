@@ -1774,8 +1774,8 @@ def create_student_clearance(clearance: schemas.StudentClearanceCreate, db: Sess
     db.commit()
     db.refresh(db_clearance)
     
-    # Auto-generate items for standard departments
-    departments = ["Cashier", "Library", "Clinic", "Registrar", "Principal"]
+    # Auto-generate items for standard departments in sequence
+    departments = ["Subjects", "Library", "Clinic", "Cashier", "Principal", "Registrar"]
     for dept in departments:
         item = models.ClearanceItem(
             clearance_id=db_clearance.id,
@@ -1790,10 +1790,25 @@ def create_student_clearance(clearance: schemas.StudentClearanceCreate, db: Sess
 
 @aesms_router.put("/clearances/items/{item_id}", response_model=schemas.ClearanceItem)
 def update_clearance_item(item_id: int, payload: schemas.ClearanceItemBase, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    """Update a specific clearance item (e.g. mark as Cleared by Cashier)."""
+    """Update a specific clearance item (e.g. mark as Cleared by Cashier). Enforces sequence."""
     item = db.query(models.ClearanceItem).filter(models.ClearanceItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Clearance item not found")
+        
+    if payload.status == "Cleared":
+        # Check sequence
+        clearance = db.query(models.StudentClearance).filter(models.StudentClearance.id == item.clearance_id).first()
+        departments_order = ["Subjects", "Library", "Clinic", "Cashier", "Principal", "Registrar"]
+        try:
+            dept_index = departments_order.index(item.department)
+        except ValueError:
+            dept_index = -1
+            
+        if dept_index > 0:
+            prev_dept = departments_order[dept_index - 1]
+            prev_item = next((i for i in clearance.items if i.department == prev_dept), None)
+            if prev_item and prev_item.status != "Cleared":
+                raise HTTPException(status_code=400, detail=f"Cannot clear {item.department}. {prev_dept} must be cleared first.")
         
     item.status = payload.status
     item.remarks = payload.remarks
@@ -1848,4 +1863,207 @@ def ai_chat(payload: ChatMessage, current_user: models.User = Depends(get_curren
     """Endpoint for the floating AI assistant widget."""
     response = chat_with_assistant(payload.message, current_user.role)
     return {"response": response}
+
+
+# ---------------------------------------------------------------------------
+# Document Requests (V2.2)
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/document-requests/")
+def list_document_requests(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """List document requests. Registrar/Principal see all, students see their own."""
+    if current_user.role in ["Principal", "Registrar", "Superadmin"]:
+        reqs = db.query(models.DocumentRequest).all()
+    elif current_user.role in ["Student", "Parent"]:
+        reqs = db.query(models.DocumentRequest).filter(models.DocumentRequest.student_id == current_user.student_id).all()
+    else:
+        reqs = []
+    # Enrich with student name
+    results = []
+    for r in reqs:
+        student = db.query(models.Student).filter(models.Student.id == r.student_id).first()
+        results.append({
+            "id": r.id,
+            "student_id": r.student_id,
+            "student_name": f"{student.last_name}, {student.first_name}" if student else "Unknown",
+            "student_grade": student.grade_level if student else "",
+            "document_type": r.document_type,
+            "status": r.status,
+            "date_requested": r.date_requested,
+            "date_processed": r.date_processed,
+            "processed_by": r.processed_by,
+            "remarks": r.remarks,
+        })
+    return results
+
+@aesms_router.post("/document-requests/")
+def create_document_request(payload: schemas.DocumentRequestCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Create a new document request."""
+    new_req = models.DocumentRequest(
+        student_id=payload.student_id,
+        document_type=payload.document_type,
+        remarks=payload.remarks,
+        date_requested=datetime.now().isoformat(),
+        status="Pending",
+    )
+    db.add(new_req)
+    db.commit()
+    db.refresh(new_req)
+    # Log history
+    history = models.StudentHistory(
+        student_id=payload.student_id,
+        action="Document Request",
+        description=f"Requested {payload.document_type}",
+        date_recorded=datetime.now().isoformat(),
+        recorded_by=current_user.id,
+    )
+    db.add(history)
+    db.commit()
+    return new_req
+
+@aesms_router.put("/document-requests/{request_id}")
+def update_document_request(request_id: int, payload: schemas.DocumentRequestUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Update a document request status (Registrar/Principal only)."""
+    if current_user.role not in ["Principal", "Registrar", "Superadmin"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    req = db.query(models.DocumentRequest).filter(models.DocumentRequest.id == request_id).first()
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    if payload.status:
+        req.status = payload.status
+    if payload.remarks is not None:
+        req.remarks = payload.remarks
+    if payload.status in ["Ready", "Released", "Rejected"]:
+        req.date_processed = datetime.now().isoformat()
+        req.processed_by = current_user.id
+    db.commit()
+    db.refresh(req)
+    # Log history
+    history = models.StudentHistory(
+        student_id=req.student_id,
+        action="Document Request Updated",
+        description=f"{req.document_type} marked as {req.status}",
+        date_recorded=datetime.now().isoformat(),
+        recorded_by=current_user.id,
+    )
+    db.add(history)
+    db.commit()
+    return req
+
+
+# ---------------------------------------------------------------------------
+# Student History / Action Log (V2.2)
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/student-history/{student_id}")
+def get_student_history(student_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Get history of actions for a student."""
+    history = db.query(models.StudentHistory).filter(models.StudentHistory.student_id == student_id).order_by(models.StudentHistory.id.desc()).all()
+    results = []
+    for h in history:
+        recorder = db.query(models.User).filter(models.User.id == h.recorded_by).first() if h.recorded_by else None
+        results.append({
+            "id": h.id,
+            "student_id": h.student_id,
+            "action": h.action,
+            "description": h.description,
+            "date_recorded": h.date_recorded,
+            "recorded_by": h.recorded_by,
+            "recorder_name": recorder.username if recorder else None,
+        })
+    return results
+
+@aesms_router.post("/student-history/")
+def create_student_history(payload: schemas.StudentHistoryCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Create a manual history entry."""
+    entry = models.StudentHistory(
+        student_id=payload.student_id,
+        action=payload.action,
+        description=payload.description,
+        date_recorded=datetime.now().isoformat(),
+        recorded_by=current_user.id,
+    )
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+# ---------------------------------------------------------------------------
+# Password Validation (V2.2 - Section 5.10)
+# ---------------------------------------------------------------------------
+
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@aesms_router.post("/auth/change-password")
+def change_password(payload: PasswordChangeRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Change password with strength validation."""
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    new_pw = payload.new_password
+    # Enforce password strength
+    errors = []
+    if len(new_pw) < 8:
+        errors.append("Password must be at least 8 characters long")
+    if not any(c.isupper() for c in new_pw):
+        errors.append("Password must contain at least one uppercase letter")
+    if not any(c.islower() for c in new_pw):
+        errors.append("Password must contain at least one lowercase letter")
+    if not any(c.isdigit() for c in new_pw):
+        errors.append("Password must contain at least one number")
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:',.<>?/~`" for c in new_pw):
+        errors.append("Password must contain at least one special character")
+    if errors:
+        raise HTTPException(status_code=400, detail="; ".join(errors))
+    
+    current_user.hashed_password = get_password_hash(new_pw)
+    db.commit()
+    
+    # Log history if linked to a student
+    if current_user.student_id:
+        history = models.StudentHistory(
+            student_id=current_user.student_id,
+            action="Password Changed",
+            description="Password was changed by user",
+            date_recorded=datetime.now().isoformat(),
+            recorded_by=current_user.id,
+        )
+        db.add(history)
+        db.commit()
+    
+    return {"message": "Password changed successfully"}
+
+
+# ---------------------------------------------------------------------------
+# Registrar Dashboard Stats (V2.2 - Section 5.3)
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/registrar/dashboard-stats")
+def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Get dashboard stats specifically for the Registrar."""
+    all_students = db.query(models.Student).filter(models.Student.is_archived == 0).all()
+    
+    # Count old vs new students (based on enrollment forms/pre-registration)
+    enrolled_forms = db.query(models.EnrollmentForm).all()
+    new_student_ids = set(f.student_id for f in enrolled_forms if f.student_id)
+    
+    old_students = [s for s in all_students if s.id not in new_student_ids]
+    new_students = [s for s in all_students if s.id in new_student_ids]
+    
+    # Incomplete requirements
+    incomplete = [s for s in all_students if not (s.req_birth_cert and s.req_form_138 and s.req_good_moral and s.req_pictures)]
+    
+    # Document requests
+    pending_requests = db.query(models.DocumentRequest).filter(models.DocumentRequest.status == "Pending").count()
+    
+    return {
+        "total_students": len(all_students),
+        "old_students": len(old_students),
+        "new_students": len(new_students),
+        "incomplete_requirements": len(incomplete),
+        "pending_document_requests": pending_requests,
+    }
 
