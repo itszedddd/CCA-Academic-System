@@ -857,7 +857,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           <div className="flex-1 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-700">
             {(() => {
               const uniqueMap = new Map();
-              attendance.filter(a => a.status !== 'Clear').forEach(a => {
+              
+              let validAttendance = attendance.filter(a => a.status !== 'Clear');
+              if (currentRole === 'Teacher') {
+                validAttendance = validAttendance.filter(a => students.some(s => String(s.id) === String(a.student_id)));
+              }
+
+              validAttendance.forEach(a => {
                 const key = isStudent ? a.date : a.student_id;
                 if (!uniqueMap.has(key)) uniqueMap.set(key, a);
               });

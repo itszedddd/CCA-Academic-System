@@ -13,6 +13,9 @@ export default function StudentPortal({ students, attendance, currentRole, user,
   const [myAttendance, setMyAttendance] = useState([]);
   const [tuitions, setTuitions] = useState([]);
   const [myForms, setMyForms] = useState([]);
+  const [myRequests, setMyRequests] = useState([]);
+  const [requestingDoc, setRequestingDoc] = useState(false);
+  const [newRequestType, setNewRequestType] = useState('Form 137');
   
   const [activeDate, setActiveDate] = useState(new Date());
   const handlePrevMonth = () => setActiveDate(new Date(activeDate.getFullYear(), activeDate.getMonth() - 1, 1));
@@ -46,7 +49,25 @@ export default function StudentPortal({ students, attendance, currentRole, user,
     authFetch(`${API}/tuition/`).then(r => r?.ok ? r.json() : []).then(data => setTuitions(data.filter(t => t.student_id === demoStudent.id))).catch(() => {});
     // Fetch enrollment forms for this student
     authFetch(`${API}/enrollment_forms/`).then(r => r?.ok ? r.json() : []).then(data => setMyForms(data.filter(f => f.student_id === demoStudent.id))).catch(() => {});
+    authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(data => setMyRequests(data.filter(d => d.student_id === demoStudent.id))).catch(() => {});
   }, [demoStudent?.id]);
+
+  const handleRequestDocument = async (e) => {
+    e.preventDefault();
+    if (!newRequestType) return;
+    try {
+      const res = await authFetch(`${API}/document-requests/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: demoStudent.id, document_type: newRequestType })
+      });
+      if (res?.ok) {
+        setRequestingDoc(false);
+        authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(data => setMyRequests(data.filter(d => d.student_id === demoStudent.id)));
+        alert("Document requested successfully!");
+      }
+    } catch(e) {}
+  };
 
   if (!demoStudent || !studentData) {
     return (
@@ -361,6 +382,85 @@ export default function StudentPortal({ students, attendance, currentRole, user,
                   )
                 })
               )}
+            </table>
+          </div>
+        </div>
+        
+        {/* Document Requests (Feature 5.7) */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+            <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              My Document Requests
+            </h3>
+            <button 
+              onClick={() => setRequestingDoc(true)}
+              className="bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition shadow-sm uppercase tracking-wider"
+            >
+              Request Document
+            </button>
+          </div>
+          
+          {requestingDoc && (
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
+              <form onSubmit={handleRequestDocument} className="flex flex-col sm:flex-row gap-3 items-end">
+                <div className="flex-1 w-full">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Select Document Type</label>
+                  <select 
+                    value={newRequestType} onChange={e => setNewRequestType(e.target.value)}
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none"
+                  >
+                    <option>Form 137 (Permanent Record)</option>
+                    <option>Transcript of Records (TOR)</option>
+                    <option>Certificate of Good Moral</option>
+                    <option>Certified True Copy of Grades</option>
+                    <option>Certificate of Enrollment</option>
+                  </select>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button type="button" onClick={() => setRequestingDoc(false)} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg uppercase transition">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg uppercase transition">Submit Request</button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-700 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+                  <th className="px-6 py-4">Document</th>
+                  <th className="px-6 py-4">Date Requested</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Remarks</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {myRequests.length === 0 ? (
+                  <tr><td colSpan="4" className="p-6 text-center text-sm text-slate-500">No requests filed.</td></tr>
+                ) : (
+                  myRequests.map(req => (
+                    <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                      <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">{req.document_type}</td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                        {new Date(req.date_requested).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                          req.status === 'Ready' || req.status === 'Released' ? 'bg-green-100 text-green-700' :
+                          req.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {req.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 italic">
+                        {req.remarks || '-'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
           </div>
         </div>

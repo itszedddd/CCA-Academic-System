@@ -79,7 +79,34 @@ export default function Reports({ API, authFetch }) {
                 <span className="text-gray-600 dark:text-gray-300">Transferred</span>
                 <span className="font-medium text-amber-500">{reportData.transferred_count || 0}</span>
               </li>
+              <li className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-300">Expelled</span>
+                <span className="font-medium text-purple-600">0</span>
+              </li>
             </ul>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm md:col-span-2">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Student Academics</h3>
+            <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider font-bold">Percentage of students passing in each subject (Mock Data)</p>
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-bold text-brand-700 dark:text-brand-400 mb-2">SY: 2026-2027</h4>
+                <ul className="space-y-2 pl-4 border-l-2 border-brand-200 dark:border-brand-800">
+                  <li className="text-sm"><span className="font-semibold">Math:</span> 45% Students with 96-100 grade in this quarter</li>
+                  <li className="text-sm"><span className="font-semibold">English:</span> 55% Students with 96-100 grade in this quarter</li>
+                  <li className="text-sm"><span className="font-semibold">Science:</span> 40% Students with 96-100 grade in this quarter</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-700 dark:text-slate-400 mb-2">SY: 2025-2026</h4>
+                <ul className="space-y-2 pl-4 border-l-2 border-slate-200 dark:border-slate-600">
+                  <li className="text-sm"><span className="font-semibold">Math:</span> 30% Students with 96-100 grade in this quarter</li>
+                  <li className="text-sm"><span className="font-semibold">English:</span> 35% Students with 96-100 grade in this quarter</li>
+                  <li className="text-sm"><span className="font-semibold">Science:</span> 25% Students with 96-100 grade in this quarter</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -233,25 +260,7 @@ export default function Reports({ API, authFetch }) {
             className={`px-4 py-2 rounded font-medium ${reportType === 'enrollment' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
             onClick={() => setReportType('enrollment')}
           >
-            Enrollment Summary
-          </button>
-          <button 
-            className={`px-4 py-2 rounded font-medium ${reportType === 'financial' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
-            onClick={() => setReportType('financial')}
-          >
-            Financial Collection
-          </button>
-          <button 
-            className={`px-4 py-2 rounded font-medium ${reportType === 'clearance' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
-            onClick={() => setReportType('clearance')}
-          >
-            Clearance Status
-          </button>
-          <button 
-            className={`px-4 py-2 rounded font-medium ${reportType === 'analytics' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
-            onClick={() => setReportType('analytics')}
-          >
-            Academics & Analytics
+            Registrar Wide Report
           </button>
         </div>
         
@@ -264,9 +273,6 @@ export default function Reports({ API, authFetch }) {
             </h2>
             
             {reportType === 'enrollment' && renderEnrollmentReport()}
-            {reportType === 'financial' && renderFinancialReport()}
-            {reportType === 'clearance' && renderClearanceReport()}
-            {reportType === 'analytics' && renderAnalyticsReport()}
             
             <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 print:border-black text-center text-sm text-gray-500 dark:text-gray-400 print:text-black">
               Generated on {new Date().toLocaleDateString()} | CCA EduSys

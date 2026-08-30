@@ -27,7 +27,8 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [sectionFilter, setSectionFilter] = useState('All Sections');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('Active'); // 'Active', 'Rejected', 'Archived'
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortOrder, setSortOrder] = useState('name-asc');
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [newRecord, setNewRecord] = useState({ subject: '', score: '', term: '1st Quarter' });
 
   const [editingStudentFile, setEditingStudentFile] = useState(null);
@@ -126,10 +127,25 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
       return matchesSearch && matchesSection && matchesYear && matchesGrade;
     })
     .sort((a, b) => {
-      const nameA = a.last_name.toLowerCase();
-      const nameB = b.last_name.toLowerCase();
-      if (nameA < nameB) return sortOrder === 'asc' ? -1 : 1;
-      if (nameA > nameB) return sortOrder === 'asc' ? 1 : -1;
+      if (sortOrder.startsWith('name')) {
+        const nameA = a.last_name.toLowerCase();
+        const nameB = b.last_name.toLowerCase();
+        if (nameA < nameB) return sortOrder === 'name-asc' ? -1 : 1;
+        if (nameA > nameB) return sortOrder === 'name-asc' ? 1 : -1;
+        return 0;
+      } else if (sortOrder.startsWith('grade')) {
+        const gradeA = GRADES.indexOf(a.grade_level);
+        const gradeB = GRADES.indexOf(b.grade_level);
+        if (gradeA < gradeB) return sortOrder === 'grade-asc' ? -1 : 1;
+        if (gradeA > gradeB) return sortOrder === 'grade-asc' ? 1 : -1;
+        return 0;
+      } else if (sortOrder.startsWith('section')) {
+        const secA = (a.section || '').toLowerCase();
+        const secB = (b.section || '').toLowerCase();
+        if (secA < secB) return sortOrder === 'section-asc' ? -1 : 1;
+        if (secA > secB) return sortOrder === 'section-asc' ? 1 : -1;
+        return 0;
+      }
       return 0;
     });
 
@@ -207,7 +223,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
           </div>
         </div>
       )}
-      {viewMode === 'Overview' ? (
+      {viewMode === 'Overview' && currentRole !== 'Teacher' ? (
         <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase mb-4">STUDENT POPULATION</h2>
@@ -247,9 +263,11 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
         <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8">
           <div className="max-w-6xl mx-auto">
             <div className="mb-6 flex flex-col justify-start">
-              <button onClick={() => { setViewMode('Overview'); setGradeFilter('All'); }} className="text-sm font-bold text-slate-400 hover:text-brand-600 mb-4 self-start flex items-center transition-colors">
-                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Back to Overview
-              </button>
+              {currentRole !== 'Teacher' && (
+                <button onClick={() => { setViewMode('Overview'); setGradeFilter('All'); }} className="text-sm font-bold text-slate-400 hover:text-brand-600 mb-4 self-start flex items-center transition-colors">
+                  <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Back to Overview
+                </button>
+              )}
               <h2 className="text-3xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase">{gradeFilter.toUpperCase()} {sectionFilter !== 'All Sections' ? sectionFilter.toUpperCase() : ''}</h2>
               <p className="text-slate-400 text-sm mt-1">List of Students for Enrollment</p>
             </div>
@@ -264,12 +282,30 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                   className="w-full border-2 border-slate-200 dark:border-slate-700 rounded-full px-6 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent focus:outline-none focus:border-brand-500 placeholder-slate-400 uppercase tracking-widest"
                 />
               </div>
-              <button 
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-8 py-3 border-2 border-slate-200 dark:border-slate-700 rounded-full text-sm font-bold text-brand-800 dark:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors uppercase tracking-widest"
-              >
-                SORT BY
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="px-8 py-3 h-full border-2 border-slate-200 dark:border-slate-700 rounded-full text-sm font-bold text-brand-800 dark:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors uppercase tracking-widest flex items-center gap-2"
+                >
+                  SORT BY
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                {showSortDropdown && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-20 py-2 animate-in fade-in zoom-in duration-200">
+                    <div className="px-5 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 mb-1">Sort By Name</div>
+                    <button onClick={() => { setSortOrder('name-asc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'name-asc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Name (A-Z)</button>
+                    <button onClick={() => { setSortOrder('name-desc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'name-desc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Name (Z-A)</button>
+                    
+                    <div className="px-5 py-2 mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 mb-1">Sort By Grade</div>
+                    <button onClick={() => { setSortOrder('grade-asc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'grade-asc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Grade (Low-High)</button>
+                    <button onClick={() => { setSortOrder('grade-desc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'grade-desc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Grade (High-Low)</button>
+
+                    <div className="px-5 py-2 mt-1 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-700 mb-1">Sort By Section</div>
+                    <button onClick={() => { setSortOrder('section-asc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'section-asc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Section (A-Z)</button>
+                    <button onClick={() => { setSortOrder('section-desc'); setShowSortDropdown(false); }} className={`w-full text-left px-5 py-2 text-sm font-bold tracking-widest uppercase hover:bg-brand-50 dark:hover:bg-slate-700 transition-colors ${sortOrder === 'section-desc' ? 'text-brand-600 dark:text-brand-400' : 'text-slate-600 dark:text-slate-400'}`}>Section (Z-A)</button>
+                  </div>
+                )}
+              </div>
             </div>
             
             {renderStudentTable(filteredStudents)}
@@ -281,7 +317,6 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
       {showStudentModal && selectedStudent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4 backdrop-blur-sm">
           <div className="bg-slate-100 dark:bg-slate-700 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative animate-in fade-in zoom-in duration-200">
-            <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="absolute top-4 right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-black shadow hover:bg-red-700 z-10 text-lg leading-none transition-transform hover:scale-110">&times;</button>
             
             {/* Left Panel: History */}
             <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 p-8 border-r border-slate-200 dark:border-slate-600 flex flex-col min-h-[500px]">
@@ -302,7 +337,8 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
             <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 flex flex-col min-h-[500px]">
               
               {/* Profile Header (Sticky) */}
-              <div className="p-8 pb-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 sticky top-0">
+              <div className="p-8 pb-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 sticky top-0 relative">
+                <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="absolute top-4 right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-black shadow hover:bg-red-700 z-[100] text-lg leading-none transition-transform hover:scale-110">&times;</button>
                 <div className="flex items-center gap-5 w-full justify-center">
                   {selectedStudent.profile_image ? (
                     <img src={selectedStudent.profile_image} alt="Profile" className="w-20 h-20 rounded-lg object-cover border-2 border-brand-100 dark:border-slate-600 shadow-sm" />
@@ -328,6 +364,9 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                     <div className="col-span-2"><span className="block text-xs text-slate-500 mb-1">Address</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.address || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Parent/Guardian</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.parent_name || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Contact Number</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.contact_number || 'Not specified'}</span></div>
+                    <div className="col-span-2 border-t border-slate-100 dark:border-slate-700 pt-3 mt-1"></div>
+                    <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username (LRN)</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.lrn || String(selectedStudent.id).padStart(12, '0')}</span></div>
+                    <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Password</span><span className="font-semibold text-slate-800 dark:text-slate-200 tracking-wider font-mono">password123</span></div>
                   </div>
                 </section>
 
@@ -344,9 +383,35 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                             <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{rec.subject}</span>
                             <span className="text-xs text-slate-500 font-bold tracking-wide">{rec.term}</span>
                           </div>
-                          <span className="font-black text-brand-600 dark:text-brand-400 text-lg">{rec.score}</span>
+                          {editingGradeId === rec.id ? (
+                            <div className="flex gap-2 items-center">
+                              <input type="number" value={editingGradeScore} onChange={e => setEditingGradeScore(e.target.value)} className="w-16 px-2 py-1 text-center font-bold bg-white dark:bg-slate-800 border border-brand-300 dark:border-brand-700 rounded text-sm outline-none" />
+                              <button onClick={() => handleUpdateGrade(rec)} className="text-[10px] bg-brand-600 hover:bg-brand-700 text-white px-2 py-1 rounded font-bold uppercase tracking-wider transition-colors">Save</button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <span className="font-black text-brand-600 dark:text-brand-400 text-lg">{rec.score}</span>
+                              {currentRole === 'Teacher' && (
+                                <button onClick={() => { setEditingGradeId(rec.id); setEditingGradeScore(rec.score); }} className="text-[10px] text-slate-400 hover:text-brand-600 uppercase tracking-widest font-bold transition-colors">Edit</button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {currentRole === 'Teacher' && (
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Add New Record</h5>
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <input type="text" placeholder="Subject" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500" />
+                        </div>
+                        <div className="w-20">
+                          <input type="number" placeholder="Score" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500 text-center" />
+                        </div>
+                        <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors h-[34px]">Add</button>
+                      </div>
                     </div>
                   )}
                 </section>
@@ -397,13 +462,53 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                   {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
                     <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No payment data recorded</p>
                   ) : (
-                    <div className="space-y-3">
-                      {selectedStudent.tuition_payments.map(tp => (
-                        <div key={tp.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
-                          <span className="font-bold text-slate-800 dark:text-slate-200">{tp.term}</span>
-                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
+                    <div className="space-y-4">
+                      {selectedStudent.tuition_payments.map(tp => {
+                        const bal = tp.amount_due - tp.amount_paid;
+                        return (
+                        <div key={tp.id} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                          <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700">
+                            <div>
+                              <span className="font-bold text-slate-800 dark:text-slate-200 block">{tp.term}</span>
+                              <span className="text-xs text-slate-500 font-medium">Due: ₱{tp.amount_due?.toLocaleString()} | Bal: <span className="font-bold text-red-500">₱{bal?.toLocaleString()}</span></span>
+                            </div>
+                            <div className="flex gap-3 items-center">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
+                              {currentRole === 'Cashier' && (
+                                <button onClick={async () => {
+                                  const amt = prompt('Enter payment amount (₱):');
+                                  if (amt) {
+                                    const or = prompt('Enter OR Number:');
+                                    await authFetch('/api/tuition_payments/' + tp.id, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ amount_paid: tp.amount_paid + parseFloat(amt), status: (tp.amount_paid + parseFloat(amt)) >= tp.amount_due ? 'Paid' : 'Pending' })
+                                    });
+                                    // Normally we would also save the payment history record to /api/payments/ but using simplified mock here
+                                    alert('Payment updated!');
+                                    handleView(selectedStudent.id);
+                                  }
+                                }} className="text-[10px] text-brand-600 hover:text-brand-800 font-bold uppercase tracking-widest bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 px-3 py-1 rounded transition-colors">Edit Payment</button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {tp.payments && tp.payments.length > 0 && (
+                            <div className="p-3 bg-white dark:bg-slate-800 space-y-2">
+                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Payment History</div>
+                              {tp.payments.map((p, pidx) => (
+                                <div key={pidx} className="flex justify-between items-center text-xs px-2 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-green-600 dark:text-green-400">+₱{p.amount?.toLocaleString()}</span>
+                                    {currentRole === 'Cashier' && <span className="font-mono text-slate-400 dark:text-slate-500 text-[10px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">OR: {p.or_number}</span>}
+                                  </div>
+                                  <span className="text-slate-500 dark:text-slate-400">{new Date(p.date_recorded).toLocaleDateString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      ))}
+                      )})}
                     </div>
                   )}
                 </section>
@@ -412,7 +517,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
               {/* Action Buttons (Sticky Bottom) */}
               <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 mt-auto">
                 <div className="flex gap-3 w-full justify-center">
-                  <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-[11px] px-8 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Close</button>
+
                 {currentRole === 'Registrar' && (
                   <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setShowEndYearConfirm(true); }} className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] px-5 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">End School Year</button>
                 )}

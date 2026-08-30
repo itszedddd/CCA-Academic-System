@@ -50,7 +50,7 @@ def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, An
         full_prompt = f"{SYSTEM_PROMPT}\n\n{context_str}\nUser: {message}\nAssistant:"
         
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-1.5-flash",
             contents=full_prompt
         )
         return response.text
