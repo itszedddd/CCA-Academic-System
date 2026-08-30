@@ -23,9 +23,21 @@ def get_enrollment_report(db: Session, school_year: str = "2026-2027") -> Dict[s
                      .filter(models.Student.school_year == school_year)
                      .group_by(models.Student.enrollment_status).all())
 
+    dropped_count = db.query(models.Student).filter(
+        models.Student.school_year == school_year,
+        models.Student.enrollment_status == "Dropped"
+    ).count()
+    
+    transferred_count = db.query(models.Student).filter(
+        models.Student.school_year == school_year,
+        models.Student.enrollment_status == "Transferred"
+    ).count()
+
     return {
         "title": f"Enrollment Summary - SY {school_year}",
         "total_students": total_students,
+        "dropped_count": dropped_count,
+        "transferred_count": transferred_count,
         "by_grade": by_grade,
         "by_section": by_section,
         "by_status": by_status

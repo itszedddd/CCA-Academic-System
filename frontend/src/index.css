@@ -148,3 +148,42 @@ html.accessible-mode .dark {
   scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
 }
 
+
+/* Print Layout CSS */
+@media print {
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+  
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+  
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  /* Prevent page breaks inside important containers */
+  .printable-area .bg-white,
+  .printable-area li,
+  .printable-area tr,
+  .printable-area .grid > div {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  /* Avoid shadows and borders for cleaner printing */
+  .printable-area .shadow-sm {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+}

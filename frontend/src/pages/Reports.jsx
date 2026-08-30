@@ -67,6 +67,20 @@ export default function Reports({ API, authFetch }) {
               ))}
             </ul>
           </div>
+
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm md:col-span-2">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Dropout / Transferee Breakdown</h3>
+            <ul className="space-y-2">
+              <li className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-300">Dropped Out</span>
+                <span className="font-medium text-red-500">{reportData.dropped_count || 0}</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-300">Transferred</span>
+                <span className="font-medium text-amber-500">{reportData.transferred_count || 0}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     );
@@ -164,6 +178,10 @@ export default function Reports({ API, authFetch }) {
               <li className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-300">Global Academic Average</span>
                 <span className="font-bold text-lg dark:text-white">{reportData.global_academic_average}%</span>
+              </li>
+              <li className="flex justify-between items-center">
+                <span className="text-gray-600 dark:text-gray-300">Academic Pass Rate</span>
+                <span className="font-bold text-lg text-green-600">{reportData.academic_pass_rate}%</span>
               </li>
               <li className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-300">Active Academic Warnings</span>

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import AIAssistantWidget from './AIAssistantWidget';
+
 
 const ROLE_COLORS = {
   Principal: 'bg-purple-600',
@@ -32,20 +32,15 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
     <div className="flex flex-col h-full w-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700">
       {/* Logo */}
       <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-center items-center">
-        <img src="/cca-logo-v2-light.png" alt="CCA EduSys" className="h-20 w-auto object-contain dark:hidden py-1" />
-        <img src="/cca-logo-v2-dark.png" alt="CCA EduSys" className="h-20 w-auto object-contain hidden dark:block py-1" />
+        <img src="/assets/[CCA L3.2] CCA EduSys Logo V2 Blue Transparent.png" alt="CCA EduSys" className="h-20 w-auto object-contain dark:hidden py-1" />
+        <img src="/assets/[CCA L3.1] CCA EduSys Logo V2 White Transparent.png" alt="CCA EduSys" className="h-20 w-auto object-contain hidden dark:block py-1" />
         {/* Close button - mobile only */}
         <button onClick={onClose} className="ml-auto md:hidden p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
 
-      {/* AI Chatbot Button (Above Menus) */}
-      {currentRole !== 'Admission' && (
-        <div className="px-4 pt-4 pb-2">
-          <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="sidebar-button" />
-        </div>
-      )}
+
 
       {/* Nav */}
       <nav className="flex-1 py-4 overflow-y-auto font-cinzel sidebar-scroll">

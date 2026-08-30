@@ -17,6 +17,17 @@ export default function Settings({ user, authFetch }) {
   });
   const [newScheduleItem, setNewScheduleItem] = useState({ time: '', subject: '', day: 'Monday' });
 
+  const calculateStrength = (pwd) => {
+    let score = 0;
+    if (!pwd) return 0;
+    if (pwd.length >= 8) score += 25;
+    if (pwd.length >= 6) score += 25;
+    if (/[A-Z]/.test(pwd)) score += 25;
+    if (/[0-9]/.test(pwd)) score += 15;
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 10;
+    return Math.min(100, score);
+  };
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     setStatusMsg({ text: '', type: '' });
@@ -165,6 +176,19 @@ export default function Settings({ user, authFetch }) {
                   className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
                   placeholder="••••••••" 
                 />
+                {passwordForm.newPassword && (
+                  <div className="mt-2">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase">Password Strength</span>
+                      <span className={`text-[10px] font-bold ${calculateStrength(passwordForm.newPassword) >= 75 ? 'text-green-500' : calculateStrength(passwordForm.newPassword) >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>
+                        {calculateStrength(passwordForm.newPassword) >= 75 ? 'Strong' : calculateStrength(passwordForm.newPassword) >= 50 ? 'Fair' : 'Weak'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5">
+                      <div className={`h-1.5 rounded-full transition-all duration-300 ${calculateStrength(passwordForm.newPassword) >= 75 ? 'bg-green-500' : calculateStrength(passwordForm.newPassword) >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${calculateStrength(passwordForm.newPassword)}%` }}></div>
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Confirm New Password</label>

@@ -241,6 +241,96 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     );
   };
 
+
+  if (currentRole === 'Registrar') {
+    const activeStudents = students.filter(s => !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
+    const oldStudents = activeStudents.filter(s => s.enrollment_status === 'Enrolled').length;
+    const newStudents = activeStudents.length - oldStudents;
+    const incompleteReqs = activeStudents.filter(s => !s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures).length;
+    const docRequests = forms.filter(f => f.status === 'Pending').length;
+
+    return (
+      <div className="h-[calc(100vh-120px)] overflow-hidden flex flex-col font-sans -mt-4">
+        {/* Header */}
+        <div className="mb-6 flex-shrink-0">
+          <h1 className="text-2xl font-black text-brand-800 dark:text-brand-400 uppercase tracking-widest font-cinzel">Registrar's Dashboard</h1>
+          <p className="text-slate-500 font-bold text-[11px] uppercase tracking-widest mt-1">{new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true })}</p>
+        </div>
+
+        {/* Grid Layout */}
+        <div className="flex-1 min-h-0 flex gap-6">
+          
+          {/* Left Side (Data Blocks) */}
+          <div className="flex-[1.5] flex flex-col gap-6 min-h-0">
+            {/* Top Row: Events & Announcements */}
+            <div className="flex-[1.2] flex gap-6 min-h-0">
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col overflow-hidden shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest text-center mb-4">School Events</h3>
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                  {events.length === 0 ? <p className="text-xs font-bold text-slate-400 text-center mt-8 uppercase tracking-widest">No Events</p> : events.map(e => (
+                    <div key={e.id} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="font-bold text-slate-700 dark:text-slate-300 text-xs truncate uppercase tracking-wider">{e.title}</p>
+                      <p className="text-[10px] text-slate-500 font-bold tracking-widest mt-1">{new Date(e.date).toLocaleDateString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col overflow-hidden shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest text-center mb-4">Announcements</h3>
+                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                  {announcements.length === 0 ? <p className="text-xs font-bold text-slate-400 text-center mt-8 uppercase tracking-widest">No Announcements</p> : announcements.map(a => (
+                    <div key={a.id} className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <p className="font-bold text-slate-700 dark:text-slate-300 text-xs truncate uppercase tracking-wider">{a.title}</p>
+                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-1">{a.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Middle Row: Old & New Students */}
+            <div className="flex-1 flex gap-6 min-h-0">
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-6 shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest mb-3 text-center">Total Old Students</h3>
+                <p className="text-5xl font-black text-slate-800 dark:text-slate-200">{oldStudents}</p>
+              </div>
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-6 shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest mb-3 text-center">Total New Students</h3>
+                <p className="text-5xl font-black text-slate-800 dark:text-slate-200">{newStudents}</p>
+              </div>
+            </div>
+
+            {/* Bottom Row: Requirements & Documents */}
+            <div className="flex-1 flex gap-6 min-h-0">
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-6 shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest mb-3 text-center px-2 leading-relaxed">All Students With Incomplete Requirements</h3>
+                <p className="text-5xl font-black text-slate-800 dark:text-slate-200">{incompleteReqs}</p>
+              </div>
+              <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl flex flex-col items-center justify-center p-6 shadow-sm">
+                <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest mb-3 text-center px-2 leading-relaxed">All Students Requesting Documents</h3>
+                <p className="text-5xl font-black text-slate-800 dark:text-slate-200">{docRequests}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side (AI Assistant) */}
+          <div className="flex-1 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden shadow-sm flex flex-col relative">
+            <div className="p-6 pb-2 shrink-0">
+              <h3 className="font-bold text-brand-700 dark:text-brand-400 text-[11px] uppercase tracking-widest text-center">AI Assistant</h3>
+              <p className="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest mt-1">[All Registrar-Related Commands]</p>
+            </div>
+            
+            <div className="flex-1 relative w-full h-full min-h-0">
+                 <AIAssistantWidget mode="embedded" API_URL="/api" token={localStorage.getItem('token')} />
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+
   const StatCard = ({ label, value, sub, icon, color }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
       <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
@@ -312,11 +402,11 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       ) : (
         <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest">
-              {currentRole === 'Registrar' ? "REGISTRAR'S DASHBOARD" : "Institution Overview"}
+            <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">
+              {currentRole === 'Registrar' ? "Registrar's Dashboard" : currentRole === 'Admission' ? "Admission's Dashboard" : "Institution Overview"}
             </h2>
             <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-              {currentRole === 'Registrar' 
+              {currentRole === 'Registrar' || currentRole === 'Admission'
                 ? new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 
                 : "AI-driven analytics and academic health tracking."}
             </p>
@@ -471,7 +561,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                   </div>
                 </div>
                 
-                <div className="flex-1 min-h-0">
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
+                  <p className="font-bold">Sample Commands:</p>
+                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"How many students are pre-registered?"</p>
+                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show rejected applicants"</p>
+                </div>
+                
+                <div className="flex-1 min-h-0 relative">
                   <AIAssistantWidget 
                     API_URL={window.location.origin + '/api'} 
                     token={localStorage.getItem('token')} 

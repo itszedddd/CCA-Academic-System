@@ -134,8 +134,8 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
       </header>
 
       {/* Main Content */}
-      <main className="flex-grow flex items-start justify-center p-4 md:p-8 overflow-y-auto">
-        <div className={`w-full mx-auto p-6 md:p-10 rounded-3xl shadow-xl border transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'}`}>
+      <main className="flex-grow flex items-start justify-center overflow-y-auto">
+        <div className={`w-full min-h-full mx-auto p-6 md:p-10 border-t transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
           
           <div className="flex justify-between items-center mb-8 print:hidden">
             <h2 className={`text-3xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-[#022868]'}`}>

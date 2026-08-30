@@ -1,4 +1,5 @@
 import React, { useState, Fragment } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
 const SECTIONS = ['Humility', 'Courage', 'Goodwill', 'Persistence'];
@@ -19,7 +20,9 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [expandedStudentId, setExpandedStudentId] = useState(null);
-  const [viewMode, setViewMode] = useState('Overall');
+  const [viewMode, setViewMode] = useState('Overview');
+  const [showStudentModal, setShowStudentModal] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState(null);
   const [gradeFilter, setGradeFilter] = useState('All');
   const [sectionFilter, setSectionFilter] = useState('All Sections');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
@@ -136,371 +139,58 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
 
+  const graphData = GRADES.map(grade => {
+    const gradeStudents = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
+    const oldStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled').length;
+    const newStudents = gradeStudents.length - oldStudents;
+    return { name: grade, 'Old Students': oldStudents, 'New Students': newStudents };
+  });
+
   const renderStudentTable = (rows) => (
-    <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] custom-scrollbar border-b border-slate-200 dark:border-slate-700">
-      <table className="w-full text-left relative">
-        <thead className="sticky top-0 z-10">
-          <tr className="bg-slate-100 dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400 shadow-sm">
-            <th className="px-6 py-3">ID</th>
-          <th className="px-6 py-3">Name</th>
-          <th className="px-6 py-3">Grade</th>
-          <th className="px-6 py-3">Section</th>
-          <th className="px-6 py-3">Status</th>
-          {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
-            <th className="px-6 py-3 text-right">Actions</th>
-          )}
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-        {rows.map(s => {
-          const meta = SECTION_META[s.section];
-          const imgSrc = s.profile_image;
-          const isExpanded = expandedStudentId === s.id && selectedStudent?.id === s.id;
-          
-          return (
-            <Fragment key={s.id}>
-              <tr className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors cursor-pointer" onClick={() => { if (['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole)) handleView(s.id); }}>
-                <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-300">#{String(s.id).padStart(4,'0')}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    {imgSrc ? (
-                      <img
-                        src={imgSrc}
-                        alt={`${s.first_name} ${s.last_name}`}
-                        className="w-8 h-8 rounded-full object-cover mr-3 flex-shrink-0 bg-slate-100 dark:bg-slate-700"
-                        onError={e => { e.target.onerror = null; e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
-                      />
-                    ) : null}
-                    <div style={{display: imgSrc ? 'none' : 'flex'}} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 items-center justify-center mr-3 flex-shrink-0 border border-slate-100 dark:border-slate-700">
-                      <img src="/assets/Profile Icon [2 Clear].png" alt="Default Logo" className="w-5 h-5 object-contain opacity-70" />
-                    </div>
-                    <span className="text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
-                  </div>
+    <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-slate-50 dark:bg-slate-900/50 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">FORM ID</th>
+              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">STUDENT NAME</th>
+              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">STUDENT STATUS</th>
+              <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">DATE SUBMITTED</th>
+              {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
+                <th className="px-6 py-4 text-right border-b border-slate-200 dark:border-slate-700">ACTIONS</th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+            {rows.map(s => (
+              <tr key={s.id} className="hover:bg-brand-50/50 dark:hover:bg-slate-700/30 transition-colors">
+                <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(s.id).padStart(3,'0')}</td>
+                <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</td>
+                <td className="px-6 py-4 text-sm">
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{s.enrollment_status === 'Enrolled' ? 'Old Student' : 'New Student'}</span>
                 </td>
-                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                  {s.grade_level}
-                  <div className="text-[10px] uppercase font-bold text-slate-400 mt-0.5">SY {s.school_year || '2025-2026'}</div>
-                </td>
-                <td className="px-6 py-4">
-                  {s.section ? (
-                    <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full border ${meta?.color || 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300'}`}>{s.section}</span>
-                  ) : <span className="text-slate-400 text-sm">—</span>}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-col items-start gap-1">
-                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${s.enrollment_status === 'Enrolled' ? 'bg-green-100 text-green-700' : s.enrollment_status === 'Dropped' ? 'bg-red-100 text-red-700' : s.enrollment_status === 'Hold: Incomplete Req' ? 'bg-orange-100 text-orange-700 border border-orange-200' : s.enrollment_status === 'Approved: Incomplete Req' ? 'bg-blue-100 text-blue-700 border border-blue-200' : 'bg-amber-100 text-amber-700'}`}>{s.enrollment_status}</span>
-                    {(!s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures) && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-red-50 text-red-600 border border-red-200">Lacking Docs</span>
-                    )}
-                  </div>
+                <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
+                   {new Date().toLocaleDateString('en-US', { year:'numeric', month:'2-digit', day:'2-digit'})}
                 </td>
                 {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
-                  <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                    {currentRole === 'Teacher' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition">{isExpanded ? 'Hide Grades' : 'View Grades'}</button>
-                    )}
-                    {['Admission', 'Registrar', 'Principal', 'Cashier'].includes(currentRole) && (
-                      <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-slate-400 hover:text-brand-600 transition font-bold">{isExpanded ? 'Hide Details' : 'See Details'}</button>
-                    )}
-                    {currentRole === 'Registrar' && (
-                      <button onClick={(e) => { e.stopPropagation(); setEditingStudent({...s}); setShowEdit(true); }} className="text-slate-400 hover:text-amber-600 transition font-bold">Edit</button>
+                  <td className="px-6 py-4 text-right text-sm font-bold text-brand-800 dark:text-brand-400">
+                    <button onClick={() => { handleView(s.id); setShowStudentModal(true); setActiveModalTab(null); }} className="hover:underline mr-4 transition-colors">View</button>
+                    {['Registrar', 'Principal'].includes(currentRole) && (
+                      <button onClick={async () => {
+                        if (confirm("Archive this student?")) {
+                          await authFetch(`/api/students/${s.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
+                          fetchStudents();
+                        }
+                      }} className="hover:underline transition-colors">Archive</button>
                     )}
                   </td>
                 )}
               </tr>
-              {isExpanded && (
-                <tr>
-                  <td colSpan="6" className="p-0 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                    <div className="p-6">
-                      {currentRole === 'Cashier' ? (
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-6">
-                          <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Payment History</h4>
-                          {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
-                            <p className="text-sm text-slate-500 italic">No tuition records found for this student.</p>
-                          ) : (
-                            <div className="space-y-4">
-                              {selectedStudent.tuition_payments.map(tp => (
-                                <div key={tp.id} className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
-                                  <div className="flex justify-between items-center mb-3">
-                                    <span className="font-bold text-slate-800 dark:text-white">{tp.term}</span>
-                                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status}</span>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-2 text-sm mb-3">
-                                    <div className="text-slate-500">Amount Due:</div><div className="font-semibold text-slate-800 dark:text-white">₱{tp.amount_due.toLocaleString()}</div>
-                                    <div className="text-slate-500">Amount Paid:</div><div className="font-semibold text-green-600">₱{tp.amount_paid.toLocaleString()}</div>
-                                  </div>
-                                  {tp.payments && tp.payments.length > 0 && (
-                                    <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-2">
-                                      <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Transaction Logs</span>
-                                      <ul className="space-y-1.5">
-                                        {tp.payments.map((p, idx) => (
-                                          <li key={idx} className="flex justify-between items-center bg-white dark:bg-slate-900 px-2.5 py-2 rounded shadow-sm text-xs border border-slate-200 dark:border-slate-700">
-                                            <div className="flex flex-col">
-                                              <span className="font-bold text-slate-700 dark:text-slate-300">O.R. {p.or_number}</span>
-                                              <span className="text-[9px] text-slate-400">{new Date(p.date_recorded).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                            </div>
-                                            <span className="font-bold text-green-600 dark:text-green-400">+₱{p.amount.toLocaleString()}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                      {/* Only show SF9 for Enrolled students, clarify for upcoming */}
-                      {selectedStudent.enrollment_status !== 'Enrolled' ? (
-                         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
-                            <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400">Notice</h4>
-                            <p className="text-xs text-amber-600 dark:text-amber-300">Student is currently in {selectedStudent.enrollment_status} status. The Report Card is only available for fully enrolled active students.</p>
-                         </div>
-                      ) : (
-                        <>
-                      <h4 className="font-bold text-slate-800 dark:text-white mb-3 border-b pb-2 dark:border-slate-700">Student Report Card</h4>
-                      
-                      <div className="overflow-x-auto mb-6 border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <table className="w-full text-center border-collapse min-w-[600px] bg-white dark:bg-slate-900">
-                          <thead><tr className="bg-slate-100 dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
-                            <th className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left w-1/3">Learning Areas</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">1</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">2</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">3</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">4</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-20">Final Grade</th>
-                            <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-20">Remarks</th>
-                          </tr></thead>
-                          <tbody>
-                            {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
-                              <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records found.</td></tr>
-                            ) : (
-                              (() => {
-                                const recordsToShow = selectedStudent.academic_records.filter(r => {
-                                  const rYear = r.school_year ? r.school_year.trim() : '2025-2026';
-                                  const targetYear = historyYear || (s.school_year ? s.school_year.trim() : '2025-2026');
-                                  return rYear === targetYear;
-                                });
-                                if (recordsToShow.length === 0) return <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records for this school year.</td></tr>;
-
-                                const grouped = {};
-                                recordsToShow.forEach(r => {
-                                  if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
-                                  const t = r.term.toLowerCase();
-                                  if (t.includes('1st') || t === '1' || t.includes('q1') || t.includes('quarter 1')) grouped[r.subject].q1 = r;
-                                  else if (t.includes('2nd') || t === '2' || t.includes('q2') || t.includes('quarter 2')) grouped[r.subject].q2 = r;
-                                  else if (t.includes('3rd') || t === '3' || t.includes('q3') || t.includes('quarter 3')) grouped[r.subject].q3 = r;
-                                  else if (t.includes('4th') || t === '4' || t.includes('q4') || t.includes('quarter 4')) grouped[r.subject].q4 = r;
-                                  else grouped[r.subject].q1 = r; // fallback if no match
-                                });
-                                
-                                const renderCell = (r) => {
-                                  if (!r) return <span className="text-slate-300">—</span>;
-                                  if (editingGradeId === r.id) return (
-                                    <div className="flex flex-col items-center">
-                                      <input type="number" className="w-14 p-1 text-xs border border-brand-300 rounded outline-none text-center dark:bg-slate-700" value={editingGradeScore} onChange={e=>setEditingGradeScore(e.target.value)} />
-                                      <div className="flex space-x-2 mt-1"><button onClick={()=>handleUpdateGrade(r)} className="text-green-600 text-[10px] font-bold">Save</button><button onClick={()=>setEditingGradeId(null)} className="text-slate-500 text-[10px]">Cancel</button></div>
-                                    </div>
-                                  );
-                                  const isFailing = r.score <= 75;
-                                  return (
-                                    <div className={`flex flex-col items-center group relative h-6 justify-center ${isFailing ? 'text-red-500 font-bold' : ''}`}>
-                                      <span className="text-sm">{r.score}</span>
-                                      {currentRole === 'Teacher' && <button onClick={()=>{setEditingGradeId(r.id); setEditingGradeScore(r.score);}} className="opacity-0 group-hover:opacity-100 absolute -top-5 text-[10px] text-brand-600 font-bold bg-white dark:bg-slate-800 px-1 rounded shadow-sm border border-brand-100 z-10 transition-opacity">Edit</button>}
-                                    </div>
-                                  );
-                                };
-
-                                return Object.values(grouped).map((row, i) => {
-                                  const grades = [row.q1?.score, row.q2?.score, row.q3?.score, row.q4?.score].filter(s => s != null);
-                                  const finalGrade = grades.length === 4 ? Math.round(grades.reduce((a,b)=>a+b,0)/4) : null;
-                                  const remarks = finalGrade ? (finalGrade > 75 ? 'Passed' : 'Failed') : '';
-                                  return (
-                                    <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                      <td className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left font-semibold text-sm text-slate-800 dark:text-white">{row.subject}</td>
-                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q1)}</td>
-                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q2)}</td>
-                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q3)}</td>
-                                      <td className="border border-slate-200 dark:border-slate-600 px-2 py-2">{renderCell(row.q4)}</td>
-                                      <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 font-bold text-sm ${finalGrade > 75 ? 'text-green-600' : (finalGrade ? 'text-red-600' : '')}`}>{finalGrade || ''}</td>
-                                      <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-xs font-bold uppercase ${remarks === 'Passed' ? 'text-green-600' : (remarks === 'Failed' ? 'text-red-600' : '')}`}>{remarks}</td>
-                                    </tr>
-                                  );
-                                });
-                              })()
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Add New Record Row (Teachers only) */}
-                      {currentRole === 'Teacher' && (
-                        <div className="bg-brand-50/50 dark:bg-brand-900/20 border border-brand-100 dark:border-brand-800 p-4 rounded-xl flex flex-col sm:flex-row items-center gap-3 mb-6">
-                          <span className="text-sm font-bold text-brand-800 dark:text-brand-300 w-full sm:w-auto">Add Grade:</span>
-                          <select className="text-sm p-2 w-full sm:w-32 border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-slate-800 dark:text-white" value={newRecord.term} onChange={e => setNewRecord({...newRecord, term: e.target.value})}>
-                            <option>1st Quarter</option><option>2nd Quarter</option><option>3rd Quarter</option><option>4th Quarter</option>
-                          </select>
-                          <div className="flex-1 w-full relative">
-                            <input list="ph-subjects" placeholder="Subject Name (e.g. Mathematics)" className="text-sm p-2 w-full border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-slate-800 dark:text-white" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} />
-                            <datalist id="ph-subjects">
-                              <option value="Filipino" /><option value="English" /><option value="Mathematics" /><option value="Science" />
-                              <option value="Araling Panlipunan (AP)" /><option value="Edukasyon sa Pagpapakatao (EsP)" />
-                              <option value="Technology and Livelihood Education (TLE)" /><option value="MAPEH" />
-                            </datalist>
-                          </div>
-                          <input type="number" placeholder="Score" className="text-sm p-2 w-full sm:w-20 border border-brand-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 outline-none text-center text-slate-800 dark:text-white" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} />
-                          <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="w-full sm:w-auto bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-brand-700 transition">Save</button>
-                        </div>
-                      )}
-
-                      {/* Historical Records & Actions (Admission/Registrar/Principal) */}
-                      {['Admission', 'Registrar', 'Principal'].includes(currentRole) && (
-                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                          <div className="flex justify-between items-center mb-3">
-                            <h4 className="font-bold text-slate-800 dark:text-white">Historical Record Details</h4>
-                            {currentRole === 'Registrar' && (
-                              <div className="flex space-x-2">
-                                <button onClick={async () => {
-                                  if (confirm("Are you sure you want to end the school year for this student?")) {
-                                    const res = await authFetch(`${API}/students/${s.id}`, { 
-                                      method: 'PUT', 
-                                      headers: {'Content-Type': 'application/json'}, 
-                                      body: JSON.stringify({ enrollment_status: 'Completed' }) 
-                                    });
-                                    if (res?.ok) {
-                                      alert("Student advanced.");
-                                      handleView(s.id);
-                                      fetchStudents();
-                                    }
-                                  }
-                                }} className="px-3 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 text-xs font-bold rounded">End School Year</button>
-                                <button onClick={async () => {
-                                  if (confirm("Archive this student?")) {
-                                    await authFetch(`${API}/students/${s.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
-                                    handleView(s.id);
-                                    fetchStudents();
-                                  }
-                                }} className="px-3 py-1 bg-slate-200 text-slate-700 hover:bg-slate-300 text-xs font-bold rounded">Archive</button>
-                                <button onClick={() => setExpandedStudentId(null)} className="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 text-xs font-bold rounded">Close</button>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4 text-sm text-slate-600 dark:text-slate-400">
-                            {/* Payment Status for Non-Cashier Roles */}
-                            {currentRole !== 'Cashier' && selectedStudent.tuition_payments && selectedStudent.tuition_payments.length > 0 && (
-                              <div className="mb-4 pb-4 border-b border-slate-200 dark:border-slate-700">
-                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Financial Status</span>
-                                <div className="flex gap-2 flex-wrap">
-                                  {selectedStudent.tuition_payments.map(tp => (
-                                    <span key={tp.id} className={`px-3 py-1 text-xs font-bold rounded-full ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                                      {tp.term}: {tp.status === 'Paid' ? 'Totally Cleared' : (tp.status === 'Partial' ? 'Temporarily Cleared' : 'Not Cleared')}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                              <div>
-                                <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Tracked School Year</span>
-                                <select 
-                                  value={historyYear} 
-                                  onChange={(e) => setHistoryYear(e.target.value)} 
-                                  className="w-full sm:w-64 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
-                                >
-                                  <option value={s.school_year || '2025-2026'}>SY {s.school_year || '2025-2026'}</option>
-                                  <option value="2024-2025">SY 2024-2025</option>
-                                  <option value="2023-2024">SY 2023-2024</option>
-                                </select>
-                              </div>
-                              <div>
-                                <span className="block text-xs font-bold text-slate-400 uppercase mb-1">Tracked Section</span>
-                                <select 
-                                  className="w-full sm:w-64 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500"
-                                >
-                                  <option value={s.section || 'N/A'}>{s.section || 'N/A'}</option>
-                                  {['Humility', 'Courage', 'Goodwill', 'Persistence'].filter(sec => sec !== s.section).map(sec => (
-                                    <option key={sec} value={sec}>{sec}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                            
-                            {/* Action History Log */}
-                            {['Registrar', 'Principal'].includes(currentRole) && studentHistory.length > 0 && (
-                              <div className="mt-6 mb-6">
-                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2 border-b pb-1">History of Actions</span>
-                                <div className="max-h-32 overflow-y-auto space-y-2">
-                                  {studentHistory.map(h => (
-                                    <div key={h.id} className="text-xs bg-slate-50 dark:bg-slate-800 p-2 rounded flex flex-col">
-                                      <span className="font-bold text-slate-700 dark:text-slate-300">{h.action} <span className="font-normal text-slate-500">— {h.description}</span></span>
-                                      <span className="text-[10px] text-slate-400 mt-1">{new Date(h.date_recorded).toLocaleString()} • Recorded by {h.recorder_name || 'System'}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {forms && forms.filter(f => f.student_id === s.id).length > 0 ? (
-                              <div className="mt-4 border-t border-slate-100 dark:border-slate-800 pt-4">
-                                <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Past Digital Enrollment Forms</span>
-                                <ul className="space-y-2">
-                                  {forms.filter(f => f.student_id === s.id).map(f => (
-                                    <li key={f.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded">
-                                      <span>{f.form_type} - {f.grade_applying_for}</span>
-                                      <span className="text-xs font-bold text-brand-600 dark:text-brand-400">{f.status}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ) : (
-                              <p className="text-xs text-slate-500 italic mt-4 border-t pt-4">No past enrollment forms found in the digital registry.</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Document Requirements Checklist & Account Details */}
-                      {['Teacher', 'Registrar', 'Admission', 'Principal'].includes(currentRole) && (
-                        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-                            <h4 className="text-xs font-bold text-brand-600 uppercase tracking-widest mb-3">Document Requirements</h4>
-                            <ul className="space-y-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
-                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_birth_cert ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_birth_cert ? '✓' : '✕'}</span> Birth Certificate (PSA)</li>
-                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_form_138 ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_form_138 ? '✓' : '✕'}</span> Form 138 (Card)</li>
-                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_good_moral ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_good_moral ? '✓' : '✕'}</span> Good Moral</li>
-                              <li className="flex items-center"><span className={`mr-2 w-4 h-4 rounded-full flex items-center justify-center ${s.req_pictures ? 'bg-green-500 text-white' : 'bg-red-100 text-red-500'}`}>{s.req_pictures ? '✓' : '✕'}</span> 2x2 Pictures</li>
-                            </ul>
-                          </div>
-                          
-                          {['Teacher', 'Registrar', 'Principal'].includes(currentRole) && s.account_username && (
-                            <div className="bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-lg p-4">
-                              <h4 className="text-xs font-bold text-brand-700 dark:text-brand-400 uppercase tracking-widest mb-3">Student Portal Access</h4>
-                              <p className="text-xs text-brand-600 dark:text-brand-300 mb-2">Provide these details to the student to access their portal.</p>
-                              <div className="space-y-2">
-                                <div><span className="text-xs font-bold text-slate-500 uppercase">Username:</span> <span className="font-mono font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-1 rounded">{s.account_username}</span></div>
-                                <div><span className="text-xs font-bold text-slate-500 uppercase">Default Password:</span> <span className="font-mono font-bold text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-2 py-1 rounded">{s.initial_password}</span></div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      </>
-                      )}
-                      </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </Fragment>
-          );
-        })}
-        {rows.length === 0 && <tr><td colSpan="6" className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No students match your criteria.</td></tr>}
-      </tbody>
-    </table>
+            ))}
+            {rows.length === 0 && <tr><td colSpan="5" className="px-6 py-12 text-center text-slate-500">No students match your criteria.</td></tr>}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 
@@ -517,130 +207,234 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
           </div>
         </div>
       )}
-      {viewMode === 'Per Grade' ? (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 md:p-10 min-h-[calc(100vh-120px)]">
-          <div className="flex justify-between items-start mb-8">
-            <div>
-              <h2 className="text-2xl font-black font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">Student Directory</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-1">Manage student profiles, academic records, and enrollment.</p>
+      {viewMode === 'Overview' ? (
+        <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase mb-4">STUDENT POPULATION</h2>
+            <div className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 flex flex-col mb-10 h-80 shadow-sm">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={graphData} margin={{ top: 20, right: 30, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} opacity={0.5} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b' }} allowDecimals={false} />
+                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                  <Bar dataKey="Old Students" stackId="a" fill="#1e40af" radius={[0, 0, 4, 4]} barSize={32} />
+                  <Bar dataKey="New Students" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
-              <button onClick={() => setViewMode('Overall')} className="px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">Overall</button>
-              <button className="px-4 py-1.5 rounded-md text-sm font-bold bg-brand-700 text-white shadow transition-colors">Per Grade</button>
+            
+            <h2 className="text-xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase mb-4">GRADE LEVEL</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {GRADES.map(grade => {
+                const count = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status)).length;
+                return (
+                  <button
+                    key={grade}
+                    onClick={() => { setGradeFilter(grade); setViewMode('List'); }}
+                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex justify-between items-start hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 transition-colors duration-200 group h-[100px] shadow-sm hover:shadow-md"
+                  >
+                    <span className="font-semibold text-sm text-slate-700 dark:text-slate-200 group-hover:text-white pt-1">{grade}</span>
+                    <span className="bg-red-600 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">{count}</span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {GRADES.map(grade => (
-              <button
-                key={grade}
-                onClick={() => { setGradeFilter(grade); setViewMode('Overall'); }}
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center hover:bg-brand-600 hover:text-white hover:border-brand-600 dark:hover:bg-brand-600 dark:hover:text-white transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1"
-              >
-                <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-500 transition-colors shadow-sm">
-                  <svg className="w-8 h-8 text-brand-600 dark:text-brand-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l9-5-9-5-9 5 9 5z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                  </svg>
-                </div>
-                <span className="font-bold text-lg text-slate-800 dark:text-slate-200 group-hover:text-white transition-colors">{grade}</span>
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-brand-100 mt-2 transition-colors">
-                  {visibleStudents.filter(s => s.grade_level === grade).length} Students
-                </span>
-              </button>
-            ))}
           </div>
         </div>
       ) : (
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-[calc(100vh-120px)]">
-        <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-          <div>
-            <h3 className="text-2xl font-black font-cinzel tracking-widest text-slate-800 dark:text-white uppercase">STUDENT DIRECTORY</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage student profiles, academic records, and enrollment.</p>
-          </div>
-          <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
-            <button className="px-4 py-1.5 rounded-md text-sm font-bold bg-brand-700 text-white shadow transition-colors">Overall</button>
-            <button onClick={() => setViewMode('Per Grade')} className="px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">Per Grade</button>
-          </div>
-        </div>
-        
-        {/* Filtering & Search Toolbar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col gap-4 shrink-0">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <div className="relative flex-1 w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-              </div>
-              <input 
-                type="text" 
-                placeholder="Search students by name or ID..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
-              />
+        <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-6 flex flex-col justify-start">
+              <button onClick={() => { setViewMode('Overview'); setGradeFilter('All'); }} className="text-sm font-bold text-slate-400 hover:text-brand-600 mb-4 self-start flex items-center transition-colors">
+                <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Back to Overview
+              </button>
+              <h2 className="text-3xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase">{gradeFilter.toUpperCase()} {sectionFilter !== 'All Sections' ? sectionFilter.toUpperCase() : ''}</h2>
+              <p className="text-slate-400 text-sm mt-1">List of Students for Enrollment</p>
             </div>
             
-            <div className="flex w-full sm:w-auto gap-3 flex-wrap sm:flex-nowrap">
-              <select 
-                value={schoolYearFilter} 
-                onChange={(e) => setSchoolYearFilter(e.target.value)}
-                className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 flex-1 sm:flex-none font-medium"
-              >
-                {uniqueSchoolYears.map(yr => <option key={yr} value={yr}>{yr === 'All' ? 'All Years' : `SY ${yr}`}</option>)}
-              </select>
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  placeholder="SEARCH BAR HERE" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border-2 border-slate-200 dark:border-slate-700 rounded-full px-6 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent focus:outline-none focus:border-brand-500 placeholder-slate-400 uppercase tracking-widest"
+                />
+              </div>
               <button 
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center"
+                className="px-8 py-3 border-2 border-slate-200 dark:border-slate-700 rounded-full text-sm font-bold text-brand-800 dark:text-brand-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors uppercase tracking-widest"
               >
-                Sort A-Z
-                <svg className={`ml-2 h-4 w-4 transform transition-transform ${sortOrder === 'desc' ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>
+                SORT BY
               </button>
             </div>
-          </div>
-
-          <div className="flex gap-2 items-center text-[13px] font-bold overflow-x-auto pb-1 custom-scrollbar">
-             {['Active', 'Rejected', 'Archived'].map(status => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-1.5 rounded-md uppercase border transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-brand-700 border-brand-700 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                >
-                  {status}
-                </button>
-             ))}
-             <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
-             {['All Grades', ...GRADES].map(grade => (
-                <button
-                  key={grade}
-                  onClick={() => setGradeFilter(grade)}
-                  className={`px-4 py-1.5 rounded-md border transition-colors whitespace-nowrap ${gradeFilter === grade ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                >
-                  {grade}
-                </button>
-             ))}
-          </div>
-
-          <div className="flex gap-2 items-center text-[13px] font-bold overflow-x-auto pb-1 custom-scrollbar">
-             {['All Sections', ...SECTIONS].map(section => (
-                <button
-                  key={section}
-                  onClick={() => setSectionFilter(section)}
-                  className={`px-4 py-1.5 rounded-md border transition-colors whitespace-nowrap ${sectionFilter === section ? 'bg-yellow-100 border-yellow-200 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
-                >
-                  {section}
-                </button>
-             ))}
+            
+            {renderStudentTable(filteredStudents)}
           </div>
         </div>
-
-        {/* Scrollable Table Area */}
-        <div className="flex-1 min-h-0 relative bg-white dark:bg-slate-900 overflow-y-auto">
-          {renderStudentTable(filteredStudents)}
-        </div>
-      </div>
       )}
-    {/* The View modal was here. Now it is moved to inline sub-row */}
 
-      {/* Edit Modal */}
+      {/* View Modal Pop-up */}
+      {showStudentModal && selectedStudent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4 backdrop-blur-sm">
+          <div className="bg-slate-100 dark:bg-slate-700 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col md:flex-row relative animate-in fade-in zoom-in duration-200">
+            <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="absolute top-4 right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-black shadow hover:bg-red-700 z-10 text-lg leading-none transition-transform hover:scale-110">&times;</button>
+            
+            {/* Left Panel: History */}
+            <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 p-8 border-r border-slate-200 dark:border-slate-600 flex flex-col min-h-[500px]">
+              <h3 className="text-brand-800 dark:text-brand-400 font-bold text-[13px] tracking-widest uppercase mb-8 text-center border-b border-brand-100 dark:border-slate-700 pb-4">HISTORY OF ACTIONS CREATED</h3>
+              <div className="flex-1 overflow-y-auto space-y-5 custom-scrollbar pr-2">
+                {studentHistory && studentHistory.length > 0 ? studentHistory.map(h => (
+                  <div key={h.id} className="text-center">
+                    <p className="text-xs text-slate-400 font-bold mb-1">{new Date(h.date_recorded).toLocaleString('en-US', { year:'numeric', month:'2-digit', day:'2-digit', hour:'numeric', minute:'2-digit'})}</p>
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{h.recorder_name || 'System'} {h.action} - {h.description}</p>
+                  </div>
+                )) : (
+                  <p className="text-center text-sm text-slate-400 mt-10">No history actions recorded.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Right Panel: Details & Links */}
+            <div className="w-full md:w-1/2 bg-white dark:bg-slate-800 flex flex-col min-h-[500px]">
+              
+              {/* Profile Header (Sticky) */}
+              <div className="p-8 pb-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 z-10 sticky top-0">
+                <div className="flex items-center gap-5 w-full justify-center">
+                  {selectedStudent.profile_image ? (
+                    <img src={selectedStudent.profile_image} alt="Profile" className="w-20 h-20 rounded-lg object-cover border-2 border-brand-100 dark:border-slate-600 shadow-sm" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center border-2 border-brand-100 dark:border-slate-600 shadow-sm"><img src="/assets/Profile Icon [2 Clear].png" alt="User" className="w-10 h-10 opacity-30" /></div>
+                  )}
+                  <div>
+                    <h2 className="text-xl font-black text-brand-800 dark:text-brand-400 uppercase tracking-widest leading-tight">{selectedStudent.first_name} {selectedStudent.last_name}</h2>
+                    <p className="text-xs font-bold text-slate-500 tracking-wider mt-1">{selectedStudent.grade_level} {selectedStudent.section || ''}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Scrollable Data Area */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-4 space-y-8 max-h-[60vh]">
+                
+                {/* Basic Info */}
+                <section>
+                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Student Information</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <div><span className="block text-xs text-slate-500 mb-1">Gender</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.gender || 'Not specified'}</span></div>
+                    <div><span className="block text-xs text-slate-500 mb-1">Date of Birth</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.date_of_birth ? new Date(selectedStudent.date_of_birth).toLocaleDateString() : 'Not specified'}</span></div>
+                    <div className="col-span-2"><span className="block text-xs text-slate-500 mb-1">Address</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.address || 'Not specified'}</span></div>
+                    <div><span className="block text-xs text-slate-500 mb-1">Parent/Guardian</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.parent_name || 'Not specified'}</span></div>
+                    <div><span className="block text-xs text-slate-500 mb-1">Contact Number</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.contact_number || 'Not specified'}</span></div>
+                  </div>
+                </section>
+
+                {/* Report Card */}
+                <section>
+                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Academic Records</h4>
+                  {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
+                    <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No records found</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {selectedStudent.academic_records.map(rec => (
+                        <div key={rec.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <div>
+                            <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{rec.subject}</span>
+                            <span className="text-xs text-slate-500 font-bold tracking-wide">{rec.term}</span>
+                          </div>
+                          <span className="font-black text-brand-600 dark:text-brand-400 text-lg">{rec.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                {/* Attendance */}
+                <section>
+                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Attendance</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 p-4 rounded-xl text-center">
+                      <span className="block text-2xl font-black text-green-700 dark:text-green-400">95%</span>
+                      <span className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-widest">Present</span>
+                    </div>
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 p-4 rounded-xl text-center">
+                      <span className="block text-2xl font-black text-red-700 dark:text-red-400">5%</span>
+                      <span className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-widest">Absent</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Requirements */}
+                <section>
+                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Requirements Submitted</h4>
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                    <ul className="space-y-3">
+                      <li className="flex justify-between items-center text-sm">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Form 138 (Report Card)</span>
+                        {selectedStudent.req_form_138 ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                      </li>
+                      <li className="flex justify-between items-center text-sm">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">PSA Birth Certificate</span>
+                        {selectedStudent.req_birth_cert ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                      </li>
+                      <li className="flex justify-between items-center text-sm">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Certificate of Good Moral</span>
+                        {selectedStudent.req_good_moral ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                      </li>
+                      <li className="flex justify-between items-center text-sm">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">2x2 Pictures</span>
+                        {selectedStudent.req_pictures ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                      </li>
+                    </ul>
+                  </div>
+                </section>
+
+                {/* Payments */}
+                <section>
+                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Payment Status</h4>
+                  {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
+                    <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No payment data recorded</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {selectedStudent.tuition_payments.map(tp => (
+                        <div key={tp.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                          <span className="font-bold text-slate-800 dark:text-slate-200">{tp.term}</span>
+                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </div>
+
+              {/* Action Buttons (Sticky Bottom) */}
+              <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 mt-auto">
+                <div className="flex gap-3 w-full justify-center">
+                  <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-[11px] px-8 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Close</button>
+                {currentRole === 'Registrar' && (
+                  <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setShowEndYearConfirm(true); }} className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] px-5 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">End School Year</button>
+                )}
+                {['Registrar', 'Principal'].includes(currentRole) && (
+                  <>
+                    <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setEditingStudent(selectedStudent); setShowEdit(true); }} className="bg-brand-800 hover:bg-brand-900 text-white font-bold text-[11px] px-8 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Edit</button>
+                    <button onClick={async () => {
+                      if (confirm("Archive this student?")) {
+                        await authFetch(`/api/students/${selectedStudent.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
+                        setShowStudentModal(false); setActiveModalTab(null);
+                        fetchStudents();
+                      }
+                    }} className="bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] px-6 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Archive</button>
+                  </>
+                )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showEdit && editingStudent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">

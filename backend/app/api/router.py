@@ -708,9 +708,17 @@ def get_analytics_report(db: Session = Depends(get_db), current_user: models.Use
     
     overall_avg = sum([r.score for r in records]) / len(records) if records else 0
     warnings = 0
+    passed_students = 0
+    students_with_records = 0
     
     for student in students:
         student_records = [r for r in records if r.student_id == student.id]
+        if student_records:
+            students_with_records += 1
+            avg = sum([r.score for r in student_records]) / len(student_records)
+            if avg >= 75:
+                passed_students += 1
+                
         subjects = set(r.subject for r in student_records)
         for subject in subjects:
             subj_scores = [r.score for r in student_records if r.subject == subject]
@@ -719,6 +727,8 @@ def get_analytics_report(db: Session = Depends(get_db), current_user: models.Use
                 if analysis["has_warning"]:
                     warnings += 1
                     break
+                    
+    academic_pass_rate = (passed_students / students_with_records * 100) if students_with_records > 0 else 0
     
     return {
         "institution": "Calvary Christian Academy",
@@ -729,6 +739,7 @@ def get_analytics_report(db: Session = Depends(get_db), current_user: models.Use
         "outstanding_balance": outstanding_balance,
         "high_risk_tuition_flags": high_risk_payments,
         "global_academic_average": round(overall_avg, 2),
+        "academic_pass_rate": round(academic_pass_rate, 2),
         "active_academic_warnings": warnings
     }
 
