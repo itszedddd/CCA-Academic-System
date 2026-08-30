@@ -154,6 +154,9 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [editingStudent, setEditingStudent] = useState(null);
   const [editingGradeId, setEditingGradeId] = useState(null);
   const [editingGradeScore, setEditingGradeScore] = useState('');
+  const [subjectFilter, setSubjectFilter] = useState('All');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({ tpId: null, amount: '', or_number: '', date: '', time: '' });
 
   const graphData = GRADES.map(grade => {
     const gradeStudents = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
@@ -372,12 +375,20 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
 
                 {/* Report Card */}
                 <section>
-                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Academic Records</h4>
+                  <div className="flex justify-between items-center border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">
+                    <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm">Academic Records</h4>
+                    <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded outline-none font-bold text-slate-700 dark:text-slate-300">
+                      <option value="All">All Subjects</option>
+                      {Array.from(new Set((selectedStudent.academic_records || []).map(r => r.subject))).map(subj => (
+                        <option key={subj} value={subj}>{subj}</option>
+                      ))}
+                    </select>
+                  </div>
                   {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
                     <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No records found</p>
                   ) : (
                     <div className="space-y-2">
-                      {selectedStudent.academic_records.map(rec => (
+                      {selectedStudent.academic_records.filter(r => subjectFilter === 'All' || r.subject === subjectFilter).map(rec => (
                         <div key={rec.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                           <div>
                             <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{rec.subject}</span>
@@ -475,20 +486,16 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                             <div className="flex gap-3 items-center">
                               <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
                               {currentRole === 'Cashier' && (
-                                <button onClick={async () => {
-                                  const amt = prompt('Enter payment amount (₱):');
-                                  if (amt) {
-                                    const or = prompt('Enter OR Number:');
-                                    await authFetch('/api/tuition_payments/' + tp.id, {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ amount_paid: tp.amount_paid + parseFloat(amt), status: (tp.amount_paid + parseFloat(amt)) >= tp.amount_due ? 'Paid' : 'Pending' })
-                                    });
-                                    // Normally we would also save the payment history record to /api/payments/ but using simplified mock here
-                                    alert('Payment updated!');
-                                    handleView(selectedStudent.id);
-                                  }
-                                }} className="text-[10px] text-brand-600 hover:text-brand-800 font-bold uppercase tracking-widest bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/30 dark:hover:bg-brand-900/50 px-3 py-1 rounded transition-colors">Edit Payment</button>
+                                <button onClick={() => {
+                                  setPaymentForm({
+                                    tpId: tp.id,
+                                    amount: tp.amount_paid || '',
+                                    or_number: '',
+                                    date: new Date().toISOString().split('T')[0],
+                                    time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+                                  });
+                                  setShowPaymentModal(true);
+                                }} className="text-[10px] text-brand-600 font-bold uppercase tracking-widest hover:underline px-2">Edit Payment</button>
                               )}
                             </div>
                           </div>
@@ -603,6 +610,53 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                   alert('Failed to end school year.');
                 }
               }} className="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow transition">Confirm End Year</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cashier Payment Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Edit Payment for {selectedStudent?.first_name} {selectedStudent?.last_name}</h3>
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Amount (₱)</label>
+                <input type="number" step="0.01" value={paymentForm.amount} onChange={e => setPaymentForm({...paymentForm, amount: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">OR / Receipt Number</label>
+                <input type="text" value={paymentForm.or_number} onChange={e => setPaymentForm({...paymentForm, or_number: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Date</label>
+                  <input type="date" value={paymentForm.date} onChange={e => setPaymentForm({...paymentForm, date: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Time</label>
+                  <input type="time" value={paymentForm.time} onChange={e => setPaymentForm({...paymentForm, time: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-500" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button onClick={() => setShowPaymentModal(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancel</button>
+              <button onClick={async () => {
+                if (paymentForm.amount) {
+                  const token = localStorage.getItem('token');
+                  const res = await fetch(`/api/tuition_payments/${paymentForm.tpId}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ amount_paid: parseFloat(paymentForm.amount), or_number: paymentForm.or_number })
+                  });
+                  if (res.ok) {
+                    setShowPaymentModal(false);
+                    fetchStudents();
+                  } else {
+                    alert('Failed to update payment');
+                  }
+                }
+              }} className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">Save Payment</button>
             </div>
           </div>
         </div>

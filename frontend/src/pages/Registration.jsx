@@ -367,19 +367,19 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                  <option value="Rejected">Rejected</option>
                </select>
             </div>
-            <table className="w-full text-left">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold uppercase text-slate-500">
-                  <th className="px-6 py-3">Form ID</th>
-                  <th className="px-6 py-3">Student Name</th>
-                  <th className="px-6 py-3">Grade</th>
-                  <th className="px-6 py-3">Assessment</th>
-                  <th className="px-6 py-3">Interview</th>
-                  <th className="px-6 py-3">Status</th>
-                  <th className="px-6 py-3 text-right">Actions</th>
+                <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Form ID</th>
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Student Name</th>
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Grade</th>
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Assessment</th>
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Interview</th>
+                  <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Status</th>
+                  <th className="p-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                 {forms.filter(form => {
                   if (statusFilter !== 'All' && form.status !== statusFilter) return false;
                   
@@ -409,36 +409,42 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   } else if (name === "Unknown" && form.father_name) {
                      name = `Child of ${form.father_name}`;
                   }
+                  const isNew = form.form_type === 'New Student';
                   return (
-                    <tr key={form.id} className={`hover:bg-slate-50 dark:hover:bg-slate-700/50 transition ${form.form_type === 'New Student' ? 'bg-green-50/50 dark:bg-green-900/10 border-l-4 border-l-green-500' : ''}`}>
-                      <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(form.id).padStart(4,'0')}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800 dark:text-white">
-                        <div className="flex items-center space-x-2">
+                    <tr key={form.id} className={`transition-colors ${isNew ? 'bg-green-50/70 hover:bg-green-100/70 dark:bg-green-900/10 dark:hover:bg-green-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+                      <td className={`p-4 font-black text-sm tracking-widest ${isNew ? 'text-green-600 dark:text-green-400' : 'text-brand-600 dark:text-brand-400'}`}>#{String(form.id).padStart(3,'0')}</td>
+                      <td className="p-4">
+                        <div className="font-bold text-slate-800 dark:text-white flex items-center space-x-2">
                           <span>{name}</span>
-                          {form.form_type === 'New Student' ? (
+                          {isNew ? (
                             <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-bold uppercase tracking-wider">New</span>
                           ) : (
                             <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wider">Old</span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">{form.grade_applying_for || grade}</td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${form.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' : form.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.assessment_status || 'Pending'}</span>
+                      <td className="p-4 text-xs font-bold text-slate-600 dark:text-slate-400">{form.grade_applying_for || grade}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-bold rounded-md ${form.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' : form.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.assessment_status || 'Pending'}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-bold rounded-md ${form.interview_status === 'Passed' ? 'bg-green-100 text-green-700' : form.interview_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.interview_status || 'Pending'}</span>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-bold rounded-md ${form.interview_status === 'Passed' ? 'bg-green-100 text-green-700' : form.interview_status === 'Failed' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'}`}>{form.interview_status || 'Pending'}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${getStatusColor(form.status)}`}>{form.status}</span>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-bold rounded-md ${
+                          form.status === 'Success' ? 'bg-green-100 text-green-700' : 
+                          form.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                          form.status === 'Hold' ? 'bg-orange-100 text-orange-700' :
+                          form.status === 'Approved Incomplete' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'}`}>{form.status}</span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="p-4 flex gap-3 justify-center items-center h-full pt-4">
                         <button onClick={() => setSelectedForm(form)} className="text-sm font-bold text-brand-600 hover:text-brand-800">Review</button>
                       </td>
                     </tr>
                   )
                 })}
-                {forms.length === 0 && <tr><td colSpan="5" className="p-8 text-center text-slate-500">No enrollment records to verify.</td></tr>}
+                {forms.length === 0 && <tr><td colSpan="7" className="p-8 text-center text-slate-500">No enrollment records to verify.</td></tr>}
               </tbody>
             </table>
           </div>
