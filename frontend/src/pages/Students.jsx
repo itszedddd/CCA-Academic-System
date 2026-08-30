@@ -10,17 +10,18 @@ const SECTION_META = {
 };
 const API = '/api';
 
-export default function Students({ students, fetchStudents, fetchWarnings, currentRole, authFetch, forms, searchQuery, setSearchQuery }) {
+export default function Students({ students, isStudentsLoading, fetchStudents, fetchWarnings, currentRole, authFetch, forms, searchQuery, setSearchQuery, user }) {
+  // Teacher only sees their section's students
+  const visibleStudents = currentRole === 'Teacher' && user?.section
+    ? students.filter(s => s.section === user.section)
+    : students;
   const [showEdit, setShowEdit] = useState(false);
   const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedGradeTile, setSelectedGradeTile] = useState(null);
-  const [historyYear, setHistoryYear] = useState('');
-  const [studentHistory, setStudentHistory] = useState([]);
-  const [editingStudent, setEditingStudent] = useState(null);
-  const [editingGradeId, setEditingGradeId] = useState(null);
-  const [editingGradeScore, setEditingGradeScore] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('All');
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [viewMode, setViewMode] = useState('Overall');
+  const [gradeFilter, setGradeFilter] = useState('All');
+  const [sectionFilter, setSectionFilter] = useState('All Sections');
   const [schoolYearFilter, setSchoolYearFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('Active'); // 'Active', 'Rejected', 'Archived'
   const [sortOrder, setSortOrder] = useState('asc');
@@ -102,10 +103,10 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
     fetchStudents();
   };
 
-  const uniqueSections = ['All', ...new Set(students.map(s => s.section).filter(Boolean))].sort();
-  const uniqueSchoolYears = ['All', ...new Set(students.map(s => s.school_year).filter(Boolean))].sort().reverse();
+  const uniqueSections = ['All Sections', ...new Set(visibleStudents.map(s => s.section).filter(Boolean))].sort();
+  const uniqueSchoolYears = ['All', ...new Set(visibleStudents.map(s => s.school_year).filter(Boolean))].sort().reverse();
 
-  const filteredStudents = students
+  const filteredStudents = visibleStudents
     .filter(s => {
       // Status filtering logic
       const isArchived = s.enrollment_status === 'Archived' || s.enrollment_status === 'Graduated' || s.enrollment_status === 'Dropped' || s.enrollment_status === 'Transferred' || s.is_archived;
@@ -116,9 +117,10 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       if (statusFilter === 'Active' && (isArchived || isRejected)) return false;
 
       const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(searchQuery.toLowerCase()) || String(s.id).includes(searchQuery);
-      const matchesSection = sectionFilter === 'All' || s.section === sectionFilter;
+      const matchesSection = sectionFilter === 'All Sections' || s.section === sectionFilter;
       const matchesYear = schoolYearFilter === 'All' || s.school_year === schoolYearFilter;
-      return matchesSearch && matchesSection && matchesYear;
+      const matchesGrade = gradeFilter === 'All Grades' || gradeFilter === 'All' || s.grade_level === gradeFilter;
+      return matchesSearch && matchesSection && matchesYear && matchesGrade;
     })
     .sort((a, b) => {
       const nameA = a.last_name.toLowerCase();
@@ -128,7 +130,11 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       return 0;
     });
 
-  const isTableView = selectedGradeTile !== null || searchQuery.length > 0;
+  const [historyYear, setHistoryYear] = useState('');
+  const [studentHistory, setStudentHistory] = useState([]);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [editingGradeId, setEditingGradeId] = useState(null);
+  const [editingGradeScore, setEditingGradeScore] = useState('');
 
   const renderStudentTable = (rows) => (
     <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-280px)] custom-scrollbar border-b border-slate-200 dark:border-slate-700">
@@ -500,17 +506,34 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
 
   return (
     <>
-      {!isTableView ? (
+      {isStudentsLoading && (
+        <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center">
+            <svg className="animate-spin h-10 w-10 text-brand-600 dark:text-brand-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-slate-600 dark:text-slate-300 font-medium">Loading Student Directory...</p>
+          </div>
+        </div>
+      )}
+      {viewMode === 'Per Grade' ? (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 md:p-10 min-h-[calc(100vh-120px)]">
-          <div className="mb-8">
-            <h2 className="text-2xl font-black font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">Student Directory</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Select a grade level below to view the list of students.</p>
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <h2 className="text-2xl font-black font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">Student Directory</h2>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Manage student profiles, academic records, and enrollment.</p>
+            </div>
+            <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
+              <button onClick={() => setViewMode('Overall')} className="px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">Overall</button>
+              <button className="px-4 py-1.5 rounded-md text-sm font-bold bg-brand-700 text-white shadow transition-colors">Per Grade</button>
+            </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {GRADES.map(grade => (
               <button
                 key={grade}
-                onClick={() => setSelectedGradeTile(grade)}
+                onClick={() => { setGradeFilter(grade); setViewMode('Overall'); }}
                 className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center hover:bg-brand-600 hover:text-white hover:border-brand-600 dark:hover:bg-brand-600 dark:hover:text-white transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1"
               >
                 <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-500 transition-colors shadow-sm">
@@ -521,7 +544,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 </div>
                 <span className="font-bold text-lg text-slate-800 dark:text-slate-200 group-hover:text-white transition-colors">{grade}</span>
                 <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-brand-100 mt-2 transition-colors">
-                  {students.filter(s => s.grade_level === grade).length} Students
+                  {visibleStudents.filter(s => s.grade_level === grade).length} Students
                 </span>
               </button>
             ))}
@@ -530,27 +553,18 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
       ) : (
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col h-[calc(100vh-120px)]">
         <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-4">
-            {selectedGradeTile && (
-              <button 
-                onClick={() => { setSelectedGradeTile(null); setSearchQuery(''); }}
-                className="p-2 -ml-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-                title="Back to Grade Levels"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-              </button>
-            )}
-            <div>
-              <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white uppercase">
-                {selectedGradeTile ? `${selectedGradeTile} Students` : 'Search Results'}
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Manage student profiles, academic records, and enrollment.</p>
-            </div>
+          <div>
+            <h3 className="text-2xl font-black font-cinzel tracking-widest text-slate-800 dark:text-white uppercase">STUDENT DIRECTORY</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage student profiles, academic records, and enrollment.</p>
+          </div>
+          <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 border border-slate-200 dark:border-slate-700">
+            <button className="px-4 py-1.5 rounded-md text-sm font-bold bg-brand-700 text-white shadow transition-colors">Overall</button>
+            <button onClick={() => setViewMode('Per Grade')} className="px-4 py-1.5 rounded-md text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">Per Grade</button>
           </div>
         </div>
         
         {/* Filtering & Search Toolbar */}
-        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex flex-col gap-4 shrink-0">
+        <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 flex flex-col gap-4 shrink-0">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
             <div className="relative flex-1 w-full">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -561,7 +575,7 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
                 placeholder="Search students by name or ID..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="pl-9 pr-4 py-2 w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             
@@ -583,46 +597,44 @@ export default function Students({ students, fetchStudents, fetchWarnings, curre
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {['Active', 'Rejected', 'Archived'].map(status => (
-              <button 
-                key={status} 
-                onClick={() => setStatusFilter(status)}
-                className={`px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg border transition-all ${
-                  statusFilter === status 
-                    ? 'bg-brand-600 text-white border-brand-600 shadow-md' 
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-400 hover:text-brand-600'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
+          <div className="flex gap-2 items-center text-[13px] font-bold overflow-x-auto pb-1 custom-scrollbar">
+             {['Active', 'Rejected', 'Archived'].map(status => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-4 py-1.5 rounded-md uppercase border transition-colors whitespace-nowrap ${statusFilter === status ? 'bg-brand-700 border-brand-700 text-white' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                  {status}
+                </button>
+             ))}
+             <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-2 shrink-0"></div>
+             {['All Grades', ...GRADES].map(grade => (
+                <button
+                  key={grade}
+                  onClick={() => setGradeFilter(grade)}
+                  className={`px-4 py-1.5 rounded-md border transition-colors whitespace-nowrap ${gradeFilter === grade ? 'bg-brand-50 border-brand-200 text-brand-700 dark:bg-brand-900/20 dark:border-brand-800 dark:text-brand-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                  {grade}
+                </button>
+             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 mt-1">
-            {uniqueSections.map(sec => (
-              <button 
-                key={sec} 
-                onClick={() => setSectionFilter(sec)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all ${
-                  sectionFilter === sec 
-                    ? 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' 
-                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
-                }`}
-              >
-                {sec === 'All' ? 'All Sections' : sec}
-              </button>
-            ))}
+          <div className="flex gap-2 items-center text-[13px] font-bold overflow-x-auto pb-1 custom-scrollbar">
+             {['All Sections', ...SECTIONS].map(section => (
+                <button
+                  key={section}
+                  onClick={() => setSectionFilter(section)}
+                  className={`px-4 py-1.5 rounded-md border transition-colors whitespace-nowrap ${sectionFilter === section ? 'bg-yellow-100 border-yellow-200 text-yellow-700 dark:bg-yellow-900/30 dark:border-yellow-800 dark:text-yellow-400' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                  {section}
+                </button>
+             ))}
           </div>
         </div>
 
         {/* Scrollable Table Area */}
         <div className="flex-1 min-h-0 relative bg-white dark:bg-slate-900 overflow-y-auto">
-          {renderStudentTable(
-            selectedGradeTile 
-              ? filteredStudents.filter(s => s.grade_level === selectedGradeTile) 
-              : filteredStudents
-          )}
+          {renderStudentTable(filteredStudents)}
         </div>
       </div>
       )}

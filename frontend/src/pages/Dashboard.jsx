@@ -242,13 +242,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   };
 
   const StatCard = ({ label, value, sub, icon, color }) => (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
       <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
-        <svg className={`w-24 h-24 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
+        <svg className={`w-20 h-20 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
       </div>
-      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{label}</p>
-      <h3 className="text-3xl font-extrabold text-slate-800 dark:text-white">{value}</h3>
-      <p className="text-xs text-slate-400 mt-3">{sub}</p>
+      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider truncate">{label}</p>
+      <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white truncate">{value}</h3>
+      <p className="text-[11px] text-slate-400 mt-2">{sub}</p>
     </div>
   );
 
@@ -418,7 +418,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
       {/* Admission 2-Column Dashboard Layout */}
       {currentRole === 'Admission' && (() => {
-        const preRegistered = forms.filter(f => f.status === 'Pre-Registered' || f.status === 'Pending').length;
+        const preRegistered = forms.filter(f => {
+          const s = (f.status || '').toLowerCase();
+          return s === 'pre-registered' || s === 'pending' || s === 'pre-registration';
+        }).length;
         const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
         const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
         const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
@@ -429,7 +432,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <div className="lg:col-span-2 space-y-6">
               {/* 2x2 Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <StatCard label="Total Pre-Registered" value={preRegistered || forms.length} sub="Online applications received" color="text-brand-600" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                <StatCard label="Total Pre-Registered" value={preRegistered} sub="Online applications received" color="text-brand-600" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                 <StatCard label="Ready for Assessment" value={readyForAssessment} sub="Cleared for on-site exam" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <StatCard label="Pending Requirements" value={pendingReqs} sub="Awaiting documents" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -770,7 +773,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                   <div>
                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
                       {isStudent ? a.date : (() => {
-                        const student = students.find(s => s.id === a.student_id);
+                        const student = students.find(s => String(s.id) === String(a.student_id));
                         return student ? `${student.first_name} ${student.last_name}` : `Student #${String(a.student_id).padStart(4,'0')}`;
                       })()}
                     </p>

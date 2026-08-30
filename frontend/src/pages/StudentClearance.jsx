@@ -142,7 +142,17 @@ export default function StudentClearance({ API, authFetch, token, students, curr
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
                 {clearance.items && clearance.items.map((item, index) => {
                   const isLocked = index > 0 && clearance.items[index - 1].status !== 'Cleared';
-                  const canAct = (currentRole === item.department) || (item.department === 'Subjects' && currentRole === 'Teacher') || (currentRole === 'Principal') || (currentRole === 'Superadmin');
+                  // Map department names to the roles that can sign them
+                  const DEPT_ROLE_MAP = {
+                    'Subjects': ['Teacher'],
+                    'Library': ['Registrar', 'Principal'],
+                    'Clinic': ['Registrar', 'Principal'],
+                    'Cashier': ['Cashier'],
+                    'Registrar': ['Registrar'],
+                    'Principal': ['Principal'],
+                  };
+                  const allowedRoles = DEPT_ROLE_MAP[item.department] || [];
+                  const canAct = allowedRoles.includes(currentRole) || currentRole === 'Superadmin';
                   
                   return (
                   <tr key={item.id} className={isLocked ? "opacity-50 bg-gray-50 dark:bg-slate-900/50" : ""}>

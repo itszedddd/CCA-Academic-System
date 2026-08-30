@@ -36,6 +36,7 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [isAuthLoading, setIsAuthLoading] = useState(!!localStorage.getItem('token'));
   const [students, setStudents] = useState([]);
+  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
   const [warnings, setWarnings] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [forms, setForms] = useState([]);
@@ -88,7 +89,14 @@ export default function App() {
     setCurrentRole('Guest');
   };
 
-  const fetchStudents = () => authFetch(`${API}/students/`).then(r => r?.ok ? r.json() : []).then(setStudents).catch(() => {});
+  const fetchStudents = () => {
+    setIsStudentsLoading(true);
+    return authFetch(`${API}/students/`)
+      .then(r => r?.ok ? r.json() : [])
+      .then(setStudents)
+      .catch(() => {})
+      .finally(() => setIsStudentsLoading(false));
+  };
   const fetchWarnings = () => authFetch(`${API}/academic_warnings/`).then(r => r?.ok ? r.json() : {warnings:[]}).then(d => setWarnings(d.warnings || [])).catch(() => {});
   const fetchAttendance = () => authFetch(`${API}/attendance/`).then(r => r?.ok ? r.json() : []).then(setAttendance).catch(() => {});
   const fetchForms = () => authFetch(`${API}/enrollment_forms/`).then(r => r?.ok ? r.json() : []).then(setForms).catch(() => {});
@@ -104,6 +112,28 @@ export default function App() {
       fetchStudents(); fetchWarnings(); fetchAttendance(); fetchForms();
     }
   }, [token]);
+
+  // Browser back/forward button support
+  useEffect(() => {
+    const handlePopState = (e) => {
+      if (e.state?.tab) {
+        setActiveTab(e.state.tab);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    // Push initial state
+    if (!window.history.state?.tab) {
+      window.history.replaceState({ tab: activeTab }, '', '');
+    }
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    // Push new history entry when tab changes (but not on popstate)
+    if (window.history.state?.tab !== activeTab) {
+      window.history.pushState({ tab: activeTab }, '', '');
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -161,7 +191,7 @@ export default function App() {
     ) : [],
   };
 
-  const sharedProps = { API, students, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery };
+  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery };
 
   if (isAuthLoading) return <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>Loading...</div>;
   if (isPreRegistrationMode) return <PreRegistrationPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onNavigateHome={() => setIsPreRegistrationMode(false)} />;

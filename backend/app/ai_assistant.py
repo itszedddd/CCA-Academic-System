@@ -1,15 +1,12 @@
 import os
-import google.generativeai as genai
+from google import genai
 from typing import Dict, Any
 
-# Configure Gemini
+# Configure Gemini using the new google-genai SDK
 api_key = os.environ.get("GEMINI_API_KEY")
+client = None
 if api_key:
-    genai.configure(api_key=api_key)
-    # Using the standard gemini model for text
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    model = None
+    client = genai.Client(api_key=api_key)
 
 # System prompt to give the AI its persona and context
 SYSTEM_PROMPT = """
@@ -23,6 +20,9 @@ Available Features:
 - Student Clearance (Cashier, Library, Clinic, Registrar, Principal)
 - Digitalized Print-Ready Forms
 - School-Wide Reports
+- AI Performance Tracker (Academic Warnings)
+- Student Archive
+- Document Requests
 
 Guidelines:
 1. Be polite, professional, and helpful.
@@ -30,14 +30,16 @@ Guidelines:
 3. If asked about enrollment, guide them to the Digital Forms or Enrollment section.
 4. Keep responses concise and easy to read. Do not hallucinate URLs that don't exist in the system.
 5. If you do not know the answer, advise them to contact the Registrar or Principal's office.
+6. You can help registrar staff with tasks like: generating enrollment reports, checking student requirements, reviewing clearance status, and answering admission-related queries.
+7. Format your responses clearly. Use bullet points when listing multiple items.
 """
+
 
 def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, Any] = None) -> str:
     """Sends a message to the AI assistant and returns the response."""
     
-    if not model:
-        # Fallback if no API key is provided
-        return "I am currently running in offline mode. Please contact the administrator to enable AI features by configuring the Gemini API key."
+    if not client:
+        return "I am currently running in offline mode. Please contact the administrator to enable AI features by configuring the GEMINI_API_KEY environment variable."
         
     try:
         # Build context for the AI
@@ -47,22 +49,19 @@ def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, An
             
         full_prompt = f"{SYSTEM_PROMPT}\n\n{context_str}\nUser: {message}\nAssistant:"
         
-        response = model.generate_content(full_prompt)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=full_prompt
+        )
         return response.text
     except Exception as e:
-        print(f"AI Assistant Error: {e}")
+        error_str = str(e)
+        print(f"AI Assistant Error: {error_str}")
         
-        # Fallback offline logic if quota exceeded or key missing
-        msg_lower = message.lower()
-        if "role" in msg_lower or "who am i" in msg_lower:
-            return f"You are currently logged in as a {user_role}. This gives you access to specific features in the CCA EduSys portal."
-        elif "fee" in msg_lower or "tuition" in msg_lower:
-            return "Tuition fees depend on the Grade Level and your Membership Type (CBC Member vs Non-Member). Please check the Financial Collection section or contact the Cashier."
-        elif "enroll" in msg_lower or "register" in msg_lower:
-            return "To enroll or register, please navigate to the Digital Forms or Student Enrollment section on your dashboard."
-        elif "clearance" in msg_lower:
-            return "Student clearances require approvals from Subjects, Library, Clinic, Cashier, Principal, and Registrar. Check the Clearance module for your status."
-        elif "hello" in msg_lower or "hi" in msg_lower or "hey" in msg_lower:
-            return "Hello! I'm the CCA EduSys AI Assistant. How can I help you today?"
-            
-        return "I'm sorry, the AI service is currently experiencing high traffic or is offline. Please try again later or contact the administrator."
+        # Only return a meaningful error, not a canned response
+        if "429" in error_str or "quota" in error_str.lower() or "rate" in error_str.lower():
+            return "The AI service is temporarily rate-limited. Please wait a moment and try again."
+        elif "403" in error_str or "permission" in error_str.lower():
+            return "The AI API key appears to be invalid or expired. Please contact the administrator."
+        else:
+            return f"I encountered an error processing your request. Please try again in a moment. (Error: {type(e).__name__})"
