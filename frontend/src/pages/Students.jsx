@@ -370,7 +370,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                     {currentRole === 'Teacher' && (
                       <>
                         <div className="col-span-2 border-t border-slate-100 dark:border-slate-700 pt-3 mt-1"></div>
-                        <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username (LRN)</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.lrn || String(selectedStudent.id).padStart(12, '0')}</span></div>
+                        <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.account_username || 'Not generated'}</span></div>
                         <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Password</span><span className="font-semibold text-slate-800 dark:text-slate-200 tracking-wider font-mono">password123</span></div>
                       </>
                     )}

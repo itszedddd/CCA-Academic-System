@@ -15,32 +15,49 @@ def generate_mock_students():
     # Create tables if not exist
     models.Base.metadata.create_all(bind=engine)
     
-    first_names = ["John", "Jane", "Alex", "Maria", "Liam", "Emma", "Noah", "Olivia", "William", "Sophia",
-                   "James", "Isabella", "Oliver", "Mia", "Benjamin", "Charlotte", "Elijah", "Amelia", "Lucas", "Harper"]
-    last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
-                  "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"]
-    grades = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
+    first_names = ["Juan", "Jose", "Andres", "Apolinario", "Emilio", "Antonio", "Marcelo", "Gregorio", "Melchora", "Gabriela",
+                   "Teresa", "Lapu", "Diego", "Miguel", "Manuel", "Corazon", "Ramon", "Ferdinand", "Graciano", "Carlos"]
+    last_names = ["Luna", "Rizal", "Bonifacio", "Mabini", "Aguinaldo", "del Pilar", "Lopez Jaena", "Aquino", "Silang", "Magbanua",
+                  "Lapu", "Malvar", "Quezon", "Magsaysay", "Marcos", "Garcia", "Roxas", "Macapagal", "Osmena", "Dela Cruz"]
+    grade_sections = [
+        ('Kinder', 'Kindness'),
+        ('Grade 1', 'Love'),
+        ('Grade 2', 'Joyful'),
+        ('Grade 3', 'Faith'),
+        ('Grade 4', 'Grace'),
+        ('Grade 5', 'Loyalty'),
+        ('Grade 6', 'Obedience'),
+        ('Grade 7', 'Meekness'),
+        ('Grade 8', 'Courage'),
+        ('Grade 9', 'Benevolence'),
+        ('Grade 10', 'Perseverance')
+    ]
     
-    print("Generating 30 mock students...")
-    hashed_pw = get_password_hash("student123")
+    print("Clearing existing mock students...")
+    db.query(models.User).filter(models.User.role == "Student").delete()
+    db.query(models.Student).delete()
+    db.commit()
+
+    print(f"Generating 30 mock students per section ({len(grade_sections) * 30} total)...")
+    hashed_pw = get_password_hash("password123")
     
-    for _ in range(30):
-        first = random.choice(first_names)
-        last = random.choice(last_names)
-        grade = random.choice(grades)
-        username = f"{last.lower()}_{first.lower()}_SY".replace(" ", "")
-        
-        # Check if username exists
-        existing_user = db.query(models.User).filter(models.User.username == username).first()
-        if existing_user:
-            username = f"{username}{random.randint(1, 999)}"
-        
-        new_student = models.Student(
-            first_name=first,
-            last_name=last,
-            grade_level=grade,
-            school_year="2025-2026",
-            section=f"Section {random.choice(['A', 'B', 'C'])}",
+    for grade, section in grade_sections:
+        for _ in range(30):
+            first = random.choice(first_names)
+            last = random.choice(last_names)
+            username = f"{last.lower()}_{first.lower()}_2026".replace(" ", "")
+            
+            # Check if username exists
+            existing_user = db.query(models.User).filter(models.User.username == username).first()
+            if existing_user:
+                username = f"{username}{random.randint(1, 9999)}"
+            
+            new_student = models.Student(
+                first_name=first,
+                last_name=last,
+                grade_level=grade,
+                school_year="2025-2026",
+                section=section,
             enrollment_status="Enrolled",
             account_username=username,
             initial_password="student123",
