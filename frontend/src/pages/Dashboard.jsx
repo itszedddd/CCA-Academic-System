@@ -332,573 +332,148 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
 
   const StatCard = ({ label, value, sub, icon, color }) => (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group">
-      <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity`}>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between h-full">
+      <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none`}>
         <svg className={`w-20 h-20 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
       </div>
-      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider truncate">{label}</p>
-      <h3 className="text-2xl font-extrabold text-slate-800 dark:text-white truncate">{value}</h3>
-      <p className="text-[11px] text-slate-400 mt-2">{sub}</p>
+      <div className="relative z-10">
+        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{label}</p>
+        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white break-words">{value}</h3>
+      </div>
+      <p className="text-[11px] text-slate-400 mt-2 relative z-10">{sub}</p>
     </div>
   );
 
-  return (
-    <div className="space-y-6">
-      {/* Header for Students */}
-      {isStudent ? (
-        <div className="mb-8 flex flex-col lg:flex-row gap-6">
-          <div className="flex-1">
-            <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
-          </div>
-          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
-            <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
-              <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              My Class Schedule
-            </h3>
-            {renderCalendar(mySchedule)}
-          </div>
+  // Helper components to avoid repetition
+  const RenderGeminiInsights = () => (
+    aiInsights.length > 0 && (
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <h3 className="text-xl font-black font-cinzel text-slate-800 dark:text-white flex items-center tracking-wider">
+            <svg className="w-6 h-6 mr-3 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            Gemini AI Insights
+          </h3>
+          <span className="bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 text-xs font-bold px-3 py-1 rounded-full border border-cyan-100 dark:border-cyan-800">Live Analysis</span>
         </div>
-      ) : currentRole === 'Teacher' ? (
-        <div className="mb-8 flex flex-col lg:flex-row gap-6">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
-            {user?.profile_picture ? (
-              <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-md border-4 border-brand-100 dark:border-brand-900">
-                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'T'}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+          {aiInsights.map((insight, idx) => {
+            const typeStyles = {
+              positive: 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300',
+              warning: 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-300',
+              info: 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-300',
+              neutral: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300',
+            };
+            const style = typeStyles[insight.type] || typeStyles.neutral;
+            return (
+              <div key={idx} className={`rounded-2xl p-5 border ${style} shadow-sm transition-transform hover:-translate-y-1`}>
+                <h4 className="font-bold text-[15px] mb-2 leading-tight">{insight.title}</h4>
+                <p className="text-sm opacity-90 leading-relaxed">{insight.description}</p>
               </div>
-            )}
-            <div>
-              <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1">{user?.full_name || 'Prof. Example User'}</h2>
-              <p className="text-brand-600 dark:text-brand-400 font-bold text-sm tracking-wide mb-2 uppercase">Adviser — {user?.section || 'Unassigned Section'}</p>
-              <p className="text-slate-500 dark:text-slate-400 text-xs">Manage your section's attendance and academic progress.</p>
-            </div>
-          </div>
-          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
-            <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
-              <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              Today's Schedule
-            </h3>
-            {currentRole === 'Teacher' ? (
-              <div 
-                className="cursor-pointer group relative"
-                onClick={() => {
-                  setEditSchedule(mySchedule);
-                  setShowScheduleModal(true);
-                }}
-              >
-                <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition rounded-xl z-10 flex items-center justify-center">
-                  <span className="bg-brand-900/80 text-white px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-sm shadow-xl flex items-center">
-                    <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    Click to Edit Schedule
-                  </span>
-                </div>
-                {renderCalendar(mySchedule)}
-              </div>
-            ) : renderCalendar(mySchedule)}
-          </div>
+            );
+          })}
         </div>
-      ) : (
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">
-              {currentRole === 'Registrar' ? "Registrar's Dashboard" : currentRole === 'Admission' ? "Admission's Dashboard" : "Institution Overview"}
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-              {currentRole === 'Registrar' || currentRole === 'Admission'
-                ? new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) 
-                : "AI-driven analytics and academic health tracking."}
-            </p>
-          </div>
-          {currentRole === 'Principal' && (
-            <button 
-              onClick={handleGenerateReport}
-              disabled={loadingReport}
-              className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white text-sm font-bold font-cinzel tracking-wider rounded-lg transition shadow-[0_4px_10px_-2px_rgba(2,40,104,0.4)] disabled:opacity-70 disabled:pointer-events-none"
-            >
-              {loadingReport ? (
-                 <svg className="animate-spin h-5 w-5 mr-3 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              ) : (
-                 <svg className="w-5 h-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              )}
-              {loadingReport ? 'GENERATING REPORT...' : 'INTELLIGENT REPORT'}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Stats */}
-      {currentRole === 'Principal' && (() => {
-        if (!reportData) return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-pulse">
-            {[1,2,3,4].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-28 border border-slate-100 dark:border-slate-700" />)}
-          </div>
-        );
-        const d = reportData;
-        return (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              <StatCard label="Total Student Body" value={d.total_students} sub="Registered students" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              <StatCard label="Active Enrollments" value={d.enrolled_students} sub="Currently enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <StatCard label="Global Average" value={`${d.global_academic_average}%`} sub="Academic performance" color="text-indigo-500" icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              <StatCard label="Academic Warnings" value={d.active_academic_warnings} sub="Declining trends flagged" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              <StatCard label="Tuition Expected" value={`\u20b1${d.total_tuition_due.toLocaleString()}`} sub="Total amount due" color="text-brand-600" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              <StatCard label="Tuition Collected" value={`\u20b1${d.total_tuition_collected.toLocaleString()}`} sub="Total received" color="text-green-500" icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              <StatCard label="Outstanding Balance" value={`\u20b1${d.outstanding_balance.toLocaleString()}`} sub="Unpaid balance" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              <StatCard label="High-Risk Flags" value={d.high_risk_tuition_flags} sub="Default exposure" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
-            </div>
-          </>
-        );
-      })()}
-
-      {currentRole === 'Cashier' && (() => {
-        const tDue = tuitions.reduce((s,t) => s + t.amount_due, 0);
-        const tPaid = tuitions.reduce((s,t) => s + t.amount_paid, 0);
-        const tBal = tDue - tPaid;
-        const oCount = tuitions.filter(t => t.status === 'Overdue').length;
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-            <StatCard label="Total Expected" value={`₱${tDue.toLocaleString()}`} sub="Baseline Target" color="text-brand-600" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <StatCard label="Collected Funds" value={`₱${tPaid.toLocaleString()}`} sub="Capital received" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            <StatCard label="Deficit Balance" value={`₱${tBal.toLocaleString()}`} sub="Active remaining" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-            <StatCard label="Alert Triggers" value={oCount} sub="Overdue accounts" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </div>
-        );
-      })()}
-
-      {currentRole === 'Registrar' && (() => {
-        if (!registrarStats) return <div className="animate-pulse h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div>;
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <StatCard label="Total Old Students" value={registrarStats.old_students} sub="Continuing Students" color="text-indigo-500" icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                <StatCard label="Total New Students" value={registrarStats.new_students} sub="Incoming Students" color="text-green-500" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                <StatCard label="All Students With Incomplete Requirements" value={registrarStats.incomplete_requirements} sub="Missing documents" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                <StatCard label="All Students Requesting Documents" value={registrarStats.pending_document_requests} sub="Document requests" color="text-amber-500" icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </div>
-            </div>
-            <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 min-h-[400px] flex flex-col">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
-                    <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
-                  </div>
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
-                  <p className="font-bold">Sample Commands:</p>
-                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Generate enrollment report"</p>
-                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show students with incomplete requirements"</p>
-                </div>
-                <div className="flex-1 min-h-0 relative">
-                  <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Admission 2-Column Dashboard Layout */}
-      {currentRole === 'Admission' && (() => {
-        const preRegistered = forms.filter(f => {
-          const s = (f.status || '').toLowerCase();
-          return s === 'pre-registered' || s === 'pending' || s === 'pre-registration';
-        }).length;
-        const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
-        const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
-        const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
-        
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column: Stats + Trends */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* 2x2 Stat Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <StatCard label="Total Pre-Registered" value={preRegistered} sub="Online applications received" color="text-brand-600" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                <StatCard label="Ready for Assessment" value={readyForAssessment} sub="Cleared for on-site exam" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <StatCard label="Pending Requirements" value={pendingReqs} sub="Awaiting documents" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </div>
-
-              {/* Enrollment Trends Block */}
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-                <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider mb-4 flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  Enrollment Trends
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => {
-                    const count = forms.filter(f => f.grade_applying_for === grade).length;
-                    return (
-                      <div key={grade} className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/50 rounded-lg px-3 py-2 border border-slate-100 dark:border-slate-700">
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{grade}</span>
-                        <span className="text-sm font-black text-brand-600 dark:text-brand-400">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: AI Assistant */}
-            <div className="lg:col-span-1">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col">
-                <div className="flex items-center mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
-                    <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
-                  </div>
-                </div>
-                
-                <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
-                  <p className="font-bold">Sample Commands:</p>
-                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"How many students are pre-registered?"</p>
-                  <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show rejected applicants"</p>
-                </div>
-                
-                <div className="flex-1 min-h-0 relative">
-                  <AIAssistantWidget 
-                    API_URL={window.location.origin + '/api'} 
-                    token={localStorage.getItem('token')} 
-                    mode="embedded"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {(currentRole === 'Teacher' || isStudent) && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {!isStudent && (
-            <StatCard label={currentRole === 'Teacher' ? "Total Students" : "Total Enrolled"} value={currentRole === 'Teacher' ? totalSectionStudents : enrolledCount} sub={currentRole === 'Teacher' ? "Assigned to section" : "Active students"} color="text-brand-600"
-              icon="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
-          )}
-          
-          <StatCard 
-            label={isStudent ? "My AI Insights" : "AI Warnings"} 
-            value={filteredWarnings.length} 
-            sub={isStudent ? "Performance trends" : "Declining trend flagged"} 
-            color="text-red-500"
-            icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" 
-          />
-          
-          <StatCard 
-            label={isStudent ? "My Absences" : "Total Absences"} 
-            value={isStudent ? attendance.filter(a => a.status === 'Absent').length : todayAbsences} 
-            sub={isStudent ? "Total absences logged" : "Logged in attendance"} 
-            color="text-amber-500"
-            icon="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" 
-          />
-
-          {(!isStudent && currentRole !== 'Teacher') && (
-            <StatCard label="Enrollment Forms" value={forms.length} sub="Documents submitted" color="text-indigo-500"
-              icon="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-          )}
-        </div>
-      )}
-
-      {/* Gemini AI Insights Panel (For Faculty & Staff) */}
-      {!isStudent && aiInsights.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          
-          <div className="flex items-center justify-between mb-6 relative z-10">
-            <h3 className="text-xl font-black font-cinzel text-slate-800 dark:text-white flex items-center tracking-wider">
-              <svg className="w-6 h-6 mr-3 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              Gemini AI Insights
-            </h3>
-            <span className="bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 text-xs font-bold px-3 py-1 rounded-full border border-cyan-100 dark:border-cyan-800">
-              Live Analysis
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
-            {aiInsights.map((insight, idx) => {
-              const typeStyles = {
-                positive: 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-900/30 text-emerald-800 dark:text-emerald-300',
-                warning: 'bg-amber-50 dark:bg-amber-900/10 border-amber-100 dark:border-amber-900/30 text-amber-800 dark:text-amber-300',
-                info: 'bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 text-blue-800 dark:text-blue-300',
-                neutral: 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300',
-              };
-              const style = typeStyles[insight.type] || typeStyles.neutral;
-              
-              return (
-                <div key={idx} className={`rounded-2xl p-5 border ${style} shadow-sm transition-transform hover:-translate-y-1`}>
-                  <h4 className="font-bold text-[15px] mb-2 leading-tight">{insight.title}</h4>
-                  <p className="text-sm opacity-90 leading-relaxed">{insight.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Events & Announcements Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Upcoming Events */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-            <div className="flex justify-between items-center w-full">
-              <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
-                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                Upcoming Events
-              </h3>
-              {!isStudent && (
-                <button onClick={() => { setPostType('Event'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">
-                  + Add Event
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="p-5 flex-1 space-y-4">
-            {events.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No upcoming events scheduled.</p>
-            ) : (
-              events.slice(0, 4).map(event => (
-                <div key={event.id} className="flex space-x-4">
-                  <div className="flex flex-col items-center justify-center w-14 h-14 bg-brand-50 dark:bg-brand-900/30 rounded-xl border border-brand-100 dark:border-brand-800 shrink-0">
-                    <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">
-                      {new Date(event.event_date).toLocaleString('default', { month: 'short' })}
-                    </span>
-                    <span className="text-lg font-black text-slate-800 dark:text-white leading-none">
-                      {new Date(event.event_date).getDate()}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">{event.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{event.description}</p>
-                    {(event.event_time || event.location) && (
-                      <div className="flex items-center space-x-3 mt-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {event.event_time && <span>🕒 {event.event_time}</span>}
-                        {event.location && <span>📍 {event.location}</span>}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Recent Announcements */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
-            <div className="flex justify-between items-center w-full">
-              <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
-                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                Recent Announcements
-              </h3>
-              {!isStudent && (
-                <button onClick={() => { setPostType('Announcement'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">
-                  + Add Post
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="p-5 flex-1 space-y-4">
-            {announcements.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent announcements.</p>
-            ) : (
-              announcements.slice(0, 4).map(ann => (
-                <div key={ann.id} className="border-l-4 border-brand-500 pl-4 py-1">
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                      {ann.is_pinned === 1 && <span className="mr-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Pinned</span>}
-                      {ann.title}
-                    </h4>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{ann.content}</p>
-                  <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 mt-2 tracking-wider">
-                    Posted by {ann.author_role} • {new Date(ann.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
       </div>
+    )
+  );
 
-      {/* Population & Enrollment Trends (Registrar / Principal) */}
-      {(currentRole === 'Registrar' || currentRole === 'Principal') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Student Population Breakdown */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center mb-6">
-              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              Student Population by Grade
+  const RenderEventsAndAnnouncements = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="flex justify-between items-center w-full">
+            <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              Upcoming Events
             </h3>
-            {studentPopulation ? (
-              <div className="space-y-4">
-                {Object.entries(studentPopulation)
-                  .sort((a,b) => b[1] - a[1]) // sort by count descending
-                  .map(([grade, count], idx) => {
-                    const total = Object.values(studentPopulation).reduce((a,b)=>a+b, 0) || 1;
-                    const pct = Math.round((count / total) * 100);
-                    // color palette
-                    const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-cyan-500', 'bg-rose-500', 'bg-purple-500'];
-                    const color = colors[idx % colors.length];
-                    return (
-                      <div key={grade}>
-                        <div className="flex justify-between text-sm font-semibold mb-1">
-                          <span className="text-slate-700 dark:text-slate-300">{grade}</span>
-                          <span className="text-slate-500">{count} ({pct}%)</span>
-                        </div>
-                        <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2">
-                          <div className={`${color} h-2 rounded-full`} style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                    );
-                })}
-              </div>
-            ) : (
-              <div className="h-40 flex items-center justify-center text-slate-400">Loading population data...</div>
+            {!isStudent && (
+              <button onClick={() => { setPostType('Event'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">+ Add Event</button>
             )}
           </div>
-
-          {/* Enrollment Trends */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center mb-6">
-              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
-              Enrollment Trends (Current SY)
-            </h3>
-            {enrollmentTrends ? (
-              <div className="h-48 flex items-end space-x-2 pt-4">
-                {Object.entries(enrollmentTrends).map(([month, count]) => {
-                  const max = Math.max(...Object.values(enrollmentTrends), 1);
-                  const heightPct = Math.max((count / max) * 100, 5); // min 5% height
-                  return (
-                    <div key={month} className="flex-1 flex flex-col items-center justify-end group">
-                      <div className="w-full bg-brand-500 rounded-t-sm transition-all group-hover:bg-brand-400 relative" style={{ height: `${heightPct}%` }}>
-                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
-                          {count}
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold text-slate-500 mt-2 uppercase">{month}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="h-40 flex items-center justify-center text-slate-400">Loading trend data...</div>
-            )}
-          </div>
-          
         </div>
-      )}
-
-      {/* Legacy AI Warnings Summary (Now mostly for Students/Teachers) */}
-      {(isStudent || currentRole === 'Teacher') && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* AI Insights */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-          <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
-              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              {isStudent ? "My Performance Insights" : "AI Performance Insights"}
-            </h3>
-            {!isStudent && <button onClick={() => setActiveTab('AI Performance Tracker')} className="text-sm font-medium text-slate-400 hover:text-brand-600 transition">View All →</button>}
-          </div>
-          <div className="space-y-3">
-            {filteredWarnings.length === 0 ? (
-              <div className="p-4 rounded-xl border border-green-100 bg-green-50 dark:bg-green-900/20 flex items-start space-x-3">
-                <div className="p-1.5 bg-green-100 dark:bg-green-800 rounded-lg text-green-600">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+        <div className="p-5 flex-1 space-y-4">
+          {events.length === 0 ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No upcoming events scheduled.</p>
+          ) : (
+            events.slice(0, 4).map(event => (
+              <div key={event.id} className="flex space-x-4">
+                <div className="flex flex-col items-center justify-center w-14 h-14 bg-brand-50 dark:bg-brand-900/30 rounded-xl border border-brand-100 dark:border-brand-800 shrink-0">
+                  <span className="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">{new Date(event.event_date).toLocaleString('default', { month: 'short' })}</span>
+                  <span className="text-lg font-black text-slate-800 dark:text-white leading-none">{new Date(event.event_date).getDate()}</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-green-800 dark:text-green-300 text-sm">{isStudent ? "Doing Great!" : "All Clear — No declining trends detected"}</p>
-                  <p className="text-xs text-green-600/80 dark:text-green-400 mt-0.5">{isStudent ? "You have no declining trends in your subjects." : "All students are on a stable or improving trajectory."}</p>
+                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">{event.title}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{event.description}</p>
+                  {(event.event_time || event.location) && (
+                    <div className="flex items-center space-x-3 mt-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                      {event.event_time && <span>🕒 {event.event_time}</span>}
+                      {event.location && <span>📍 {event.location}</span>}
+                    </div>
+                  )}
                 </div>
               </div>
-            ) : (() => {
-              const uniqueWarnings = new Map();
-              filteredWarnings.forEach(w => {
-                const key = isStudent ? w.subject : w.student_id;
-                if (!uniqueWarnings.has(key)) uniqueWarnings.set(key, w);
-              });
-              return Array.from(uniqueWarnings.values()).slice(0, 4).map((w, i) => (
-                <div key={i} className="p-4 rounded-xl border border-red-100 bg-red-50/40 dark:bg-red-900/20 flex items-start space-x-3">
-                  <div className="p-1.5 bg-red-100 dark:bg-red-800 rounded-lg text-red-600 flex-shrink-0">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-red-800 dark:text-red-300 text-sm">{isStudent ? w.subject : `${w.student_name} — ${w.subject}`}</p>
-                    <p className="text-xs text-red-600/80 dark:text-red-400 mt-0.5">{w.message}</p>
-                  </div>
-                </div>
-              ));
-            })()}
-          </div>
+            ))
+          )}
         </div>
-
-        {/* Recent Attendance */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col">
-          <div className="p-5 border-b border-slate-100 dark:border-slate-700">
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
-              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-              {isStudent ? "My Recent Attendance" : "Recent Attendance"}
+      </div>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden flex flex-col">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
+          <div className="flex justify-between items-center w-full">
+            <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+              <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+              Recent Announcements
             </h3>
-          </div>
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-700">
-            {(() => {
-              const uniqueMap = new Map();
-              
-              let validAttendance = attendance.filter(a => a.status !== 'Clear');
-              if (currentRole === 'Teacher') {
-                validAttendance = validAttendance.filter(a => students.some(s => String(s.id) === String(a.student_id)));
-              }
-
-              validAttendance.forEach(a => {
-                const key = isStudent ? a.date : a.student_id;
-                if (!uniqueMap.has(key)) uniqueMap.set(key, a);
-              });
-              const records = Array.from(uniqueMap.values()).slice(0, 8);
-              if (records.length === 0) return <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">No attendance records yet.</div>;
-              
-              return records.map(a => (
-                <div key={a.id} className="px-5 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                      {isStudent ? a.date : (() => {
-                        const student = students.find(s => String(s.id) === String(a.student_id));
-                        return student ? `${student.first_name} ${student.last_name}` : `Student #${String(a.student_id).padStart(4,'0')}`;
-                      })()}
-                    </p>
-                  {!isStudent && <p className="text-xs text-slate-400">{a.date}</p>}
-                </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  a.status === 'Present' ? 'bg-green-100 text-green-700' :
-                  a.status === 'Late'    ? 'bg-amber-100 text-amber-700' :
-                                           'bg-red-100 text-red-700'
-                }`}>{a.status}</span>
-              </div>
-            ));
-            })()}
-          </div>
-          <div className="p-4 border-t border-slate-100 dark:border-slate-700">
-            <button onClick={() => setActiveTab(isStudent ? 'Student Portal' : 'Attendance')} className="w-full py-2 text-sm font-medium text-slate-400 hover:text-brand-600 transition">
-              {isStudent ? "View Full Record →" : "View Full Attendance →"}
-            </button>
-          </div>
+            {!isStudent && (
+              <button onClick={() => { setPostType('Announcement'); setShowPostModal(true); }} className="text-xs bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-slate-700 dark:text-brand-300 px-3 py-1.5 rounded-lg font-bold transition">+ Add Post</button>
+            )}
           </div>
         </div>
-      )}
+        <div className="p-5 flex-1 space-y-4">
+          {announcements.length === 0 ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">No recent announcements.</p>
+          ) : (
+            announcements.slice(0, 4).map(ann => (
+              <div key={ann.id} className="border-l-4 border-brand-500 pl-4 py-1">
+                <div className="flex items-start justify-between">
+                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">
+                    {ann.is_pinned === 1 && <span className="mr-2 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded-sm uppercase tracking-wider">Pinned</span>}
+                    {ann.title}
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{ann.content}</p>
+                <p className="text-[10px] font-semibold text-brand-600 dark:text-brand-400 mt-2 tracking-wider">Posted by {ann.author_role} • {new Date(ann.created_at).toLocaleDateString()}</p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
+  const AIAssistantSidebar = ({ label }) => (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col min-h-[400px]">
+      <div className="flex items-center mb-4">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
+          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        </div>
+        <div>
+          <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
+          <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
+        </div>
+      </div>
+      <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
+        <p className="font-bold">Suggested for {label}:</p>
+        <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Summarize data"</p>
+        <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show recent activity"</p>
+      </div>
+      <div className="flex-1 min-h-[300px] relative">
+        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" />
+      </div>
+    </div>
+  );
+
+  const RenderModals = () => (
+    <>
       {showScheduleModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden relative max-h-[90vh] flex flex-col">
@@ -1034,6 +609,257 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           </div>
         </div>
       )}
+    </>
+  );
+
+  const HeaderTitle = ({ title, subtitle }) => (
+    <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">{title}</h2>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{subtitle}</p>
+      </div>
+      {currentRole === 'Principal' && (
+        <button onClick={handleGenerateReport} disabled={loadingReport} className="flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white text-sm font-bold font-cinzel tracking-wider rounded-lg transition shadow-[0_4px_10px_-2px_rgba(2,40,104,0.4)] disabled:opacity-70 disabled:pointer-events-none">
+          {loadingReport ? 'GENERATING REPORT...' : 'INTELLIGENT REPORT'}
+        </button>
+      )}
+    </div>
+  );
+
+  if (currentRole === 'Registrar') {
+    return (
+      <div className="space-y-6">
+        <HeaderTitle title="Registrar's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            {!registrarStats ? <div className="animate-pulse h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div> : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <StatCard label="Total Old Students" value={registrarStats.old_students} sub="Continuing Students" color="text-indigo-500" icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                <StatCard label="Total New Students" value={registrarStats.new_students} sub="Incoming Students" color="text-green-500" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                <StatCard label="Incomplete Requirements" value={registrarStats.incomplete_requirements} sub="Missing documents" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <StatCard label="Document Requests" value={registrarStats.pending_document_requests} sub="Pending requests" color="text-amber-500" icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </div>
+            )}
+            <RenderGeminiInsights />
+            <RenderEventsAndAnnouncements />
+          </div>
+          <div className="lg:col-span-1">
+            <AIAssistantSidebar label="Registrar" />
+          </div>
+        </div>
+        <RenderModals />
+      </div>
+    );
+  }
+
+  if (currentRole === 'Admission') {
+    const preRegistered = forms.filter(f => ['pre-registered', 'pending', 'pre-registration'].includes((f.status || '').toLowerCase())).length;
+    const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
+    const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
+    const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
+    return (
+      <div className="space-y-6">
+        <HeaderTitle title="Admission's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <StatCard label="Pre-Registered" value={preRegistered} sub="Online applications received" color="text-brand-600" icon="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              <StatCard label="Ready for Assessment" value={readyForAssessment} sub="Cleared for exam" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <StatCard label="Pending Requirements" value={pendingReqs} sub="Awaiting documents" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </div>
+            <RenderGeminiInsights />
+            <RenderEventsAndAnnouncements />
+          </div>
+          <div className="lg:col-span-1">
+            <AIAssistantSidebar label="Admission" />
+          </div>
+        </div>
+        <RenderModals />
+      </div>
+    );
+  }
+
+  if (currentRole === 'Principal') {
+    return (
+      <div className="space-y-6">
+        <HeaderTitle title="Institution Overview" subtitle="AI-driven analytics and academic health tracking." />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            {!reportData ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-pulse">
+                {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-28 border border-slate-100 dark:border-slate-700" />)}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                  <StatCard label="Total Student Body" value={reportData.total_students} sub="Registered students" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  <StatCard label="Active Enrollments" value={reportData.enrolled_students} sub="Currently enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <StatCard label="Global Average" value={`${reportData.global_academic_average}%`} sub="Academic performance" color="text-indigo-500" icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  <StatCard label="Academic Warnings" value={reportData.active_academic_warnings} sub="Declining trends" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                  <StatCard label="Tuition Expected" value={`₱${reportData.total_tuition_due.toLocaleString()}`} sub="Total amount due" color="text-brand-600" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <StatCard label="Tuition Collected" value={`₱${reportData.total_tuition_collected.toLocaleString()}`} sub="Total received" color="text-green-500" icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <StatCard label="Outstanding Balance" value={`₱${reportData.outstanding_balance.toLocaleString()}`} sub="Unpaid balance" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <StatCard label="High-Risk Flags" value={reportData.high_risk_tuition_flags} sub="Default exposure" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
+                </div>
+              </>
+            )}
+            <RenderGeminiInsights />
+            <RenderEventsAndAnnouncements />
+          </div>
+          <div className="lg:col-span-1">
+            <AIAssistantSidebar label="Principal" />
+          </div>
+        </div>
+        <RenderModals />
+      </div>
+    );
+  }
+
+  if (currentRole === 'Cashier') {
+    const tDue = tuitions.reduce((s,t) => s + t.amount_due, 0);
+    const tPaid = tuitions.reduce((s,t) => s + t.amount_paid, 0);
+    const tBal = tDue - tPaid;
+    const oCount = tuitions.filter(t => t.status === 'Overdue').length;
+    return (
+      <div className="space-y-6">
+        <HeaderTitle title="Cashier's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+              <StatCard label="Total Expected" value={`₱${tDue.toLocaleString()}`} sub="Baseline Target" color="text-brand-600" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <StatCard label="Collected Funds" value={`₱${tPaid.toLocaleString()}`} sub="Capital received" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <StatCard label="Deficit Balance" value={`₱${tBal.toLocaleString()}`} sub="Active remaining" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <StatCard label="Alert Triggers" value={oCount} sub="Overdue accounts" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </div>
+            <RenderGeminiInsights />
+            <RenderEventsAndAnnouncements />
+          </div>
+          <div className="lg:col-span-1">
+            <AIAssistantSidebar label="Finance & Cashier" />
+          </div>
+        </div>
+        <RenderModals />
+      </div>
+    );
+  }
+
+  if (currentRole === 'Teacher') {
+    return (
+      <div className="space-y-6">
+        <div className="mb-8 flex flex-col lg:flex-row gap-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
+            {user?.profile_picture ? (
+              <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-md border-4 border-brand-100 dark:border-brand-900">
+                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'T'}
+              </div>
+            )}
+            <div>
+              <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1">{user?.full_name || 'Prof. Example User'}</h2>
+              <p className="text-brand-600 dark:text-brand-400 font-bold text-sm tracking-wide mb-2 uppercase">Adviser — {user?.section || 'Unassigned Section'}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs">Manage your section's attendance and academic progress.</p>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+            <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
+              <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Today's Schedule
+            </h3>
+            <div className="cursor-pointer group relative" onClick={() => { setEditSchedule(mySchedule); setShowScheduleModal(true); }}>
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition rounded-xl z-10 flex items-center justify-center">
+                <span className="bg-brand-900/80 text-white px-3 py-1.5 rounded-lg text-xs font-bold backdrop-blur-sm shadow-xl flex items-center">
+                  <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  Click to Edit Schedule
+                </span>
+              </div>
+              {renderCalendar(mySchedule)}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <StatCard label="Total Students" value={totalSectionStudents} sub="Assigned to section" color="text-brand-600" icon="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+              <StatCard label="AI Warnings" value={filteredWarnings.length} sub="Declining trend flagged" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
+              <StatCard label="Total Absences" value={todayAbsences} sub="Logged in attendance" color="text-amber-500" icon="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" />
+            </div>
+            
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  AI Performance Insights
+                </h3>
+              </div>
+              <div className="space-y-3">
+                {filteredWarnings.length === 0 ? (
+                  <div className="p-4 rounded-xl border border-green-100 bg-green-50 dark:bg-green-900/20 flex items-start space-x-3">
+                    <div className="p-1.5 bg-green-100 dark:bg-green-800 rounded-lg text-green-600">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-green-800 dark:text-green-300 text-sm">All Clear</p>
+                      <p className="text-xs text-green-600/80 dark:text-green-400 mt-0.5">All students are on a stable trajectory.</p>
+                    </div>
+                  </div>
+                ) : (() => {
+                  const uniqueWarnings = new Map();
+                  filteredWarnings.forEach(w => { if (!uniqueWarnings.has(w.student_id)) uniqueWarnings.set(w.student_id, w); });
+                  return Array.from(uniqueWarnings.values()).slice(0, 4).map((w, i) => (
+                    <div key={i} className="p-4 rounded-xl border border-red-100 bg-red-50/40 dark:bg-red-900/20 flex items-start space-x-3">
+                      <div className="p-1.5 bg-red-100 dark:bg-red-800 rounded-lg text-red-600 flex-shrink-0">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-red-800 dark:text-red-300 text-sm">{w.student_name} — {w.subject}</p>
+                        <p className="text-xs text-red-600/80 dark:text-red-400 mt-0.5">{w.message}</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            <RenderGeminiInsights />
+            <RenderEventsAndAnnouncements />
+          </div>
+          <div className="lg:col-span-1">
+            <AIAssistantSidebar label="Teacher/Adviser" />
+          </div>
+        </div>
+        <RenderModals />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8 flex flex-col lg:flex-row gap-6">
+        <div className="flex-1">
+          <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
+        </div>
+        <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+          <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
+            <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            My Class Schedule
+          </h3>
+          {renderCalendar(mySchedule)}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <StatCard label="My AI Insights" value={filteredWarnings.length} sub="Performance trends" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
+        <StatCard label="My Absences" value={attendance.filter(a => a.status === 'Absent').length} sub="Total absences logged" color="text-amber-500" icon="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" />
+      </div>
+
+      <RenderEventsAndAnnouncements />
+      <RenderModals />
     </div>
   );
 }

@@ -152,13 +152,27 @@ html.accessible-mode .dark {
 /* Print Layout CSS */
 @media print {
   @page {
-    margin: 10mm;
-    size: auto;
+    margin: 0;
+    size: portrait;
+  }
+  
+  .print-page {
+    padding: 2mm;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
   
   body {
     background-color: white !important;
     color: black !important;
+  }
+  ::-webkit-scrollbar {
+    display: none !important;
+  }
+  * {
+    scrollbar-width: none !important;
   }
   
   .printable-area, .printable-area * {

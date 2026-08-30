@@ -367,65 +367,71 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                     <div className="col-span-2"><span className="block text-xs text-slate-500 mb-1">Address</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.address || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Parent/Guardian</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.parent_name || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Contact Number</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.contact_number || 'Not specified'}</span></div>
-                    <div className="col-span-2 border-t border-slate-100 dark:border-slate-700 pt-3 mt-1"></div>
-                    <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username (LRN)</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.lrn || String(selectedStudent.id).padStart(12, '0')}</span></div>
-                    <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Password</span><span className="font-semibold text-slate-800 dark:text-slate-200 tracking-wider font-mono">password123</span></div>
+                    {currentRole === 'Teacher' && (
+                      <>
+                        <div className="col-span-2 border-t border-slate-100 dark:border-slate-700 pt-3 mt-1"></div>
+                        <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username (LRN)</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.lrn || String(selectedStudent.id).padStart(12, '0')}</span></div>
+                        <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Password</span><span className="font-semibold text-slate-800 dark:text-slate-200 tracking-wider font-mono">password123</span></div>
+                      </>
+                    )}
                   </div>
                 </section>
 
                 {/* Report Card */}
-                <section>
-                  <div className="flex justify-between items-center border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">
-                    <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm">Academic Records</h4>
-                    <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded outline-none font-bold text-slate-700 dark:text-slate-300">
-                      <option value="All">All Subjects</option>
-                      {Array.from(new Set((selectedStudent.academic_records || []).map(r => r.subject))).map(subj => (
-                        <option key={subj} value={subj}>{subj}</option>
-                      ))}
-                    </select>
-                  </div>
-                  {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
-                    <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No records found</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedStudent.academic_records.filter(r => subjectFilter === 'All' || r.subject === subjectFilter).map(rec => (
-                        <div key={rec.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
-                          <div>
-                            <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{rec.subject}</span>
-                            <span className="text-xs text-slate-500 font-bold tracking-wide">{rec.term}</span>
+                {currentRole === 'Teacher' && (
+                  <section>
+                    <div className="flex justify-between items-center border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">
+                      <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm">Academic Records</h4>
+                      <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="text-xs px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded outline-none font-bold text-slate-700 dark:text-slate-300">
+                        <option value="All">All Subjects</option>
+                        {Array.from(new Set((selectedStudent.academic_records || []).map(r => r.subject))).map(subj => (
+                          <option key={subj} value={subj}>{subj}</option>
+                        ))}
+                      </select>
+                    </div>
+                    {(!selectedStudent.academic_records || selectedStudent.academic_records.length === 0) ? (
+                      <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No records found</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedStudent.academic_records.filter(r => subjectFilter === 'All' || r.subject === subjectFilter).map(rec => (
+                          <div key={rec.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
+                            <div>
+                              <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">{rec.subject}</span>
+                              <span className="text-xs text-slate-500 font-bold tracking-wide">{rec.term}</span>
+                            </div>
+                            {editingGradeId === rec.id ? (
+                              <div className="flex gap-2 items-center">
+                                <input type="number" value={editingGradeScore} onChange={e => setEditingGradeScore(e.target.value)} className="w-16 px-2 py-1 text-center font-bold bg-white dark:bg-slate-800 border border-brand-300 dark:border-brand-700 rounded text-sm outline-none" />
+                                <button onClick={() => handleUpdateGrade(rec)} className="text-[10px] bg-brand-600 hover:bg-brand-700 text-white px-2 py-1 rounded font-bold uppercase tracking-wider transition-colors">Save</button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-3">
+                                <span className="font-black text-brand-600 dark:text-brand-400 text-lg">{rec.score}</span>
+                                {currentRole === 'Teacher' && (
+                                  <button onClick={() => { setEditingGradeId(rec.id); setEditingGradeScore(rec.score); }} className="text-[10px] text-slate-400 hover:text-brand-600 uppercase tracking-widest font-bold transition-colors">Edit</button>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          {editingGradeId === rec.id ? (
-                            <div className="flex gap-2 items-center">
-                              <input type="number" value={editingGradeScore} onChange={e => setEditingGradeScore(e.target.value)} className="w-16 px-2 py-1 text-center font-bold bg-white dark:bg-slate-800 border border-brand-300 dark:border-brand-700 rounded text-sm outline-none" />
-                              <button onClick={() => handleUpdateGrade(rec)} className="text-[10px] bg-brand-600 hover:bg-brand-700 text-white px-2 py-1 rounded font-bold uppercase tracking-wider transition-colors">Save</button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-3">
-                              <span className="font-black text-brand-600 dark:text-brand-400 text-lg">{rec.score}</span>
-                              {currentRole === 'Teacher' && (
-                                <button onClick={() => { setEditingGradeId(rec.id); setEditingGradeScore(rec.score); }} className="text-[10px] text-slate-400 hover:text-brand-600 uppercase tracking-widest font-bold transition-colors">Edit</button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {currentRole === 'Teacher' && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                      <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Add New Record</h5>
-                      <div className="flex gap-2 items-end">
-                        <div className="flex-1">
-                          <input type="text" placeholder="Subject" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500" />
-                        </div>
-                        <div className="w-20">
-                          <input type="number" placeholder="Score" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500 text-center" />
-                        </div>
-                        <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors h-[34px]">Add</button>
+                        ))}
                       </div>
-                    </div>
-                  )}
-                </section>
+                    )}
+                    {currentRole === 'Teacher' && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Add New Record</h5>
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <input type="text" placeholder="Subject" value={newRecord.subject} onChange={e => setNewRecord({...newRecord, subject: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500" />
+                          </div>
+                          <div className="w-20">
+                            <input type="number" placeholder="Score" value={newRecord.score} onChange={e => setNewRecord({...newRecord, score: e.target.value})} className="w-full px-3 py-1.5 text-sm border border-slate-200 dark:border-slate-700 rounded bg-slate-50 dark:bg-slate-900 outline-none focus:border-brand-500 text-center" />
+                          </div>
+                          <button onClick={handleAddRecord} disabled={!newRecord.subject || !newRecord.score} className="bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-colors h-[34px]">Add</button>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
 
                 {/* Attendance */}
                 <section>
@@ -468,57 +474,60 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 </section>
 
                 {/* Payments */}
-                <section>
-                  <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Payment Status</h4>
-                  {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
-                    <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No payment data recorded</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {selectedStudent.tuition_payments.map(tp => {
-                        const bal = tp.amount_due - tp.amount_paid;
-                        return (
-                        <div key={tp.id} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
-                          <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700">
-                            <div>
-                              <span className="font-bold text-slate-800 dark:text-slate-200 block">{tp.term}</span>
-                              <span className="text-xs text-slate-500 font-medium">Due: ₱{tp.amount_due?.toLocaleString()} | Bal: <span className="font-bold text-red-500">₱{bal?.toLocaleString()}</span></span>
+                {currentRole === 'Cashier' && (
+                  <section>
+                    <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Payment Status</h4>
+                    {(!selectedStudent.tuition_payments || selectedStudent.tuition_payments.length === 0) ? (
+                      <p className="text-xs font-bold text-slate-400 text-center py-4 uppercase tracking-widest bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700">No payment data recorded</p>
+                    ) : (
+                      <div className="space-y-4">
+                        {selectedStudent.tuition_payments.map(tp => {
+                          const bal = tp.amount_due - tp.amount_paid;
+                          return (
+                          <div key={tp.id} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
+                            <div className="flex justify-between items-center p-4 border-b border-slate-100 dark:border-slate-700">
+                              <div>
+                                <span className="font-bold text-slate-800 dark:text-slate-200 block">{tp.term}</span>
+                                <span className="text-xs text-slate-500 font-medium">Due: ₱{tp.amount_due?.toLocaleString()} | Bal: <span className="font-bold text-red-500">₱{bal?.toLocaleString()}</span></span>
+                              </div>
+                              <div className="flex gap-3 items-center">
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
+                                {currentRole === 'Cashier' && (
+                                  <button onClick={() => {
+                                    setPaymentForm({
+                                      tpId: tp.id,
+                                      amount: tp.amount_paid || '',
+                                      or_number: '',
+                                      date: new Date().toISOString().split('T')[0],
+                                      time: new Date().toTimeString().split(' ')[0].substring(0, 5)
+                                    });
+                                    setShowPaymentModal(true);
+                                    setShowStudentModal(false);
+                                  }} className="text-[10px] text-brand-600 font-bold uppercase tracking-widest hover:underline px-2">Edit Payment</button>
+                                )}
+                              </div>
                             </div>
-                            <div className="flex gap-3 items-center">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${tp.status === 'Paid' ? 'bg-green-100 text-green-700' : tp.status === 'Overdue' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>{tp.status === 'Paid' ? 'Cleared' : tp.status === 'Overdue' ? 'Outstanding' : 'Promissory'}</span>
-                              {currentRole === 'Cashier' && (
-                                <button onClick={() => {
-                                  setPaymentForm({
-                                    tpId: tp.id,
-                                    amount: tp.amount_paid || '',
-                                    or_number: '',
-                                    date: new Date().toISOString().split('T')[0],
-                                    time: new Date().toTimeString().split(' ')[0].substring(0, 5)
-                                  });
-                                  setShowPaymentModal(true);
-                                }} className="text-[10px] text-brand-600 font-bold uppercase tracking-widest hover:underline px-2">Edit Payment</button>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {tp.payments && tp.payments.length > 0 && (
-                            <div className="p-3 bg-white dark:bg-slate-800 space-y-2">
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Payment History</div>
-                              {tp.payments.map((p, pidx) => (
-                                <div key={pidx} className="flex justify-between items-center text-xs px-2 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-bold text-green-600 dark:text-green-400">+₱{p.amount?.toLocaleString()}</span>
-                                    {currentRole === 'Cashier' && <span className="font-mono text-slate-400 dark:text-slate-500 text-[10px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">OR: {p.or_number}</span>}
+                            
+                            {tp.payments && tp.payments.length > 0 && (
+                              <div className="p-3 bg-white dark:bg-slate-800 space-y-2">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Payment History</div>
+                                {tp.payments.map((p, pidx) => (
+                                  <div key={pidx} className="flex justify-between items-center text-xs px-2 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold text-green-600 dark:text-green-400">+₱{p.amount?.toLocaleString()}</span>
+                                      {currentRole === 'Cashier' && <span className="font-mono text-slate-400 dark:text-slate-500 text-[10px] bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">OR: {p.or_number}</span>}
+                                    </div>
+                                    <span className="text-slate-500 dark:text-slate-400">{new Date(p.date_recorded).toLocaleDateString()}</span>
                                   </div>
-                                  <span className="text-slate-500 dark:text-slate-400">{new Date(p.date_recorded).toLocaleDateString()}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )})}
-                    </div>
-                  )}
-                </section>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )})}
+                      </div>
+                    )}
+                  </section>
+                )}
               </div>
 
               {/* Action Buttons (Sticky Bottom) */}

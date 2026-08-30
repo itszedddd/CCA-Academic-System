@@ -103,7 +103,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
           <div className="p-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {gradeLevels.map(grade => {
-                const count = forms.filter(f => f.grade_applying_for === grade && (f.status === 'Pre-Registered' || f.status === 'Pending')).length;
+                const count = forms.filter(f => f.grade_applying_for === grade && ['pre-registered', 'pending', 'pre-registration'].includes((f.status || '').toLowerCase())).length;
                 return (
                   <div 
                     key={grade} 

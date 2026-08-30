@@ -1008,7 +1008,7 @@ def check_preregister_status(reference_id: int, db: Session = Depends(get_db)):
 
 @aesms_router.put("/enrollment_forms/{form_id}/assessment", response_model=schemas.EnrollmentForm)
 def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Principal", "Admission"]:
+    if current_user.role not in ["Principal", "Admission", "Registrar"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
@@ -1025,7 +1025,7 @@ def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db:
 
 @aesms_router.put("/enrollment_forms/{form_id}/interview", response_model=schemas.EnrollmentForm)
 def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Principal", "Admission"]:
+    if current_user.role not in ["Principal", "Admission", "Registrar"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
