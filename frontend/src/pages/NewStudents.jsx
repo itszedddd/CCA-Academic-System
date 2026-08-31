@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const API = '/api';
 
-export default function NewStudents({ forms, fetchForms, authFetch }) {
+export default function NewStudents({ forms, fetchForms, authFetch, currentRole }) {
   // Page 1: Grade Selection, Page 2: Student List, Page 3: Evaluation View
   const [view, setView] = useState('grades'); // 'grades', 'list', 'evaluate'
   const [selectedGrade, setSelectedGrade] = useState('');
@@ -11,6 +11,9 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
   const [admissionStatus, setAdmissionStatus] = useState('Passed');
   const [admissionRemarks, setAdmissionRemarks] = useState('');
   
+  const [enrollmentStatus, setEnrollmentStatus] = useState('Success');
+  const [enrollmentRemarks, setEnrollmentRemarks] = useState('');
+
   const [formToArchive, setFormToArchive] = useState(null);
   const [isEditingForm, setIsEditingForm] = useState(false);
   const [editFormData, setEditFormData] = useState({});
@@ -111,8 +114,37 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
     }
   };
 
+  const handleEnrollStudent = async (e) => {
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/verify`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          status: enrollmentStatus, 
+          remarks: enrollmentRemarks,
+          req_birth_cert: 1, req_form_138: 1, req_good_moral: 1, req_pictures: 1
+        })
+      });
+      if (res?.ok) {
+        fetchForms();
+        setView('list');
+      } else {
+        alert("Failed to enroll student.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Pre-registered students for the selected grade
-  const gradeStudents = forms.filter(f => f.grade_applying_for === selectedGrade && !['Enrolled', 'Archived'].includes(f.status));
+  const gradeStudents = forms.filter(f => {
+    if (f.grade_applying_for !== selectedGrade || ['Enrolled', 'Archived'].includes(f.status)) return false;
+    if (currentRole === 'Registrar') return f.assessment_status === 'Passed';
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -148,7 +180,11 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
           <div className="p-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {gradeLevels.map(grade => {
-                const count = forms.filter(f => f.grade_applying_for === grade && !['Enrolled', 'Archived'].includes(f.status)).length;
+                const count = forms.filter(f => {
+                  if (f.grade_applying_for !== grade || ['Enrolled', 'Archived'].includes(f.status)) return false;
+                  if (currentRole === 'Registrar') return f.assessment_status === 'Passed';
+                  return true;
+                }).length;
                 return (
                   <div 
                     key={grade} 
@@ -289,45 +325,87 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                 )}
               </div>
 
-              {/* Right Column: Assessment Input */}
+              {/* Right Column: Assessment/Enrollment Input */}
               <div>
-                <form onSubmit={handleRecordAssessment} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-brand-200 dark:border-brand-900/30 shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-brand-500"></div>
-                  <h3 className="text-xl font-black font-cinzel text-brand-900 dark:text-brand-400 mb-6">Assessment Decision</h3>
-                  
-                  <div className="space-y-5">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Assessment Status</label>
-                      <select 
-                        value={admissionStatus} 
-                        onChange={e => setAdmissionStatus(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                {currentRole === 'Admission' || currentRole === 'Principal' ? (
+                  <form onSubmit={handleRecordAssessment} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-brand-200 dark:border-brand-900/30 shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-brand-500"></div>
+                    <h3 className="text-xl font-black font-cinzel text-brand-900 dark:text-brand-400 mb-6">Assessment Decision</h3>
+                    
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Assessment Status</label>
+                        <select 
+                          value={admissionStatus} 
+                          onChange={e => setAdmissionStatus(e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="Passed">Passed (Accept)</option>
+                          <option value="Failed">Failed (Reject)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Remarks / Notes</label>
+                        <textarea 
+                          value={admissionRemarks} 
+                          onChange={e => setAdmissionRemarks(e.target.value)}
+                          placeholder="Enter assessment scores, observations, or reasons for rejection..."
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500 min-h-[120px]"
+                        ></textarea>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50"
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="Passed">Accepted</option>
-                        <option value="Failed">Rejected</option>
-                      </select>
+                        {loading ? 'SAVING...' : 'RECORD DECISION'}
+                      </button>
                     </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleEnrollStudent} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-green-200 dark:border-green-900/30 shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+                    <h3 className="text-xl font-black font-cinzel text-green-700 dark:text-green-400 mb-6">Final Enrollment</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                      This student has passed the admission assessment. You can now enroll them to automatically assign their section and generate their tuition balance.
+                    </p>
+                    <div className="space-y-5">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Enrollment Status</label>
+                        <select 
+                          value={enrollmentStatus} 
+                          onChange={e => setEnrollmentStatus(e.target.value)}
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-green-500"
+                        >
+                          <option value="Success">Enroll (Success)</option>
+                          <option value="Approved Incomplete">Approved Incomplete Req</option>
+                          <option value="Hold">Hold</option>
+                        </select>
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Remarks / Notes</label>
-                      <textarea 
-                        value={admissionRemarks} 
-                        onChange={e => setAdmissionRemarks(e.target.value)}
-                        placeholder="Enter assessment scores, observations, or reasons for rejection..."
-                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-brand-500 min-h-[120px]"
-                      ></textarea>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Remarks</label>
+                        <textarea 
+                          value={enrollmentRemarks} 
+                          onChange={e => setEnrollmentRemarks(e.target.value)}
+                          placeholder="Any final notes..."
+                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-green-500 min-h-[120px]"
+                        ></textarea>
+                      </div>
+
+                      <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50"
+                      >
+                        {loading ? 'ENROLLING...' : 'ENROLL STUDENT'}
+                      </button>
                     </div>
-
-                    <button 
-                      type="submit" 
-                      disabled={loading}
-                      className="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50"
-                    >
-                      {loading ? 'SAVING...' : 'RECORD DECISION'}
-                    </button>
-                  </div>
-                </form>
+                  </form>
+                )}
               </div>
 
             </div>
