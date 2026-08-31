@@ -169,10 +169,23 @@ def create_academic_record(record: schemas.AcademicRecordCreate, db: Session = D
         student = db.query(models.Student).filter(models.Student.id == record.student_id).first()
         if not student or student.section != assigned:
             raise HTTPException(status_code=403, detail="Student is not in your assigned section")
+    existing_record = db.query(models.AcademicRecord).filter(
+        models.AcademicRecord.student_id == record.student_id,
+        models.AcademicRecord.subject == record.subject,
+        models.AcademicRecord.term == record.term
+    ).first()
+    
+    if existing_record:
+        existing_record.score = record.score
+        db.commit()
+        db.refresh(existing_record)
+        return existing_record
+
     db_record = models.AcademicRecord(**record.model_dump())
     db.add(db_record)
     db.commit()
     db.refresh(db_record)
+    return db_record
     return db_record
 
 @aesms_router.put("/academic_records/{record_id}", response_model=schemas.AcademicRecord)

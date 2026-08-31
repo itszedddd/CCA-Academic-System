@@ -857,91 +857,54 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
   return (
     <div className="space-y-6">
-      <HeaderTitle title="Student Portal" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
-      {RenderEventsAndAnnouncements()}
+      <HeaderTitle title="Dashboard" subtitle="Overview of your academic and campus activities" />
       
-      <div className="mb-8 flex flex-col lg:flex-row gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
+      {/* Profile Preview (Top) */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center space-x-6 flex-1">
           {user?.profile_picture ? (
-            <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
+            <img src={user.profile_picture} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-brand-100 dark:border-brand-900 shadow-sm" />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-md border-4 border-brand-100 dark:border-brand-900 flex-shrink-0">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-sm border-2 border-brand-100 dark:border-brand-900 flex-shrink-0">
               {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'S'}
             </div>
           )}
-          <div className="flex-1">
-            <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1">{user?.full_name || 'Student Name'}</h2>
-            <p className="text-brand-600 dark:text-brand-400 font-bold text-sm tracking-wide mb-3 uppercase">Section: {user?.section || 'TBA'} | LRN: {user?.lrn || 'N/A'}</p>
-            <div className="flex space-x-4">
-              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Current GPA</p>
-                <p className="font-extrabold text-brand-600 dark:text-brand-400">{user?.gpa || 'N/A'}</p>
-              </div>
-              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Absences</p>
-                <p className="font-extrabold text-amber-600 dark:text-amber-400">{attendance.filter(a => a.status === 'Absent').length}</p>
-              </div>
-              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
-                <p className="text-[10px] font-bold text-slate-500 uppercase">Balance</p>
-                <p className="font-extrabold text-red-600 dark:text-red-400">₱{user?.balance || '0.00'}</p>
-              </div>
-            </div>
+          <div>
+            <h2 className="text-xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1 uppercase">{user?.full_name || 'Student Name'}</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Grade 10 {user?.section || 'Perseverance'}</p>
           </div>
+        </div>
+        <div className="bg-brand-900 text-white rounded-xl p-4 min-w-[200px] text-center shadow-md">
+          <p className="font-bold text-sm mb-1">{new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <p className="text-xs text-brand-200">No Class Schedule</p>
         </div>
       </div>
 
+      {/* Events & Announcements */}
+      {RenderEventsAndAnnouncements()}
+
+      {/* Bottom Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 text-white">
-          <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
-            <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            My Class Schedule
-          </h3>
-          {renderCalendar(mySchedule)}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+           <h3 className="font-bold text-slate-400 text-[10px] uppercase tracking-widest mb-4 flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              My AI Insights
+           </h3>
+           <div className="flex items-end gap-3">
+             <span className="text-4xl font-black text-slate-800 dark:text-white">0</span>
+           </div>
+           <p className="text-xs text-slate-400 mt-2">Performance trends</p>
         </div>
         
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
-                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                Recent Attendance Logs
-             </h3>
-             {attendance.length === 0 ? (
-               <p className="text-sm text-slate-500">No attendance records found.</p>
-             ) : (
-               <div className="space-y-3">
-                 {attendance.slice(0, 3).map((a, i) => (
-                   <div key={i} className="flex justify-between items-center p-3 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                     <div>
-                       <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{new Date(a.date).toLocaleDateString()}</p>
-                       <p className="text-xs text-slate-500">{a.subject || 'General'}</p>
-                     </div>
-                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${a.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                       {a.status}
-                     </span>
-                   </div>
-                 ))}
-               </div>
-             )}
-          </div>
-          
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
-             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
-                <svg className="w-5 h-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                Academic Warnings
-             </h3>
-             {filteredWarnings.length === 0 ? (
-               <p className="text-sm text-slate-500">No active warnings. Keep up the good work!</p>
-             ) : (
-               <div className="space-y-3">
-                 {filteredWarnings.slice(0, 3).map((w, i) => (
-                   <div key={i} className="p-3 rounded-lg border border-red-100 bg-red-50 dark:bg-red-900/20">
-                     <p className="font-bold text-sm text-red-800 dark:text-red-300">{w.subject}</p>
-                     <p className="text-xs text-red-600/80 dark:text-red-400 mt-1">{w.message}</p>
-                   </div>
-                 ))}
-               </div>
-             )}
-          </div>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+           <h3 className="font-bold text-slate-400 text-[10px] uppercase tracking-widest mb-4 flex items-center">
+              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              My Absences
+           </h3>
+           <div className="flex items-end gap-3">
+             <span className="text-4xl font-black text-slate-800 dark:text-white">{todayAbsences}</span>
+           </div>
+           <p className="text-xs text-slate-400 mt-2">Total absences logged</p>
         </div>
       </div>
 
