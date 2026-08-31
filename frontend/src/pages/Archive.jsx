@@ -112,7 +112,7 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
                           <span className={`px-2.5 py-0.5 text-xs font-bold rounded-full ${s.enrollment_status === 'Graduated' ? 'bg-amber-100 text-amber-700 border border-amber-200' : s.enrollment_status === 'Archived' ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' : 'bg-red-100 text-red-700'}`}>{s.enrollment_status}</span>
                         </td>
                         <td className="px-6 py-4 text-right text-sm font-medium space-x-3">
-                          <button onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-brand-600 hover:text-brand-800 transition font-bold">{isExpanded ? 'Hide Records' : 'View Records'}</button>
+                          <button type="button" onClick={(e) => { e.stopPropagation(); handleView(s.id); }} className="text-brand-600 hover:text-brand-800 transition font-bold">{isExpanded ? 'Hide Records' : 'View Records'}</button>
                         </td>
                       </tr>
                       {isExpanded && (
@@ -230,7 +230,7 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-8 flex justify-between items-center relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-widest uppercase mb-1 flex items-center">
+            <h2 className="text-2xl font-black font-cinzel text-slate-800 dark:text-white tracking-widest uppercase mb-1 flex items-center">
               <svg className="w-7 h-7 mr-3 text-slate-500 dark:text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
               STUDENT ARCHIVE
             </h2>

@@ -12,6 +12,19 @@ export default function Reports({ API, authFetch }) {
   const fetchReport = async () => {
     setLoading(true);
     try {
+      if (reportType === 'teacher_allocation') {
+        const res = await authFetch(`${API}/users/`);
+        if (res?.ok) {
+           const users = await res.json();
+           const teachers = users.filter(u => u.role === 'Teacher');
+           setReportData({ title: 'Teacher Subject Allocation Summary', teachers });
+        } else {
+           setReportData(null);
+        }
+        setLoading(false);
+        return;
+      }
+
       const endpoint = reportType === 'analytics' ? `${API}/analytics/report` : `${API}/reports/${reportType}`;
       const res = await authFetch(endpoint);
       if (res?.ok) {
@@ -33,6 +46,58 @@ export default function Reports({ API, authFetch }) {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const renderTeacherAllocationReport = () => {
+    if (!reportData || !reportData.teachers) return null;
+    return (
+      <div className="space-y-6">
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r">
+          <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">Total Teachers: {reportData.teachers.length}</p>
+        </div>
+        
+        <div className="space-y-6 break-inside-avoid">
+          {reportData.teachers.map(teacher => {
+             let schedule = [];
+             try {
+                if (teacher.schedule) schedule = JSON.parse(teacher.schedule);
+             } catch(e) {}
+             
+             return (
+                <div key={teacher.id} className="bg-white dark:bg-slate-700 p-6 border dark:border-slate-600 rounded-xl shadow-sm page-break-inside-avoid mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">{teacher.full_name || teacher.username}</h3>
+                  <p className="text-sm font-semibold text-brand-600 dark:text-brand-400 mb-4 uppercase tracking-widest">{teacher.section ? `Advisory: ${teacher.section}` : 'No Advisory Class'}</p>
+                  
+                  {schedule.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-left text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b dark:border-slate-600">
+                            <th className="py-2 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Day</th>
+                            <th className="py-2 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Time</th>
+                            <th className="py-2 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Subject / Section</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-600/50">
+                          {schedule.map((item, idx) => (
+                            <tr key={idx}>
+                              <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">{item.day}</td>
+                              <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{item.time}</td>
+                              <td className="py-3 px-4 font-bold text-slate-700 dark:text-white">{item.subject}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500 dark:text-slate-400 italic">No subject allocations found for this teacher.</p>
+                  )}
+                </div>
+             );
+          })}
+        </div>
+      </div>
+    );
   };
 
   const renderEnrollmentReport = () => {
@@ -262,6 +327,12 @@ export default function Reports({ API, authFetch }) {
           >
             Registrar Wide Report
           </button>
+          <button 
+            className={`px-4 py-2 rounded font-medium ${reportType === 'teacher_allocation' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            onClick={() => setReportType('teacher_allocation')}
+          >
+            Teacher Subject Allocation
+          </button>
         </div>
         
         {loading ? (
@@ -273,6 +344,7 @@ export default function Reports({ API, authFetch }) {
             </h2>
             
             {reportType === 'enrollment' && renderEnrollmentReport()}
+            {reportType === 'teacher_allocation' && renderTeacherAllocationReport()}
             
             <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 print:border-black text-center text-sm text-gray-500 dark:text-gray-400 print:text-black">
               Generated on {new Date().toLocaleDateString()} | CCA EduSys

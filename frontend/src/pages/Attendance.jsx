@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 
 const API = '/api';
 
-export default function Attendance({ students, attendance, fetchAttendance, currentRole, authFetch }) {
+export default function Attendance({ students, attendance, fetchAttendance, currentRole, authFetch, user }) {
+  const [viewMode, setViewMode] = useState(currentRole === 'Teacher' ? 'Overview' : 'List');
   const [searchQuery, setSearchQuery] = useState('');
-  const [sectionFilter, setSectionFilter] = useState('All');
+  const [sectionFilter, setSectionFilter] = useState(currentRole === 'Teacher' && user?.section ? user.section : 'All');
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
 
@@ -86,7 +87,27 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
   };
 
   return (
+    <>
+      {viewMode === 'Overview' && currentRole === 'Teacher' ? (
+        <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8">
+          <h2 className="text-xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase mb-4">SECTIONS HANDLED</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <button
+              onClick={() => { setSectionFilter(user?.section || 'All'); setViewMode('List'); }}
+              className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col justify-center items-center hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 transition-colors duration-200 shadow-sm hover:shadow-md group"
+            >
+              <span className="font-bold text-lg mb-2 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+              <span className="bg-brand-600 group-hover:bg-white group-hover:text-brand-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">View Attendance</span>
+            </button>
+          </div>
+        </div>
+      ) : (
     <div className="space-y-6">
+      {currentRole === 'Teacher' && (
+        <button onClick={() => setViewMode('Overview')} className="text-sm font-bold text-slate-400 hover:text-brand-600 mb-2 self-start flex items-center transition-colors">
+          <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Back to Sections
+        </button>
+      )}
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[['Present', presentCount, 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'],
@@ -308,5 +329,7 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
         </div>
       </div>
     </div>
+    )}
+    </>
   );
 }

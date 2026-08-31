@@ -11,7 +11,7 @@ const ROLE_COLORS = {
   Parent:    'bg-slate-500',
 };
 
-export default function Sidebar({ navigation, activeTab, setActiveTab, currentRole, user, handleLogout, isOpen, onClose }) {
+export default function Sidebar({ navigation, activeTab, setActiveTab, currentRole, user, handleLogout, isOpen, onClose, pendingRequestsCount }) {
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -49,16 +49,24 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
             <li key={item.name}>
               <button
                 onClick={() => handleNavClick(item.name)}
-                className={`w-full flex items-center px-3 py-2.5 transition-colors group text-xs uppercase tracking-widest font-bold ${
+                className={`w-full flex justify-between items-center px-3 py-2.5 transition-colors group text-xs uppercase tracking-widest font-bold ${
                   activeTab === item.name
                     ? 'bg-brand-50/80 border-r-4 border-brand-red text-brand-900 dark:bg-slate-900 dark:text-brand-400'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-brand-red-hover'
                 }`}
               >
-                <svg className={`w-5 h-5 mr-3 flex-shrink-0 ${activeTab === item.name ? 'text-brand-600' : 'text-slate-400 group-hover:text-brand-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
-                </svg>
-                <span className="flex-1 text-left leading-tight break-words">{item.name}</span>
+                <div className="flex items-center flex-1 min-w-0">
+                  <svg className={`w-5 h-5 mr-3 flex-shrink-0 ${activeTab === item.name ? 'text-brand-600' : 'text-slate-400 group-hover:text-brand-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                  </svg>
+                  <span className="flex-1 text-left leading-tight break-words truncate">{item.name}</span>
+                </div>
+                {(item.name === 'Request' || item.name === 'Requests') && pendingRequestsCount > 0 && (
+                  <span className="relative flex h-3 w-3 ml-2 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                )}
               </button>
             </li>
           ))}

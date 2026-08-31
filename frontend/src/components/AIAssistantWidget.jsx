@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function AIAssistantWidget({ API_URL, token, mode = 'floating' }) {
+export default function AIAssistantWidget({ API_URL, token, mode = 'floating', prompts = [] }) {
   // mode can be 'floating', 'sidebar-button', 'inline', 'dashboard-button', 'embedded'
   const [isOpen, setIsOpen] = useState(mode === 'inline' || mode === 'embedded');
   const [messages, setMessages] = useState([
@@ -105,14 +105,9 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating' })
       </div>
 
       {/* Pre-Command Suggestions (embedded mode only) */}
-      {mode === 'embedded' && (
+      {mode === 'embedded' && prompts && prompts.length > 0 && messages.length === 1 && (
         <div className="px-3 pt-2 pb-1 bg-white dark:bg-slate-800 flex flex-wrap gap-2">
-          {[
-            'How many pre-registered?',
-            'Pending requirements?',
-            'Enrollment summary',
-            'Assessment schedule'
-          ].map((cmd, i) => (
+          {prompts.map((cmd, i) => (
             <button
               key={i}
               type="button"

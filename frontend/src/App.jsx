@@ -40,6 +40,7 @@ export default function App() {
   const [warnings, setWarnings] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [forms, setForms] = useState([]);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -100,6 +101,7 @@ export default function App() {
   const fetchWarnings = () => authFetch(`${API}/academic_warnings/`).then(r => r?.ok ? r.json() : {warnings:[]}).then(d => setWarnings(d.warnings || [])).catch(() => {});
   const fetchAttendance = () => authFetch(`${API}/attendance/`).then(r => r?.ok ? r.json() : []).then(setAttendance).catch(() => {});
   const fetchForms = () => authFetch(`${API}/enrollment_forms/`).then(r => r?.ok ? r.json() : []).then(setForms).catch(() => {});
+  const fetchRequestsCount = () => authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(d => setPendingRequestsCount(d.filter(x => x.status === 'Pending').length)).catch(() => {});
 
   useEffect(() => {
     if (token) {
@@ -109,7 +111,7 @@ export default function App() {
 
   useEffect(() => {
     if (token) {
-      fetchStudents(); fetchWarnings(); fetchAttendance(); fetchForms();
+      fetchStudents(); fetchWarnings(); fetchAttendance(); fetchForms(); fetchRequestsCount();
     }
   }, [token]);
 
@@ -167,7 +169,6 @@ export default function App() {
     { name: 'AI Performance Tracker',icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', roles: ['Teacher'] },
     { name: 'Clearance',          icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', roles: ['Principal', 'Registrar', 'Teacher', 'Cashier'] },
     { name: 'Reports',            icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['Principal', 'Registrar', 'Cashier', 'Superadmin'] },
-    { name: 'Tuition Tracker', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', roles: ['Cashier'] },
     { name: 'User Accounts',      icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z', roles: ['Superadmin'] },
     { name: 'Student Portal',     icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', roles: ['Student', 'Parent'] },
     { name: 'Online Enrollment',  icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', roles: ['Student', 'Parent'] },
@@ -192,7 +193,7 @@ export default function App() {
     ) : [],
   };
 
-  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery };
+  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery, fetchRequestsCount };
 
   if (isAuthLoading) return <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>Loading...</div>;
   if (isPreRegistrationMode) return <PreRegistrationPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onNavigateHome={() => setIsPreRegistrationMode(false)} />;
@@ -200,53 +201,58 @@ export default function App() {
 
   return (
     <div className="flex h-screen print:h-auto print:block bg-slate-50 dark:bg-slate-900 font-sans transition-colors duration-300">
-      <Sidebar
-        navigation={navigation}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        currentRole={currentRole}
-        user={user}
-        handleLogout={handleLogout}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
+      <div className="print:hidden h-full">
+        <Sidebar
+          navigation={navigation}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          currentRole={currentRole}
+          user={user}
+          handleLogout={handleLogout}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          pendingRequestsCount={pendingRequestsCount}
+        />
+      </div>
 
       <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible print:h-auto">
-        <Header
-          activeTab={activeTab}
-          isDarkMode={isDarkMode}
-          setIsDarkMode={setIsDarkMode}
-          isAccessibleMode={isAccessibleMode}
-          setIsAccessibleMode={setIsAccessibleMode}
-          warnings={warnings}
-          showNotifications={showNotifications}
-          setShowNotifications={setShowNotifications}
-          setActiveTab={(tab) => {
-            if (navigation.find(n => n.name === tab)) {
-              setActiveTab(tab);
-            } else if (currentRole === 'Student' || currentRole === 'Parent') {
-              setActiveTab('Student Portal');
-            }
-          }}
-          currentRole={currentRole}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          showSearchResults={showSearchResults}
-          setShowSearchResults={setShowSearchResults}
-          searchResults={searchResults}
-          onMenuToggle={() => setSidebarOpen(o => !o)}
-        />
+        <div className="print:hidden">
+          <Header
+            activeTab={activeTab}
+            isDarkMode={isDarkMode}
+            setIsDarkMode={setIsDarkMode}
+            isAccessibleMode={isAccessibleMode}
+            setIsAccessibleMode={setIsAccessibleMode}
+            warnings={warnings}
+            showNotifications={showNotifications}
+            setShowNotifications={setShowNotifications}
+            setActiveTab={(tab) => {
+              if (navigation.find(n => n.name === tab)) {
+                setActiveTab(tab);
+              } else if (currentRole === 'Student' || currentRole === 'Parent') {
+                setActiveTab('Student Portal');
+              }
+            }}
+            currentRole={currentRole}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            showSearchResults={showSearchResults}
+            setShowSearchResults={setShowSearchResults}
+            searchResults={searchResults}
+            onMenuToggle={() => setSidebarOpen(o => !o)}
+          />
+        </div>
 
         <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-8 transition-colors duration-300">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'Dashboard'          && <Dashboard {...sharedProps} setActiveTab={setActiveTab} />}
-            {activeTab === 'Students'           && <Students {...sharedProps} />}
+            {activeTab === 'Students' && currentRole !== 'Cashier' && <Students {...sharedProps} />}
+            {activeTab === 'Students' && currentRole === 'Cashier' && <TuitionML {...sharedProps} />}
             {activeTab === 'Attendance'         && <Attendance {...sharedProps} />}
             {activeTab === 'AI Performance Tracker'&& <AcademicWarnings {...sharedProps} />}
             { activeTab === 'Enrollment' && ['Admission', 'Registrar'].includes(currentRole) && <NewStudents {...sharedProps} /> }
             { activeTab === 'Student Clearance' || activeTab === 'Clearance' ? <StudentClearance {...sharedProps} /> : null }
             { activeTab === 'Reports'            && <Reports {...sharedProps} /> }
-            { activeTab === 'Tuition Tracker' && <TuitionML {...sharedProps} /> }
 
             { activeTab === 'User Accounts'      && <UserManagement {...sharedProps} /> }
             { activeTab === 'Student Portal'     && <StudentPortal {...sharedProps} /> }

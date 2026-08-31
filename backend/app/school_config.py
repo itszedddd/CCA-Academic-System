@@ -28,10 +28,10 @@ SUBJECTS = {
     "Kindergarten": [], # No subjects for Kindergarten
     "Grade 1": [
         "Language",
-        "Reading & Literacy",
+        "Reading and Literacy",
         "Mathematics",
-        "Makabansa",
-        "GMRC"
+        "Makabansa (Civics, History, Culture, Arts & Health)",
+        "Good Manners and Right Conduct (GMRC)"
     ],
     "Grade 2": [
         "English",
@@ -53,9 +53,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "GMRC"
     ],
     "Grade 5": [
@@ -63,9 +63,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "GMRC"
     ],
     "Grade 6": [
@@ -73,9 +73,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "GMRC"
     ],
     "Grade 7": [
@@ -83,9 +83,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "Values Education"
     ],
     "Grade 8": [
@@ -93,9 +93,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "Values Education"
     ],
     "Grade 9": [
@@ -103,9 +103,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "Values Education"
     ],
     "Grade 10": [
@@ -113,9 +113,9 @@ SUBJECTS = {
         "Filipino",
         "Mathematics",
         "Science",
-        "AP",
-        "MAPEH",
-        "TLE",
+        "Araling Panlipunan (AP)",
+        "Music, Arts, PE & Health (MAPEH)",
+        "Technology and Livelihood (TLE)",
         "Values Education"
     ]
 }

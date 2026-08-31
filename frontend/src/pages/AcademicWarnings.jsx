@@ -1,9 +1,42 @@
 import { useState } from 'react';
 
-export default function AcademicWarnings({ warnings, fetchWarnings, currentRole, authFetch, API }) {
+export default function AcademicWarnings({ warnings, fetchWarnings, currentRole, authFetch, API, user, students }) {
   const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [viewMode, setViewMode] = useState(currentRole === 'Teacher' ? 'Overview' : 'List');
+  const [sectionFilter, setSectionFilter] = useState(currentRole === 'Teacher' && user?.section ? user.section : 'All');
+
+  const filteredWarnings = warnings.filter(w => {
+     if (sectionFilter !== 'All') {
+        const student = students.find(s => s.id === w.student_id);
+        return student?.section === sectionFilter;
+     }
+     return true;
+  });
+
   return (
+    <>
+      {viewMode === 'Overview' && currentRole === 'Teacher' ? (
+        <div className="bg-white dark:bg-slate-900 min-h-[calc(100vh-120px)] p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+          <h2 className="text-xl font-black font-cinzel text-brand-800 dark:text-brand-400 tracking-widest uppercase mb-4">SECTIONS HANDLED</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <button
+              onClick={() => { setSectionFilter(user?.section || 'All'); setViewMode('List'); }}
+              className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col justify-center items-center hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 transition-colors duration-200 shadow-sm hover:shadow-md group"
+            >
+              <span className="font-bold text-lg mb-2 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+              <span className="bg-brand-600 group-hover:bg-white group-hover:text-brand-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">View Tracker</span>
+            </button>
+          </div>
+        </div>
+      ) : (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      {currentRole === 'Teacher' && (
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
+          <button onClick={() => setViewMode('Overview')} className="text-sm font-bold text-slate-400 hover:text-brand-600 flex items-center transition-colors">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg> Back to Sections
+          </button>
+        </div>
+      )}
       <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold font-cinzel tracking-wide text-slate-800 dark:text-white">AI Performance Tracker</h3>
@@ -24,7 +57,7 @@ export default function AcademicWarnings({ warnings, fetchWarnings, currentRole,
       </div>
 
       <div className="p-6 space-y-4">
-        {warnings.length === 0 ? (
+        {filteredWarnings.length === 0 ? (
           <div className="col-span-full py-16 text-center">
             <div className="w-20 h-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -34,7 +67,7 @@ export default function AcademicWarnings({ warnings, fetchWarnings, currentRole,
           </div>
         ) : (
           (() => {
-            const groupedWarnings = Object.values(warnings.reduce((acc, curr) => {
+            const groupedWarnings = Object.values(filteredWarnings.reduce((acc, curr) => {
               if (!acc[curr.student_id]) acc[curr.student_id] = { student_id: curr.student_id, student_name: curr.student_name, flags: [] };
               acc[curr.student_id].flags.push(curr);
               return acc;
@@ -72,12 +105,12 @@ export default function AcademicWarnings({ warnings, fetchWarnings, currentRole,
                               <p className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider">{w.subject}</p>
                               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center">
                                 <span className="font-medium mr-1.5">Slope:</span>
-                                <span className="font-bold text-red-600">{w.slope} pts/term</span>
+                                <span className="font-bold text-red-600">{Number(w.slope).toFixed(2)} pts/term</span>
                               </p>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Latest</span>
-                              <span className="font-black text-slate-800 dark:text-white text-lg">{w.latest_score}<span className="text-xs text-slate-400 ml-0.5 font-medium">%</span></span>
+                              <span className="font-black text-slate-800 dark:text-white text-lg">{Number(w.latest_score).toFixed(2)}<span className="text-xs text-slate-400 ml-0.5 font-medium">%</span></span>
                             </div>
                           </div>
                           <div>
@@ -125,5 +158,7 @@ export default function AcademicWarnings({ warnings, fetchWarnings, currentRole,
         )}
       </div>
     </div>
+    )}
+    </>
   );
 }

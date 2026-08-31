@@ -12,9 +12,9 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
   const [admissionRemarks, setAdmissionRemarks] = useState('');
 
   const gradeLevels = [
-    'Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 
+    'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 
     'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 
-    'Grade 9', 'Grade 10'
+    'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'
   ];
 
   const handleGradeClick = (grade) => {
@@ -73,9 +73,9 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-8 flex justify-between items-center relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-2xl font-black text-brand-900 dark:text-brand-400 tracking-widest uppercase mb-1 flex items-center">
-              <svg className="w-7 h-7 mr-3 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+          <div className="relative z-10 group">
+            <h2 className="text-2xl font-black font-cinzel text-brand-900 dark:text-brand-400 group-hover:text-blue-600 transition-colors tracking-widest uppercase mb-1 flex items-center">
+              <svg className="w-7 h-7 mr-3 text-brand-600 dark:text-brand-400 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
               NEW STUDENTS ADMISSION
             </h2>
             <p className="text-sm font-semibold text-brand-600 dark:text-brand-400/80 tracking-wider">
@@ -103,7 +103,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
           <div className="p-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {gradeLevels.map(grade => {
-                const count = forms.filter(f => f.grade_applying_for === grade && ['pre-registered', 'pending', 'pre-registration'].includes((f.status || '').toLowerCase())).length;
+                const count = forms.filter(f => f.grade_applying_for === grade && f.status !== 'Enrolled').length;
                 return (
                   <div 
                     key={grade} 
@@ -156,22 +156,28 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                         #{String(student.id).padStart(3, '0')}
                       </td>
                       <td className="p-4">
-                        <div className="font-bold text-slate-800 dark:text-white">{student.student_last_name}, {student.student_first_name}</div>
+                        <div className="font-bold text-slate-800 dark:text-white">
+                          {student.student?.last_name || 'Unknown'}, {student.student?.first_name || 'Unknown'}
+                        </div>
                       </td>
-                      <td className={`p-4 text-xs font-bold ${isNew ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-400'}`}>
-                        {student.form_type}
+                      <td className={`p-4 text-xs font-bold ${
+                        student.assessment_status === 'Passed' ? 'text-green-600 dark:text-green-400' :
+                        student.assessment_status === 'Failed' ? 'text-red-600 dark:text-red-400' :
+                        'text-amber-600 dark:text-amber-400'
+                      }`}>
+                        {student.assessment_status === 'Passed' ? 'Accepted' : student.assessment_status === 'Failed' ? 'Rejected' : 'Pending'}
                       </td>
                       <td className="p-4 text-xs font-bold text-slate-500">
-                        {student.date_submitted ? new Date(student.date_submitted).toLocaleDateString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric'}) : '08/29/2026'}
+                        {student.date_submitted ? (() => { const d = student.date_submitted.split('T')[0].split('-'); return `${d[1]}/${d[2]}/${d[0]}`; })() : '08/29/2026'}
                       </td>
                       <td className="p-4 flex gap-3 justify-center items-center h-full pt-5">
-                        <button 
+                        <button type="button"
                           onClick={() => handleEvaluateClick(student)}
                           className="text-xs font-bold text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
                         >
                           View
                         </button>
-                        <button 
+                        <button type="button"
                           onClick={() => handleArchiveClick(student)}
                           className="text-xs font-bold text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                         >
@@ -200,7 +206,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                   <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                     <div>
                       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Full Name</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.student_first_name} {selectedForm.middle_name || ''} {selectedForm.student_last_name}</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.student?.first_name || selectedForm.student_first_name} {selectedForm.student?.middle_name || selectedForm.middle_name || ''} {selectedForm.student?.last_name || selectedForm.student_last_name}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Grade Applied</p>
@@ -219,8 +225,6 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                   <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Previous Education</h3>
                   <div className="text-sm space-y-2 text-slate-600 dark:text-slate-400">
                     <p><span className="font-semibold">School:</span> {selectedForm.previous_school || 'N/A'}</p>
-                    <p><span className="font-semibold">Repeated Grade:</span> {selectedForm.repeated_grade || 'None'}</p>
-                    <p><span className="font-semibold">Expelled/Dismissed:</span> {selectedForm.expelled_dismissed || 'No'}</p>
                   </div>
                 </div>
 
@@ -249,9 +253,9 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                         onChange={e => setAdmissionStatus(e.target.value)}
                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
                       >
-                        <option value="Pending">Pending (Not taken yet)</option>
-                        <option value="Passed">Passed</option>
-                        <option value="Failed">Failed</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Passed">Accepted</option>
+                        <option value="Failed">Rejected</option>
                       </select>
                     </div>
 

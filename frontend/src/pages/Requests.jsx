@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Requests({ currentRole, authFetch }) {
+export default function Requests({ currentRole, authFetch, fetchRequestsCount }) {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [printDoc, setPrintDoc] = useState(null);
+  const [remarksModal, setRemarksModal] = useState({ isOpen: false, requestId: null, newStatus: null, currentRemarks: '' });
 
   const fetchRequests = async () => {
     setIsLoading(true);
@@ -24,24 +25,50 @@ export default function Requests({ currentRole, authFetch }) {
   }, [currentRole]);
 
   const handleStatusChange = async (id, newStatus, currentRemarks = '') => {
-    let remarks = currentRemarks;
     if (newStatus === 'Rejected' || newStatus === 'Ready') {
-      const input = prompt(`Enter remarks for changing status to ${newStatus}:`, currentRemarks || '');
-      if (input === null) return; // cancelled
-      remarks = input;
+      setRemarksModal({ isOpen: true, requestId: id, newStatus, currentRemarks: currentRemarks || '' });
+      return;
     }
     
     try {
       const res = await authFetch(`/api/document-requests/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus, remarks: remarks || null })
+        body: JSON.stringify({ status: newStatus, remarks: currentRemarks || null })
       });
       if (res?.ok) {
         fetchRequests();
+        if (fetchRequestsCount) fetchRequestsCount();
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const editRemarks = (id, currentRemarks) => {
+    setRemarksModal({ isOpen: true, requestId: id, newStatus: null, currentRemarks: currentRemarks || '' });
+  };
+
+  const submitRemarksModal = async () => {
+    const { requestId, newStatus, currentRemarks } = remarksModal;
+    try {
+      const payload = newStatus 
+        ? { status: newStatus, remarks: currentRemarks || null }
+        : { remarks: currentRemarks || null };
+
+      const res = await authFetch(`/api/document-requests/${requestId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res?.ok) {
+        fetchRequests();
+        if (fetchRequestsCount) fetchRequestsCount();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRemarksModal({ isOpen: false, requestId: null, newStatus: null, currentRemarks: '' });
     }
   };
 
@@ -131,8 +158,13 @@ export default function Requests({ currentRole, authFetch }) {
                 <td className="px-6 py-4 text-sm text-slate-500">
                   {new Date(r.date_requested).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate" title={r.remarks || ''}>
-                  {r.remarks || '—'}
+                <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] group" title={r.remarks || ''}>
+                  <div className="flex items-center gap-2 justify-between">
+                    <span className="truncate">{r.remarks || '—'}</span>
+                    <button onClick={() => editRemarks(r.id, r.remarks)} className="opacity-0 group-hover:opacity-100 text-brand-600 hover:text-brand-800 transition-opacity p-1" title="Edit Remarks">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-right space-x-2">
                   {r.status === 'Pending' && (
@@ -205,6 +237,42 @@ export default function Requests({ currentRole, authFetch }) {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {remarksModal.isOpen && (
+        <div className="fixed inset-0 bg-black/60 z-[110] flex justify-center items-center p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700">
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                {remarksModal.newStatus ? `Remarks for ${remarksModal.newStatus}` : 'Edit Remarks'}
+              </h3>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">Enter remarks for this request:</label>
+              <textarea 
+                className="w-full border border-slate-300 dark:border-slate-600 rounded-lg p-3 text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                rows="4"
+                value={remarksModal.currentRemarks}
+                onChange={e => setRemarksModal({...remarksModal, currentRemarks: e.target.value})}
+                placeholder="Type your remarks here..."
+                autoFocus
+              ></textarea>
+            </div>
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 flex justify-end space-x-3">
+              <button 
+                onClick={() => setRemarksModal({ isOpen: false, requestId: null, newStatus: null, currentRemarks: '' })} 
+                className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitRemarksModal} 
+                className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>

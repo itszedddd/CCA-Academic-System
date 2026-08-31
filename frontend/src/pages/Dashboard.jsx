@@ -450,7 +450,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     </div>
   );
 
-  const AIAssistantSidebar = ({ label }) => (
+  const AIAssistantSidebar = ({ label, prompts = ["Summarize data", "Show recent activity"] }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col min-h-[400px]">
       <div className="flex items-center mb-4">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
@@ -461,13 +461,9 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
         </div>
       </div>
-      <div className="text-xs text-slate-500 dark:text-slate-400 mb-3 space-y-1">
-        <p className="font-bold">Suggested for {label}:</p>
-        <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Summarize data"</p>
-        <p className="bg-slate-50 dark:bg-slate-700/50 p-1 rounded">"Show recent activity"</p>
-      </div>
+
       <div className="flex-1 min-h-[300px] relative">
-        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" />
+        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" prompts={prompts} />
       </div>
     </div>
   );
@@ -641,19 +637,22 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               </div>
             )}
             <RenderGeminiInsights />
-            <RenderEventsAndAnnouncements />
+            {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">
-            <AIAssistantSidebar label="Registrar" />
+            <AIAssistantSidebar 
+              label="Registrar" 
+              prompts={["Enrollment statistics", "Missing requirements", "Section distribution", "Generate masterlist"]} 
+            />
           </div>
         </div>
-        <RenderModals />
+        {RenderModals()}
       </div>
     );
   }
 
   if (currentRole === 'Admission') {
-    const preRegistered = forms.filter(f => ['pre-registered', 'pending', 'pre-registration'].includes((f.status || '').toLowerCase())).length;
+    const preRegistered = forms.filter(f => f.status !== 'Enrolled').length;
     const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
     const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
     const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
@@ -669,13 +668,15 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </div>
             <RenderGeminiInsights />
-            <RenderEventsAndAnnouncements />
           </div>
           <div className="lg:col-span-1">
-            <AIAssistantSidebar label="Admission" />
+            <AIAssistantSidebar 
+              label="Admission" 
+              prompts={["How many pre-registered?", "Pending requirements?", "Enrollment summary", "Assessment schedule"]} 
+            />
           </div>
         </div>
-        <RenderModals />
+        {RenderModals()}
       </div>
     );
   }
@@ -707,13 +708,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               </>
             )}
             <RenderGeminiInsights />
-            <RenderEventsAndAnnouncements />
+            {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar label="Principal" />
           </div>
         </div>
-        <RenderModals />
+        {RenderModals()}
       </div>
     );
   }
@@ -734,14 +735,30 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <StatCard label="Deficit Balance" value={`₱${tBal.toLocaleString()}`} sub="Active remaining" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               <StatCard label="Alert Triggers" value={oCount} sub="Overdue accounts" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </div>
-            <RenderGeminiInsights />
-            <RenderEventsAndAnnouncements />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="bg-brand-50 border border-brand-100 rounded-xl p-5 shadow-sm dark:bg-brand-900/20 dark:border-brand-800">
+                <h4 className="font-bold text-brand-800 dark:text-brand-300 mb-2">Real-time Collections</h4>
+                <p className="text-sm text-brand-600 dark:text-brand-400">Total collected today and pending clearings.</p>
+              </div>
+              <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 shadow-sm dark:bg-amber-900/20 dark:border-amber-800">
+                <h4 className="font-bold text-amber-800 dark:text-amber-300 mb-2">Daily Outstanding</h4>
+                <p className="text-sm text-amber-600 dark:text-amber-400">Overdue payments requiring immediate follow-up.</p>
+              </div>
+              <div className="bg-green-50 border border-green-100 rounded-xl p-5 shadow-sm dark:bg-green-900/20 dark:border-green-800">
+                <h4 className="font-bold text-green-800 dark:text-green-300 mb-2">Expected Revenue</h4>
+                <p className="text-sm text-green-600 dark:text-green-400">Projected income based on active promissory notes.</p>
+              </div>
+            </div>
+            {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">
-            <AIAssistantSidebar label="Finance & Cashier" />
+            <AIAssistantSidebar 
+              label="Finance & Cashier" 
+              prompts={["Outstanding balances", "Today's collection", "Generate payment report"]}
+            />
           </div>
         </div>
-        <RenderModals />
+        {RenderModals()}
       </div>
     );
   }
@@ -749,6 +766,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   if (currentRole === 'Teacher') {
     return (
       <div className="space-y-6">
+        <HeaderTitle title="Teacher's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        {RenderEventsAndAnnouncements()}
         <div className="mb-8 flex flex-col lg:flex-row gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
             {user?.profile_picture ? (
@@ -826,40 +845,107 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             </div>
 
             <RenderGeminiInsights />
-            <RenderEventsAndAnnouncements />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar label="Teacher/Adviser" />
           </div>
         </div>
-        <RenderModals />
+        {RenderModals()}
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      <HeaderTitle title="Student Portal" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+      {RenderEventsAndAnnouncements()}
+      
       <div className="mb-8 flex flex-col lg:flex-row gap-6">
-        <div className="flex-1">
-          <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white">Welcome, {user?.username}</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Here is your personalized academic overview and AI performance tracking.</p>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
+          {user?.profile_picture ? (
+            <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-md border-4 border-brand-100 dark:border-brand-900 flex-shrink-0">
+              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'S'}
+            </div>
+          )}
+          <div className="flex-1">
+            <h2 className="text-2xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1">{user?.full_name || 'Student Name'}</h2>
+            <p className="text-brand-600 dark:text-brand-400 font-bold text-sm tracking-wide mb-3 uppercase">Section: {user?.section || 'TBA'} | LRN: {user?.lrn || 'N/A'}</p>
+            <div className="flex space-x-4">
+              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Current GPA</p>
+                <p className="font-extrabold text-brand-600 dark:text-brand-400">{user?.gpa || 'N/A'}</p>
+              </div>
+              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Absences</p>
+                <p className="font-extrabold text-amber-600 dark:text-amber-400">{attendance.filter(a => a.status === 'Absent').length}</p>
+              </div>
+              <div className="text-center px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                <p className="text-[10px] font-bold text-slate-500 uppercase">Balance</p>
+                <p className="font-extrabold text-red-600 dark:text-red-400">₱{user?.balance || '0.00'}</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-br from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 text-white">
           <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
             <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             My Class Schedule
           </h3>
           {renderCalendar(mySchedule)}
         </div>
+        
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
+                <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                Recent Attendance Logs
+             </h3>
+             {attendance.length === 0 ? (
+               <p className="text-sm text-slate-500">No attendance records found.</p>
+             ) : (
+               <div className="space-y-3">
+                 {attendance.slice(0, 3).map((a, i) => (
+                   <div key={i} className="flex justify-between items-center p-3 rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                     <div>
+                       <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{new Date(a.date).toLocaleDateString()}</p>
+                       <p className="text-xs text-slate-500">{a.subject || 'General'}</p>
+                     </div>
+                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${a.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                       {a.status}
+                     </span>
+                   </div>
+                 ))}
+               </div>
+             )}
+          </div>
+          
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center mb-4">
+                <svg className="w-5 h-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                Academic Warnings
+             </h3>
+             {filteredWarnings.length === 0 ? (
+               <p className="text-sm text-slate-500">No active warnings. Keep up the good work!</p>
+             ) : (
+               <div className="space-y-3">
+                 {filteredWarnings.slice(0, 3).map((w, i) => (
+                   <div key={i} className="p-3 rounded-lg border border-red-100 bg-red-50 dark:bg-red-900/20">
+                     <p className="font-bold text-sm text-red-800 dark:text-red-300">{w.subject}</p>
+                     <p className="text-xs text-red-600/80 dark:text-red-400 mt-1">{w.message}</p>
+                   </div>
+                 ))}
+               </div>
+             )}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <StatCard label="My AI Insights" value={filteredWarnings.length} sub="Performance trends" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
-        <StatCard label="My Absences" value={attendance.filter(a => a.status === 'Absent').length} sub="Total absences logged" color="text-amber-500" icon="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z" />
-      </div>
-
-      <RenderEventsAndAnnouncements />
-      <RenderModals />
+      {RenderModals()}
     </div>
   );
 }

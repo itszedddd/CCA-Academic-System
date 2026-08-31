@@ -2,18 +2,20 @@ import { useState, useEffect } from 'react';
 
 const API = '/api';
 
-export default function StudentPortal({ students, attendance, currentRole, user, authFetch }) {
+export default function StudentPortal({ students, attendance, currentRole, user, authFetch, fetchRequestsCount }) {
   // Use the logged-in student's ID if available, otherwise default to first enrolled
   const initialStudentId = user?.student_id || (students.find(s => s.enrollment_status === 'Enrolled') || students[0])?.id;
   const [selectedStudentId, setSelectedStudentId] = useState(initialStudentId);
   const demoStudent = students.find(s => s.id === selectedStudentId) || students.find(s => s.id === initialStudentId);
   
+  const [activeTab, setActiveTab] = useState('Overview');
   const [studentData, setStudentData] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [myAttendance, setMyAttendance] = useState([]);
   const [tuitions, setTuitions] = useState([]);
   const [myForms, setMyForms] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
+  const [officialSubjects, setOfficialSubjects] = useState([]);
   const [requestingDoc, setRequestingDoc] = useState(false);
   const [newRequestType, setNewRequestType] = useState('Form 137');
   
@@ -50,6 +52,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
     // Fetch enrollment forms for this student
     authFetch(`${API}/enrollment_forms/`).then(r => r?.ok ? r.json() : []).then(data => setMyForms(data.filter(f => f.student_id === demoStudent.id))).catch(() => {});
     authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(data => setMyRequests(data.filter(d => d.student_id === demoStudent.id))).catch(() => {});
+    authFetch(`${API}/school/subjects/${demoStudent.grade_level}`).then(r => r?.ok ? r.json() : []).then(setOfficialSubjects).catch(() => {});
   }, [demoStudent?.id]);
 
   const handleRequestDocument = async (e) => {
@@ -64,6 +67,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
       if (res?.ok) {
         setRequestingDoc(false);
         authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(data => setMyRequests(data.filter(d => d.student_id === demoStudent.id)));
+        if (fetchRequestsCount) fetchRequestsCount();
         alert("Document requested successfully!");
       }
     } catch(e) {}
@@ -216,41 +220,42 @@ export default function StudentPortal({ students, attendance, currentRole, user,
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-700 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
                   <th className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left w-1/3">Learning Areas</th>
-                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">1</th>
-                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">2</th>
-                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">3</th>
-                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">4</th>
+                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">Term 1</th>
+                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">Term 2</th>
+                  <th className="border border-slate-200 dark:border-slate-600 px-2 py-2">Term 3</th>
                   <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-24">Final Grade</th>
                   <th className="border border-slate-200 dark:border-slate-600 px-3 py-2 w-24">Remarks</th>
                 </tr>
               </thead>
               <tbody>
-                {studentData.academic_records?.length === 0 ? (
-                  <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">No academic records yet.</td></tr>
+                {!studentData.academic_records ? (
+                  <tr><td colSpan="7" className="p-6 text-center text-sm text-slate-500">Loading academic records...</td></tr>
                 ) : (
                   (() => {
                     const grouped = {};
+                    officialSubjects.forEach(s => {
+                      grouped[s] = { subject: s, t1: null, t2: null, t3: null };
+                    });
+                    
                     studentData.academic_records.forEach(r => {
-                      if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, q1: null, q2: null, q3: null, q4: null };
+                      if (!grouped[r.subject]) grouped[r.subject] = { subject: r.subject, t1: null, t2: null, t3: null };
                       const t = r.term.toLowerCase();
-                      if (t.includes('1st') || t === '1' || t.includes('q1') || t.includes('quarter 1')) grouped[r.subject].q1 = r;
-                      else if (t.includes('2nd') || t === '2' || t.includes('q2') || t.includes('quarter 2')) grouped[r.subject].q2 = r;
-                      else if (t.includes('3rd') || t === '3' || t.includes('q3') || t.includes('quarter 3')) grouped[r.subject].q3 = r;
-                      else if (t.includes('4th') || t === '4' || t.includes('q4') || t.includes('quarter 4')) grouped[r.subject].q4 = r;
-                      else grouped[r.subject].q1 = r; // fallback
+                      if (t.includes('1') || t.includes('1st') || t.includes('q1') || t.includes('t1')) grouped[r.subject].t1 = r;
+                      else if (t.includes('2') || t.includes('2nd') || t.includes('q2') || t.includes('t2')) grouped[r.subject].t2 = r;
+                      else if (t.includes('3') || t.includes('3rd') || t.includes('q3') || t.includes('t3')) grouped[r.subject].t3 = r;
+                      else grouped[r.subject].t1 = r; // fallback
                     });
                     return Object.values(grouped).map((row, i) => {
-                      const grades = [row.q1?.score, row.q2?.score, row.q3?.score, row.q4?.score].filter(s => s != null);
-                      const finalGrade = grades.length === 4 ? Math.round(grades.reduce((a,b)=>a+b,0)/4) : null;
+                      const grades = [row.t1?.score, row.t2?.score, row.t3?.score].filter(s => s != null);
+                      const finalGrade = grades.length === 3 ? Math.round(grades.reduce((a,b)=>a+b,0)/3) : null;
                       const remarks = finalGrade ? (finalGrade > 75 ? 'Passed' : 'Failed') : '';
                       const colorClass = (score) => score ? (score <= 75 ? 'text-red-500 font-bold' : '') : '';
                       return (
                         <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                           <td className="border border-slate-200 dark:border-slate-600 px-4 py-2 text-left font-semibold text-sm">{row.subject}</td>
-                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.q1?.score)}`}>{row.q1?.score || ''}</td>
-                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.q2?.score)}`}>{row.q2?.score || ''}</td>
-                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.q3?.score)}`}>{row.q3?.score || ''}</td>
-                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.q4?.score)}`}>{row.q4?.score || ''}</td>
+                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.t1?.score)}`}>{row.t1?.score != null ? Number(row.t1.score).toFixed(2) : ''}</td>
+                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.t2?.score)}`}>{row.t2?.score != null ? Number(row.t2.score).toFixed(2) : ''}</td>
+                          <td className={`border border-slate-200 dark:border-slate-600 px-2 py-2 text-sm ${colorClass(row.t3?.score)}`}>{row.t3?.score != null ? Number(row.t3.score).toFixed(2) : ''}</td>
                           <td className={`border border-slate-200 dark:border-slate-600 px-3 py-2 font-bold text-sm ${finalGrade > 75 ? 'text-green-600' : (finalGrade ? 'text-red-600' : '')}`}>{finalGrade || ''}</td>
                           <td className={`border border-slate-200 dark:border-slate-600 px-3 py-2 text-xs font-bold uppercase ${remarks === 'Passed' ? 'text-green-600' : (remarks === 'Failed' ? 'text-red-600' : '')}`}>{remarks}</td>
                         </tr>
@@ -415,6 +420,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
                     <option>Certificate of Good Moral</option>
                     <option>Certified True Copy of Grades</option>
                     <option>Certificate of Enrollment</option>
+                    <option>Account Credentials (Login Info)</option>
                   </select>
                 </div>
                 <div className="flex gap-2 w-full sm:w-auto">

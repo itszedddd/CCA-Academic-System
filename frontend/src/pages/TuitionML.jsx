@@ -13,6 +13,8 @@ export default function TuitionML({ currentRole, authFetch }) {
   const [filterSchoolYear, setFilterSchoolYear] = useState('All');
   const [sortOrder, setSortOrder] = useState('Highest Risk');
   const [editingTuition, setEditingTuition] = useState(null);
+  const [viewMode, setViewMode] = useState('Sections'); // 'Sections' or 'Ledger'
+  const [selectedSection, setSelectedSection] = useState(null); // e.g., 'Grade 1 PERSEVERANCE'
 
   useEffect(() => {
     fetchData();
@@ -81,10 +83,15 @@ export default function TuitionML({ currentRole, authFetch }) {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
         <div>
           <h2 className="text-2xl font-extrabold font-cinzel text-brand-900 dark:text-white tracking-widest flex items-center">
+            {viewMode === 'Ledger' && (
+              <button onClick={() => { setViewMode('Sections'); setSelectedSection(null); }} className="mr-3 text-slate-400 hover:text-brand-600 transition-colors">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+              </button>
+            )}
             <svg className="w-6 h-6 mr-3 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Tuition Intelligence
+            Student Ledger
           </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 font-bold tracking-wide mt-1">Machine Learning Risk Profiling</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 font-bold tracking-wide mt-1">{viewMode === 'Sections' ? 'Select a section to view financials' : `Financial records for ${selectedSection}`}</p>
         </div>
       </div>
 
@@ -95,54 +102,82 @@ export default function TuitionML({ currentRole, authFetch }) {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input 
-            type="text" 
-            placeholder="Search by student name..." 
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {viewMode === 'Sections' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {(() => {
+            const sections = new Map();
+            students.forEach(s => {
+              if (s.enrollment_status === 'Enrolled' && s.grade_level) {
+                const key = `${s.grade_level} ${s.section || ''}`.trim();
+                if (!sections.has(key)) sections.set(key, 0);
+                sections.set(key, sections.get(key) + 1);
+              }
+            });
+            return Array.from(sections.entries()).map(([secName, count]) => (
+              <div 
+                key={secName} 
+                onClick={() => { setSelectedSection(secName); setViewMode('Ledger'); }}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-500 rounded-2xl p-6 cursor-pointer transition-all shadow-sm hover:shadow-md group"
+              >
+                <div className="w-12 h-12 rounded-full bg-brand-50 dark:bg-slate-700 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+                <h3 className="font-bold text-slate-800 dark:text-white mb-1 uppercase">{secName}</h3>
+                <p className="text-xs text-slate-500 font-bold tracking-wider">{count} Students</p>
+              </div>
+            ));
+          })()}
         </div>
-        
-        <select 
-          className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
-          <option value="All">All Statuses</option>
-          <option value="Paid">Paid</option>
-          <option value="Pending">Pending</option>
-          <option value="Overdue">Overdue</option>
-        </select>
-
-        {(() => {
-          const extractYear = (t) => t?.match(/20\d{2}-20\d{2}/)?.[0] || 'Unknown';
-          const uniqueYears = ['All', ...new Set(tuitions.map(t => extractYear(t.term)).filter(y => y !== 'Unknown'))].sort().reverse();
-          return (
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input 
+                type="text" 
+                placeholder="Search by student name..." 
+                className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
             <select 
               className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-              value={filterSchoolYear}
-              onChange={(e) => setFilterSchoolYear(e.target.value)}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
             >
-              {uniqueYears.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : `SY ${y}`}</option>)}
+              <option value="All">All Statuses</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Overdue">Overdue</option>
             </select>
-          );
-        })()}
-        
-        <select 
-          className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-        >
-          <option value="Highest Risk">Sort: Highest Risk</option>
-          <option value="Lowest Risk">Sort: Lowest Risk</option>
-          <option value="Amount Due">Sort: Amount Due</option>
-        </select>
-      </div>
+
+            {(() => {
+              const extractYear = (t) => t?.match(/20\d{2}-20\d{2}/)?.[0] || 'Unknown';
+              const uniqueYears = ['All', ...new Set(tuitions.map(t => extractYear(t.term)).filter(y => y !== 'Unknown'))].sort().reverse();
+              return (
+                <select 
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+                  value={filterSchoolYear}
+                  onChange={(e) => setFilterSchoolYear(e.target.value)}
+                >
+                  {uniqueYears.map(y => <option key={y} value={y}>{y === 'All' ? 'All Years' : `SY ${y}`}</option>)}
+                </select>
+              );
+            })()}
+            
+            <select 
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value)}
+            >
+              <option value="Highest Risk">Sort: Highest Risk</option>
+              <option value="Lowest Risk">Sort: Lowest Risk</option>
+              <option value="Amount Due">Sort: Amount Due</option>
+            </select>
+          </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden relative">
         {loading && (
@@ -167,13 +202,24 @@ export default function TuitionML({ currentRole, authFetch }) {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {(() => {
+                const seenStudentIds = new Set();
                 const filteredTuitions = tuitions
                   .filter(t => {
                     const student = getStudent(t.student_id);
+                    // Filter out "ghost" students who lack valid names
+                    if (!student || !student.first_name || !student.last_name) return false;
+                    
                     const matchesSearch = `${student.first_name} ${student.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
                     const matchesStatus = filterStatus === 'All' || t.status === filterStatus;
                     const matchesYear = filterSchoolYear === 'All' || (t.term && t.term.includes(filterSchoolYear));
-                    return matchesSearch && matchesStatus && matchesYear;
+                    const matchesSection = selectedSection ? `${student.grade_level} ${student.section || ''}`.trim() === selectedSection : true;
+                    
+                    if (matchesSearch && matchesStatus && matchesYear && matchesSection) {
+                        if (seenStudentIds.has(t.student_id)) return false;
+                        seenStudentIds.add(t.student_id);
+                        return true;
+                    }
+                    return false;
                   })
                   .sort((a, b) => {
                     if(sortOrder === 'Highest Risk') return (b.risk_score || 0) - (a.risk_score || 0);
@@ -264,6 +310,8 @@ export default function TuitionML({ currentRole, authFetch }) {
           </table>
         </div>
       </div>
+      </>
+      )}
 
       {/* Adjust Ledger Modal */}
       {editingTuition && (
@@ -301,11 +349,11 @@ export default function TuitionML({ currentRole, authFetch }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount Due</label>
-                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_due} onChange={e => handleDueChange(parseFloat(e.target.value))} />
+                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" value={editingTuition.amount_due} onChange={e => handleDueChange(parseFloat(e.target.value))} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Amount Paid</label>
-                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingTuition.amount_paid} onChange={e => handlePaidChange(parseFloat(e.target.value))} />
+                  <input type="number" step="0.01" required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" value={editingTuition.amount_paid} onChange={e => handlePaidChange(parseFloat(e.target.value))} />
                 </div>
               </div>
 
@@ -320,7 +368,7 @@ export default function TuitionML({ currentRole, authFetch }) {
                      <input type="text" id="or_num" required className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" placeholder="O.R. Number..." />
                    </div>
                    <div className="flex-1">
-                     <input type="number" step="0.01" id="quick_pay" className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white" placeholder="Amount..." />
+                     <input type="number" step="0.01" id="quick_pay" className="w-full border border-brand-200 dark:border-brand-700 rounded-md px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-500 bg-white dark:bg-slate-800 dark:text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" placeholder="Amount..." />
                    </div>
                  </div>
                  <div className="flex justify-end space-x-2">

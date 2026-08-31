@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 
 const API = '/api';
 
-const InputField = ({ label, field, type = "text", required = false, formData, setFormData, placeholder = "" }) => (
+const InputField = ({ label, field, type = "text", required = false, formData, setFormData, placeholder = "" , maxLength, pattern, title }) => (
   <div>
     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">{label} {required && <span className="text-red-500">*</span>}</label>
     <input
       type={type}
       required={required}
       placeholder={placeholder}
+      maxLength={maxLength}
+      pattern={pattern}
+      title={title}
       className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
       value={formData[field] || ''}
       onChange={e => setFormData({ ...formData, [field]: e.target.value })}
@@ -323,13 +326,13 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <h4 className="md:col-span-2 text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 pb-2">Father's Information</h4>
                     <InputField label="Father's Name" field="father_name" formData={formData} setFormData={setFormData} />
-                    <InputField label="Contact Number" field="father_contact" formData={formData} setFormData={setFormData} />
+                    <InputField label="Contact Number" field="father_contact" formData={formData} setFormData={setFormData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
                     <InputField label="Occupation" field="father_occupation" formData={formData} setFormData={setFormData} />
                     <InputField label="Employer" field="father_employer" formData={formData} setFormData={setFormData} />
 
                     <h4 className="md:col-span-2 text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 pb-2 mt-2">Mother's Information</h4>
                     <InputField label="Mother's Name" field="mother_name" formData={formData} setFormData={setFormData} />
-                    <InputField label="Contact Number" field="mother_contact" formData={formData} setFormData={setFormData} />
+                    <InputField label="Contact Number" field="mother_contact" formData={formData} setFormData={setFormData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
                     <InputField label="Occupation" field="mother_occupation" formData={formData} setFormData={setFormData} />
                     <InputField label="Employer" field="mother_employer" formData={formData} setFormData={setFormData} />
 
@@ -350,8 +353,6 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <InputField label="Previous School" field="previous_school" formData={formData} setFormData={setFormData} />
-                    <SelectField label="Repeated a Grade?" field="repeated_grade" options={['No', 'Yes']} formData={formData} setFormData={setFormData} />
-                    <SelectField label="Ever Expelled/Dismissed?" field="expelled_dismissed" options={['No', 'Yes']} formData={formData} setFormData={setFormData} />
                     <InputField label="Learning Disabilities" field="learning_disabilities" placeholder="If any..." formData={formData} setFormData={setFormData} />
                     <InputField label="Special Talents" field="special_talents" placeholder="Music, sports, art..." formData={formData} setFormData={setFormData} />
                     <SelectField label="How Did You Hear About CCA?" field="how_heard" options={['Social Media', 'Referral', 'Church', 'Website', 'Walk-in', 'Other']} formData={formData} setFormData={setFormData} />

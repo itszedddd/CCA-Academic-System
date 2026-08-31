@@ -6,30 +6,30 @@ import json
 
 def get_enrollment_report(db: Session, school_year: str = "2026-2027") -> Dict[str, Any]:
     """Generates an enrollment summary report."""
-    total_students = db.query(models.Student).filter(models.Student.school_year == school_year).count()
+    total_students = db.query(models.Student).filter(models.Student.is_archived == 0).count()
     
     # By Grade Level
     by_grade = dict(db.query(models.Student.grade_level, func.count(models.Student.id))
-                    .filter(models.Student.school_year == school_year)
+                    .filter(models.Student.is_archived == 0)
                     .group_by(models.Student.grade_level).all())
                     
     # By Section
     by_section = dict(db.query(models.Student.section, func.count(models.Student.id))
-                      .filter(models.Student.school_year == school_year)
+                      .filter(models.Student.is_archived == 0)
                       .group_by(models.Student.section).all())
                       
     # By Enrollment Status
     by_status = dict(db.query(models.Student.enrollment_status, func.count(models.Student.id))
-                     .filter(models.Student.school_year == school_year)
+                     .filter(models.Student.is_archived == 0)
                      .group_by(models.Student.enrollment_status).all())
 
     dropped_count = db.query(models.Student).filter(
-        models.Student.school_year == school_year,
+        models.Student.is_archived == 0,
         models.Student.enrollment_status == "Dropped"
     ).count()
     
     transferred_count = db.query(models.Student).filter(
-        models.Student.school_year == school_year,
+        models.Student.is_archived == 0,
         models.Student.enrollment_status == "Transferred"
     ).count()
 

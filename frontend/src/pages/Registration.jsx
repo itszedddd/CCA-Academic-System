@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 const API = '/api';
 
-const InputField = ({ label, field, type="text", required=false, encodeData, setEncodeData }) => (
+const InputField = ({ label, field, type="text", required=false, encodeData, setEncodeData , maxLength, pattern, title }) => (
   <div>
     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{label} {required && '*'}</label>
-    <input type={type} required={required} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
+    <input type={type} required={required} maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData[field] || ''} onChange={e => setEncodeData({...encodeData, [field]: e.target.value})} />
   </div>
 );
 
@@ -245,7 +245,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   </div>
                   <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-widest mb-2">Success!</h3>
                   <p className="text-slate-500 mb-8 font-medium">{successMsg}</p>
-                  <button onClick={() => setShowSuccessModal(false)} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition tracking-wider">
+                  <button onClick={() => setShowSuccessModal(false)} maxLength={maxLength} pattern={pattern} title={title} className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition tracking-wider">
                     DONE
                   </button>
                 </div>
@@ -261,7 +261,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   <InputField label="Last Name" field="student_last_name" required encodeData={encodeData} setEncodeData={setEncodeData} />
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Applicant Type *</label>
-                    <select required className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.form_type} onChange={e => setEncodeData({...encodeData, form_type: e.target.value})}>
+                    <select required maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.form_type} onChange={e => setEncodeData({...encodeData, form_type: e.target.value})}>
                       <option value="New Student">New Student</option>
                       <option value="Transferee">Transferee</option>
                       <option value="Returning">Returning</option>
@@ -269,7 +269,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grade Applying For *</label>
-                    <select required className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
+                    <select required maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
                       {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
@@ -288,8 +288,8 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <InputField label="Father's Name" field="father_name" encodeData={encodeData} setEncodeData={setEncodeData} />
                   <InputField label="Mother's Name" field="mother_name" encodeData={encodeData} setEncodeData={setEncodeData} />
-                  <InputField label="Father's Contact" field="father_contact" encodeData={encodeData} setEncodeData={setEncodeData} />
-                  <InputField label="Mother's Contact" field="mother_contact" encodeData={encodeData} setEncodeData={setEncodeData} />
+                  <InputField label="Father's Contact" field="father_contact" encodeData={encodeData} setEncodeData={setEncodeData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
+                  <InputField label="Mother's Contact" field="mother_contact" encodeData={encodeData} setEncodeData={setEncodeData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
                   <InputField label="Father's Occupation" field="father_occupation" encodeData={encodeData} setEncodeData={setEncodeData} />
                   <InputField label="Mother's Occupation" field="mother_occupation" encodeData={encodeData} setEncodeData={setEncodeData} />
                 </div>
@@ -300,20 +300,19 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                 <h4 className="text-sm font-black text-brand-700 uppercase tracking-widest border-b border-slate-200 pb-2 mb-4">III. Academic & Church History</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-2"><InputField label="Previous School" field="previous_school" encodeData={encodeData} setEncodeData={setEncodeData} /></div>
-                  <InputField label="Repeated Grade?" field="repeated_grade" encodeData={encodeData} setEncodeData={setEncodeData} />
                   <div className="md:col-span-2">
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Church Attended</label>
                       <button type="button" onClick={() => setEncodeData({...encodeData, church_attended: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
                     </div>
-                    <input type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.church_attended} onChange={e => setEncodeData({...encodeData, church_attended: e.target.value})} />
+                    <input type="text" maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.church_attended} onChange={e => setEncodeData({...encodeData, church_attended: e.target.value})} />
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pastor's Name</label>
                       <button type="button" onClick={() => setEncodeData({...encodeData, pastor_name: 'N/A'})} className="text-[10px] text-brand-600 font-bold hover:underline">Set N/A</button>
                     </div>
-                    <input type="text" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.pastor_name} onChange={e => setEncodeData({...encodeData, pastor_name: e.target.value})} />
+                    <input type="text" maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.pastor_name} onChange={e => setEncodeData({...encodeData, pastor_name: e.target.value})} />
                   </div>
                 </div>
               </div>
@@ -341,7 +340,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Additional Supporting Document (Optional)</label>
-                  <input type="file" onChange={e => setDocumentFile(e.target.files[0])} className="w-full text-sm dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-300 hover:file:bg-slate-200 dark:hover:file:bg-slate-600" />
+                  <input type="file" onChange={e => setDocumentFile(e.target.files[0])} maxLength={maxLength} pattern={pattern} title={title} className="w-full text-sm dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-slate-100 dark:file:bg-slate-700 file:text-slate-700 dark:file:text-slate-300 hover:file:bg-slate-200 dark:hover:file:bg-slate-600" />
                 </div>
               </div>
 
@@ -367,7 +366,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                  <option value="Rejected">Rejected</option>
                </select>
             </div>
-            <table className="w-full text-left border-collapse">
+            <table maxLength={maxLength} pattern={pattern} title={title} className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
                   <th className="p-4 py-3 border-r border-slate-200 dark:border-slate-700/50">Form ID</th>
@@ -513,7 +512,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                  )}
                </div>
 
-               <div className="w-full lg:w-1/3 bg-white dark:bg-slate-800 border border-brand-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
+               <div maxLength={maxLength} pattern={pattern} title={title} className="w-full lg:w-1/3 bg-white dark:bg-slate-800 border border-brand-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
                  <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Verification Action</h4>
                  <div className="space-y-4">
                    <div>
@@ -526,7 +525,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                    
                    <div>
                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Registrar Remarks</label>
-                     <textarea className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-sm text-slate-800 dark:text-white outline-none" rows="3" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add internal notes..."></textarea>
+                     <textarea maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg text-sm text-slate-800 dark:text-white outline-none" rows="3" value={remarks} onChange={e => setRemarks(e.target.value)} placeholder="Add internal notes..."></textarea>
                    </div>
                    
                    <div className="grid grid-cols-3 gap-2 pt-4">
@@ -551,7 +550,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
             <form onSubmit={handleRecordAssessment} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Status</label>
-                <select className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
+                <select maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
                   <option value="Passed">Passed</option>
                   <option value="Failed">Failed</option>
                   <option value="Pending">Pending</option>
@@ -559,7 +558,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks</label>
-                <textarea className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
+                <textarea maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setShowAssessmentModal(false)} className="px-4 py-2 font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
@@ -578,7 +577,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
             <form onSubmit={handleRecordInterview} className="space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Status</label>
-                <select className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
+                <select maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" value={admissionStatus} onChange={e => setAdmissionStatus(e.target.value)}>
                   <option value="Passed">Passed</option>
                   <option value="Failed">Failed</option>
                   <option value="Pending">Pending</option>
@@ -586,7 +585,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Remarks</label>
-                <textarea className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
+                <textarea maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 border rounded-lg dark:bg-slate-900 dark:border-slate-700 dark:text-white" rows="3" value={admissionRemarks} onChange={e => setAdmissionRemarks(e.target.value)}></textarea>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
