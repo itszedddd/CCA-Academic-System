@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AIAssistantWidget from '../components/AIAssistantWidget';
 
-export default function Dashboard({ students, warnings, attendance, forms, setActiveTab, currentRole, user, authFetch }) {
+export default function Dashboard({ students, warnings, attendance, forms, setActiveTab, currentRole, user, authFetch, pendingRequestsCount }) {
   const [loadingReport, setLoadingReport] = useState(false);
   const [tuitions, setTuitions] = useState([]);
   const [reportData, setReportData] = useState(null);
@@ -247,7 +247,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     const oldStudents = activeStudents.filter(s => s.enrollment_status === 'Enrolled').length;
     const newStudents = activeStudents.length - oldStudents;
     const incompleteReqs = activeStudents.filter(s => !s.req_birth_cert || !s.req_form_138 || !s.req_good_moral || !s.req_pictures).length;
-    const docRequests = forms.filter(f => f.status === 'Pending').length;
+    const docRequests = pendingRequestsCount || 0;
 
     return (
       <div className="h-[calc(100vh-120px)] overflow-hidden flex flex-col font-sans -mt-4">
@@ -586,7 +586,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                     )}
                     {currentRole === 'Registrar' && (
                       <>
-                        {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => (
+                        {['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => (
                           <option key={grade} value={grade}>{grade}</option>
                         ))}
                       </>
@@ -871,7 +871,15 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           )}
           <div>
             <h2 className="text-xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1 uppercase">{user?.full_name || 'Student Name'}</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Grade 10 {user?.section || 'Perseverance'}</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
+              {(() => {
+                const myStudent = students.find(s => s.id === user?.student_id);
+                if (!myStudent) return `Grade ${user?.grade_level || 'N/A'} ${user?.section || 'TBA'}`;
+                const gStr = String(myStudent.grade_level);
+                const gLabel = gStr.startsWith('Grade') || gStr === 'Kindergarten' ? gStr : `Grade ${gStr}`;
+                return `${gLabel} ${myStudent.section || 'TBA'}`;
+              })()}
+            </p>
           </div>
         </div>
         <div className="bg-brand-900 text-white rounded-xl p-4 min-w-[200px] text-center shadow-md">

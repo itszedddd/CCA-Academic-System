@@ -1,6 +1,6 @@
 import React, { useState, Fragment } from 'react';
 
-const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+const GRADES = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
 const API = '/api';
 
 export default function Archive({ students, forms, authFetch, currentRole }) {
@@ -27,6 +27,15 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
     const search = searchQuery.toLowerCase();
     const matchesSearch = `${s.first_name} ${s.last_name}`.toLowerCase().includes(search) || String(s.id).includes(search);
     const matchesGrade = gradeFilter === 'All' || s.grade_level === gradeFilter;
+    return matchesSearch && matchesGrade;
+  });
+
+  const archivedForms = (forms || []).filter(f => f.status === 'Archived');
+  const filteredArchivedForms = archivedForms.filter(f => {
+    const search = searchQuery.toLowerCase();
+    const fullName = `${f.student?.first_name || ''} ${f.student?.last_name || ''}`.toLowerCase();
+    const matchesSearch = fullName.includes(search) || String(f.id).includes(search);
+    const matchesGrade = gradeFilter === 'All' || f.grade_applying_for === gradeFilter;
     return matchesSearch && matchesGrade;
   });
 
@@ -225,6 +234,53 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
     );
   };
 
+  const renderArchivedFormsTable = () => {
+    if (filteredArchivedForms.length === 0) {
+      return (
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden m-6">
+          <table className="w-full text-left">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+              <tr><td className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">No archived applications found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6 bg-slate-50 dark:bg-slate-900/50 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-white dark:bg-slate-800 text-xs font-bold uppercase text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-700">
+                <th className="px-6 py-3 w-32">Form ID</th>
+                <th className="px-6 py-3">Applicant Name</th>
+                <th className="px-6 py-3">Grade Applied</th>
+                <th className="px-6 py-3 text-right">Remarks</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+              {filteredArchivedForms.map(f => (
+                <tr key={f.id} className="hover:bg-brand-50/30 dark:hover:bg-slate-700/50 transition-colors">
+                  <td className="px-6 py-4 text-sm font-bold text-brand-600 dark:text-brand-400">#{String(f.id).padStart(4,'0')}</td>
+                  <td className="px-6 py-4">
+                    <span className="text-sm font-semibold text-slate-800 dark:text-white">{f.student?.last_name || 'Unknown'}, {f.student?.first_name || 'Unknown'}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-300">
+                    {f.grade_applying_for}
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm text-slate-500">
+                    {f.remarks || 'No remarks'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -236,9 +292,10 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
             </h2>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 tracking-wider">Historical records for old and current students.</p>
           </div>
-          <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 relative z-10">
-            <button onClick={() => setActiveTab('Old Students')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Old Students' ? 'bg-white dark:bg-slate-800 shadow text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Old Students</button>
-            <button onClick={() => setActiveTab('Past Records')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition ${activeTab === 'Past Records' ? 'bg-white dark:bg-slate-800 shadow text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Past Records (Active)</button>
+          <div className="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1 relative z-10 overflow-x-auto">
+            <button onClick={() => setActiveTab('Old Students')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition whitespace-nowrap ${activeTab === 'Old Students' ? 'bg-white dark:bg-slate-800 shadow text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Old Students</button>
+            <button onClick={() => setActiveTab('Past Records')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition whitespace-nowrap ${activeTab === 'Past Records' ? 'bg-white dark:bg-slate-800 shadow text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Past Records (Active)</button>
+            <button onClick={() => setActiveTab('Archived Applications')} className={`px-4 py-1.5 text-sm font-bold rounded-md transition whitespace-nowrap ${activeTab === 'Archived Applications' ? 'bg-white dark:bg-slate-800 shadow text-slate-800 dark:text-white' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}>Archived Applications</button>
           </div>
         </div>
         
@@ -268,7 +325,9 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
         </div>
 
         <div className="overflow-x-auto">
-          {activeTab === 'Old Students' ? renderStudentTable(filteredOldStudents) : renderStudentTable(filteredActiveStudents)}
+          {activeTab === 'Old Students' && renderStudentTable(filteredOldStudents)}
+          {activeTab === 'Past Records' && renderStudentTable(filteredActiveStudents)}
+          {activeTab === 'Archived Applications' && renderArchivedFormsTable()}
         </div>
       </div>
     </div>

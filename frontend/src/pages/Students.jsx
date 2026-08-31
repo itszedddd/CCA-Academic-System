@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const GRADES = ['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+const GRADES = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
 const SECTIONS = ['Humility', 'Courage', 'Goodwill', 'Persistence'];
 const SECTION_META = {
   Humility:    { grade: 'Grade 7', color: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border-green-200' },
@@ -176,6 +176,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [subjectFilter, setSubjectFilter] = useState('All');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentForm, setPaymentForm] = useState({ tpId: null, amount: '', or_number: '', date: '', time: '' });
+  const [studentToArchive, setStudentToArchive] = useState(null);
 
   const graphData = GRADES.map(grade => {
     const gradeStudents = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
@@ -214,16 +215,13 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                    {new Date().toLocaleDateString('en-US', { year:'numeric', month:'2-digit', day:'2-digit'})}
                 </td>
                 {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
-                  <td className="px-6 py-4 text-right text-sm font-bold text-brand-800 dark:text-brand-400">
-                    <button type="button" onClick={() => { handleView(s.id); setShowStudentModal(true); setActiveModalTab(null); }} className="hover:underline mr-4 transition-colors">View</button>
-                    {['Registrar', 'Principal'].includes(currentRole) && (
-                      <button type="button" onClick={async () => {
-                        if (confirm("Archive this student?")) {
-                          await authFetch(`/api/students/${s.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
-                          fetchStudents();
-                        }
-                      }} className="hover:underline transition-colors">Archive</button>
-                    )}
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <button type="button" onClick={() => { handleView(s.id); setShowStudentModal(true); setActiveModalTab(null); }} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-brand-500 hover:text-white px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 transition-colors w-full sm:w-auto">View</button>
+                      {['Registrar', 'Principal'].includes(currentRole) && (
+                        <button type="button" onClick={() => setStudentToArchive(s)} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors w-full sm:w-auto">Archive</button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>
@@ -390,8 +388,8 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); }} className="absolute top-4 right-4 bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-black shadow hover:bg-red-700 z-[100] text-lg leading-none transition-transform hover:scale-110">&times;</button>
                 <div className="flex items-center gap-5 w-full justify-center">
                   <div className="relative">
-                    {selectedStudent.image_url ? (
-                      <img src={selectedStudent.image_url} alt="Student" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg" />
+                    {selectedStudent.profile_image ? (
+                      <img src={selectedStudent.profile_image} alt="Student" className="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg bg-brand-800" />
                     ) : (
                       <div className="w-20 h-20 rounded-lg bg-slate-100 dark:bg-slate-700 flex flex-col items-center justify-center border-2 border-brand-100 dark:border-slate-600 shadow-sm"><img src="/assets/Profile Icon [2 Clear].png" alt="User" className="w-10 h-10 opacity-30" /></div>
                     )}
@@ -609,12 +607,10 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 {['Registrar', 'Principal'].includes(currentRole) && (
                   <>
                     <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setEditingStudent(selectedStudent); setShowEdit(true); }} className="bg-brand-800 hover:bg-brand-900 text-white font-bold text-[11px] px-8 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Edit</button>
-                    <button onClick={async () => {
-                      if (confirm("Archive this student?")) {
-                        await authFetch(`/api/students/${selectedStudent.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
-                        setShowStudentModal(false); setActiveModalTab(null);
-                        fetchStudents();
-                      }
+                    <button onClick={() => {
+                        setShowStudentModal(false); 
+                        setActiveModalTab(null);
+                        setStudentToArchive(selectedStudent);
                     }} className="bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] px-6 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Archive</button>
                   </>
                 )}
@@ -735,6 +731,34 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                   }
                 }
               }} className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">Save Payment</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {studentToArchive && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Archive Student?</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Are you sure you want to archive <strong className="text-slate-700 dark:text-slate-300">{studentToArchive.first_name} {studentToArchive.last_name}</strong>? They will be moved to the Archive page.
+              </p>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
+              <button onClick={() => setStudentToArchive(null)} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                Cancel
+              </button>
+              <button onClick={async () => {
+                await authFetch(`/api/students/${studentToArchive.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
+                setStudentToArchive(null);
+                fetchStudents();
+              }} className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors flex items-center">
+                Yes, Archive
+              </button>
             </div>
           </div>
         </div>

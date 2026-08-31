@@ -17,6 +17,13 @@ class Student(Base):
     enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped, Hold: Incomplete Req
     membership_type = Column(String, default="Non-Member") # CBC Member, Non-Member
     is_archived = Column(Integer, default=0) # 0 for false, 1 for true
+    
+    # Detailed personal information transferred from EnrollmentForm
+    gender = Column(String, nullable=True)
+    date_of_birth = Column(String, nullable=True)
+    address = Column(String, nullable=True)
+    parent_name = Column(String, nullable=True)
+    contact_number = Column(String, nullable=True)
 
     # Admission Checklist Requirements
     req_birth_cert = Column(Integer, default=0)

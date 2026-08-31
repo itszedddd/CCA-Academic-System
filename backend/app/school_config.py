@@ -120,9 +120,25 @@ SUBJECTS = {
     ]
 }
 
+# Tuition Fee Configuration (Total Amount Due for the School Year)
+TUITION_FEES = {
+    "Kindergarten": 25000.0,
+    "Grade 1": 30000.0,
+    "Grade 2": 30000.0,
+    "Grade 3": 30000.0,
+    "Grade 4": 30000.0,
+    "Grade 5": 30000.0,
+    "Grade 6": 30000.0,
+    "Grade 7": 35000.0,
+    "Grade 8": 35000.0,
+    "Grade 9": 35000.0,
+    "Grade 10": 35000.0
+}
+
 def get_school_config():
     return {
         "calendar": CALENDAR,
         "sections": SECTIONS,
-        "subjects": SUBJECTS
+        "subjects": SUBJECTS,
+        "tuition_fees": TUITION_FEES
     }

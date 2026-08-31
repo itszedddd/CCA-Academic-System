@@ -77,9 +77,13 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
       <div className="p-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
         {user && (
           <div className="flex items-center space-x-3 p-2">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm ${ROLE_COLORS[currentRole] || 'bg-slate-500'}`}>
-              {user.username[0].toUpperCase()}
-            </div>
+            {user.profile_picture ? (
+              <img src={user.profile_picture} alt="Profile" className="w-8 h-8 rounded-lg object-cover shadow-sm bg-slate-100 dark:bg-slate-700 flex-shrink-0" />
+            ) : (
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-sm flex-shrink-0 ${ROLE_COLORS[currentRole] || 'bg-slate-500'}`}>
+                {user.username[0].toUpperCase()}
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-slate-800 dark:text-white truncate">{user.username}</p>
               <p className="text-[10px] text-brand-600 dark:text-brand-400 font-bold uppercase tracking-wider">{currentRole}</p>

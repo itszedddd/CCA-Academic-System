@@ -12,6 +12,7 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [roleFilter, setRoleFilter] = useState('All');
   const [showPassword, setShowPassword] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [confirmModal, setConfirmModal] = useState(null);
 
   // Password validation function
   const validatePassword = (pwd) => {
@@ -59,37 +60,61 @@ export default function UserManagement({ authFetch, currentRole }) {
     setShowModal(true);
   };
 
-  const handleArchive = async (id) => {
-    if (!window.confirm("Are you sure you want to archive this user account? They will no longer be able to log in.")) return;
-    const res = await authFetch(`${API}/users/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_archived: 1, is_active: 0 })
+  const handleArchive = (user) => {
+    setConfirmModal({
+      title: "Archive User Account?",
+      message: `Are you sure you want to archive ${user.username}? They will no longer be able to log in.`,
+      actionText: "Archive",
+      isDestructive: true,
+      onConfirm: async () => {
+        const res = await authFetch(`${API}/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_archived: 1, is_active: 0 })
+        });
+        if (res?.ok) fetchUsers();
+        else alert("Failed to archive user.");
+        setConfirmModal(null);
+      }
     });
-    if (res?.ok) fetchUsers();
-    else alert("Failed to archive user.");
   };
 
-  const handleRestore = async (id) => {
-    if (!window.confirm("Restore this user account? They will be re-activated.")) return;
-    const res = await authFetch(`${API}/users/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ is_archived: 0, is_active: 1 })
+  const handleRestore = (user) => {
+    setConfirmModal({
+      title: "Restore User Account?",
+      message: `Restore ${user.username}? They will be re-activated and able to log in again.`,
+      actionText: "Restore",
+      isDestructive: false,
+      onConfirm: async () => {
+        const res = await authFetch(`${API}/users/${user.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_archived: 0, is_active: 1 })
+        });
+        if (res?.ok) fetchUsers();
+        else alert("Failed to restore user.");
+        setConfirmModal(null);
+      }
     });
-    if (res?.ok) fetchUsers();
-    else alert("Failed to restore user.");
   };
 
-  const handleResetPassword = async (id) => {
-    if (!window.confirm("Are you sure you want to reset this user's password to default?")) return;
-    const res = await authFetch(`${API}/users/${id}/reset_password`, { method: 'POST' });
-    if (res?.ok) {
-      const data = await res.json();
-      alert(`Password reset successfully. The new default password is: ${data.default_password}\n\nPlease inform the staff or teacher.`);
-    } else {
-      alert("Failed to reset password.");
-    }
+  const handleResetPassword = (user) => {
+    setConfirmModal({
+      title: "Reset Password?",
+      message: `Are you sure you want to reset ${user.username}'s password to default?`,
+      actionText: "Reset",
+      isDestructive: true,
+      onConfirm: async () => {
+        const res = await authFetch(`${API}/users/${user.id}/reset_password`, { method: 'POST' });
+        if (res?.ok) {
+          const data = await res.json();
+          alert(`Password reset successfully. The new default password is: ${data.default_password}\n\nPlease inform the staff or teacher.`);
+        } else {
+          alert("Failed to reset password.");
+        }
+        setConfirmModal(null);
+      }
+    });
   };
 
   const handleSave = async (e) => {
@@ -255,14 +280,16 @@ export default function UserManagement({ authFetch, currentRole }) {
                       {u.is_archived ? 'Archived' : u.is_active === 1 ? 'Active' : 'Suspended'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right space-x-3">
-                    <button onClick={() => handleResetPassword(u.id)} className="text-amber-500 hover:text-amber-700 text-sm font-bold transition">Reset Password</button>
-                    <button onClick={() => openEditModal(u)} className="text-brand-600 hover:text-brand-800 text-sm font-bold transition">Edit</button>
-                    {u.is_archived ? (
-                      <button onClick={() => handleRestore(u.id)} className="text-green-500 hover:text-green-700 text-sm font-bold transition">Restore</button>
-                    ) : (
-                      <button onClick={() => handleArchive(u.id)} className="text-red-500 hover:text-red-700 text-sm font-bold transition">Archive</button>
-                    )}
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex flex-col sm:flex-row gap-2 justify-end">
+                      <button onClick={() => handleResetPassword(u)} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-amber-500 hover:text-white px-3 py-1.5 rounded-lg text-amber-600 dark:text-amber-500 transition-colors w-full sm:w-auto">Reset Password</button>
+                      <button onClick={() => openEditModal(u)} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-brand-500 hover:text-white px-3 py-1.5 rounded-lg text-brand-700 dark:text-brand-300 transition-colors w-full sm:w-auto">Edit</button>
+                      {u.is_archived ? (
+                        <button onClick={() => handleRestore(u)} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-green-500 hover:text-white px-3 py-1.5 rounded-lg text-green-600 dark:text-green-500 transition-colors w-full sm:w-auto">Restore</button>
+                      ) : (
+                        <button onClick={() => handleArchive(u)} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded-lg text-red-600 dark:text-red-500 transition-colors w-full sm:w-auto">Archive</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -364,6 +391,34 @@ export default function UserManagement({ authFetch, currentRole }) {
                 <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">{editingUser ? 'Save Mutations' : 'Create Access'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {confirmModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${confirmModal.isDestructive ? 'bg-red-100 dark:bg-red-900/30' : 'bg-brand-100 dark:bg-brand-900/30'}`}>
+                {confirmModal.isDestructive ? (
+                  <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                ) : (
+                  <svg className="w-6 h-6 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                )}
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{confirmModal.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
+              <button onClick={() => setConfirmModal(null)} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                Cancel
+              </button>
+              <button onClick={confirmModal.onConfirm} className={`px-4 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-colors flex items-center ${confirmModal.isDestructive ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-600 hover:bg-brand-700'}`}>
+                {confirmModal.actionText}
+              </button>
+            </div>
           </div>
         </div>
       )}

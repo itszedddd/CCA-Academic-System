@@ -32,6 +32,12 @@ class StudentBase(BaseModel):
     school_year: Optional[str] = "2025-2026"
     section: Optional[str] = None
     contact_email: Optional[str] = None
+    
+    gender: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    address: Optional[str] = None
+    parent_name: Optional[str] = None
+    contact_number: Optional[str] = None
     profile_image: Optional[str] = None
     enrollment_status: Optional[str] = "Pending"
     req_birth_cert: Optional[int] = 0

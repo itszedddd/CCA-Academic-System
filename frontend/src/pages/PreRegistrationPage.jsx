@@ -216,7 +216,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                       <label className={labelClass}>Grade Applying For *</label>
                       <select required name="grade_applying_for" value={formData.grade_applying_for} onChange={handleChange} className={inputClass}>
                         <option value="">Select Grade</option>
-                        <option>Pre-Kinder</option><option>Kinder</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+                        <option>Kinder</option><option>Grade 1</option><option>Grade 2</option><option>Grade 3</option><option>Grade 4</option><option>Grade 5</option><option>Grade 6</option><option>Grade 7</option><option>Grade 8</option><option>Grade 9</option><option>Grade 10</option>
                       </select>
                     </div>
                     <div><label className={labelClass}>Sex *</label><select required name="sex" value={formData.sex} onChange={handleChange} className={inputClass}><option>Male</option><option>Female</option></select></div>

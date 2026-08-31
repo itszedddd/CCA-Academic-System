@@ -46,7 +46,11 @@ export default function StudentPortal({ students, attendance, currentRole, user,
     authFetch(`${API}/attendance/student/${demoStudent.id}`).then(r => r?.ok ? r.json() : []).then(setMyAttendance).catch(() => {});
     authFetch(`${API}/tuition/`).then(r => r?.ok ? r.json() : []).then(data => setTuitions(data.filter(t => t.student_id === demoStudent.id))).catch(() => {});
     authFetch(`${API}/document-requests/`).then(r => r?.ok ? r.json() : []).then(data => setMyRequests(data.filter(d => d.student_id === demoStudent.id))).catch(() => {});
-    authFetch(`${API}/school/subjects/${demoStudent.grade_level}`).then(r => r?.ok ? r.json() : []).then(setOfficialSubjects).catch(() => {});
+    const gradeStr = String(demoStudent.grade_level);
+    const formattedGrade = gradeStr.startsWith('Grade') || gradeStr === 'Kindergarten' 
+      ? gradeStr 
+      : `Grade ${gradeStr}`;
+    authFetch(`${API}/school/subjects/${formattedGrade}`).then(r => r?.ok ? r.json() : []).then(setOfficialSubjects).catch(() => {});
     const mySection = demoStudent.section;
     if (mySection) {
       authFetch(`${API}/auth/section-schedule/${mySection}`)

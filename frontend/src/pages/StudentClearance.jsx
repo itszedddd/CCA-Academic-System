@@ -99,6 +99,7 @@ export default function StudentClearance({ API, authFetch, token, students, curr
   });
 
   const filteredClearances = clearances.filter(c => {
+     if (['Student', 'Parent'].includes(currentRole) && c.student_id !== user?.student_id) return false;
      if (sectionFilter !== 'All' && c.student?.section !== sectionFilter) return false;
      if (statusFilter !== 'All' && c.status !== statusFilter) return false;
      
@@ -149,16 +150,18 @@ export default function StudentClearance({ API, authFetch, token, students, curr
 
       {/* Filters and Search Toolbar */}
       <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input 
-            type="text" 
-            placeholder="Search by student name or ID..." 
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        {!['Student', 'Parent'].includes(currentRole) && (
+          <div className="relative flex-1">
+            <svg className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input 
+              type="text" 
+              placeholder="Search by student name or ID..." 
+              className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white rounded-xl focus:ring-2 focus:ring-brand-500 outline-none transition"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        )}
         <select 
           className="px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white font-bold rounded-xl focus:ring-2 focus:ring-brand-500 outline-none"
           value={statusFilter}
@@ -194,9 +197,13 @@ export default function StudentClearance({ API, authFetch, token, students, curr
             className={`p-5 ${clearance.status === 'Cleared' ? 'bg-green-50/50 dark:bg-green-900/10' : 'hover:bg-slate-50 dark:hover:bg-slate-700/30'} cursor-pointer flex justify-between items-center transition-colors`}
           >
             <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-slate-700 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold mr-4">
-                {clearance.student?.first_name?.[0]}{clearance.student?.last_name?.[0]}
-              </div>
+              {clearance.student?.profile_image ? (
+                <img src={clearance.student.profile_image} alt="Profile" className="w-10 h-10 rounded-full object-cover mr-4 bg-brand-50 shadow-sm flex-shrink-0" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-brand-50 dark:bg-slate-700 text-brand-600 dark:text-brand-400 flex items-center justify-center font-bold mr-4 flex-shrink-0">
+                  {clearance.student?.first_name?.[0]}{clearance.student?.last_name?.[0]}
+                </div>
+              )}
               <div>
                 <h2 className="text-lg font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">
                   {clearance.student ? `${clearance.student.last_name}, ${clearance.student.first_name}` : `Student ID: ${clearance.student_id}`}

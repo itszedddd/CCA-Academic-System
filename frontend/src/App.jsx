@@ -194,7 +194,7 @@ export default function App() {
     ) : [],
   };
 
-  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery, fetchRequestsCount };
+  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery, fetchRequestsCount, pendingRequestsCount };
 
   if (isAuthLoading) return <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>Loading...</div>;
   if (isPreRegistrationMode) return <PreRegistrationPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onNavigateHome={() => setIsPreRegistrationMode(false)} />;

@@ -10,11 +10,15 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
   const [loading, setLoading] = useState(false);
   const [admissionStatus, setAdmissionStatus] = useState('Passed');
   const [admissionRemarks, setAdmissionRemarks] = useState('');
+  
+  const [formToArchive, setFormToArchive] = useState(null);
+  const [isEditingForm, setIsEditingForm] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
 
   const gradeLevels = [
     'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 
     'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 
-    'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'
+    'Grade 9', 'Grade 10'
   ];
 
   const handleGradeClick = (grade) => {
@@ -29,18 +33,59 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
     setView('evaluate');
   };
 
-  const handleArchiveClick = async (form) => {
+  const handleArchiveClick = (form) => {
     if (loading) return;
-    if (!window.confirm(`Are you sure you want to archive ${form.student_first_name} ${form.student_last_name}?`)) return;
+    setFormToArchive(form);
+  };
+
+  const confirmArchive = async () => {
+    if (loading || !formToArchive) return;
     setLoading(true);
     try {
-      const res = await authFetch(`${API}/enrollment_forms/${form.id}/assessment`, {
+      const res = await authFetch(`${API}/enrollment_forms/${formToArchive.id}/verify`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'Failed', remarks: 'Archived by Admission' })
+        body: JSON.stringify({ 
+          status: 'Archived', 
+          remarks: 'Archived by Admission',
+          req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0
+        })
       });
       if (res?.ok) {
         fetchForms();
+        setFormToArchive(null);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleEditFormClick = () => {
+    setEditFormData({
+      student_first_name: selectedForm.student_first_name || '',
+      student_last_name: selectedForm.student_last_name || '',
+      middle_name: selectedForm.middle_name || '',
+      sex: selectedForm.sex || '',
+      birth_date: selectedForm.birth_date || '',
+      home_address: selectedForm.home_address || '',
+      contact_number: selectedForm.contact_number || '',
+    });
+    setIsEditingForm(true);
+  };
+  
+  const saveFormEdits = async () => {
+    setLoading(true);
+    try {
+      const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editFormData)
+      });
+      if (res?.ok) {
+        const updatedForm = await res.json();
+        setSelectedForm(updatedForm);
+        fetchForms();
+        setIsEditingForm(false);
       }
     } finally {
       setLoading(false);
@@ -67,7 +112,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
   };
 
   // Pre-registered students for the selected grade
-  const gradeStudents = forms.filter(f => f.grade_applying_for === selectedGrade && f.status !== 'Enrolled');
+  const gradeStudents = forms.filter(f => f.grade_applying_for === selectedGrade && !['Enrolled', 'Archived'].includes(f.status));
 
   return (
     <div className="space-y-6">
@@ -103,7 +148,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
           <div className="p-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {gradeLevels.map(grade => {
-                const count = forms.filter(f => f.grade_applying_for === grade && f.status !== 'Enrolled').length;
+                const count = forms.filter(f => f.grade_applying_for === grade && !['Enrolled', 'Archived'].includes(f.status)).length;
                 return (
                   <div 
                     key={grade} 
@@ -114,7 +159,7 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                       <svg className="w-12 h-12 text-brand-600" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>
                     </div>
                     <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-full shadow-inner flex items-center justify-center mb-4 text-2xl font-black text-slate-700 dark:text-slate-200">
-                      {grade.replace('Grade ', 'G').replace('Pre-Kinder', 'PK').replace('Kinder', 'K')}
+                      {grade.replace('Grade ', 'G').replace('Kinder', 'K')}
                     </div>
                     <h3 className="font-bold text-slate-800 dark:text-white mb-1">{grade}</h3>
                     <div className="mt-auto">
@@ -170,16 +215,16 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
                       <td className="p-4 text-xs font-bold text-slate-500">
                         {student.date_submitted ? (() => { const d = student.date_submitted.split('T')[0].split('-'); return `${d[1]}/${d[2]}/${d[0]}`; })() : '08/29/2026'}
                       </td>
-                      <td className="p-4 flex gap-3 justify-center items-center h-full pt-5">
+                      <td className="p-4 flex flex-col sm:flex-row gap-3 justify-center items-center h-full pt-5">
                         <button type="button"
                           onClick={() => handleEvaluateClick(student)}
-                          className="text-xs font-bold text-brand-600 hover:text-brand-800 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"
+                          className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-brand-500 hover:text-white px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 transition-colors w-full sm:w-auto"
                         >
                           View
                         </button>
                         <button type="button"
                           onClick={() => handleArchiveClick(student)}
-                          className="text-xs font-bold text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                          className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg text-slate-500 dark:text-slate-400 transition-colors w-full sm:w-auto"
                         >
                           Archive
                         </button>
@@ -201,7 +246,12 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
               {/* Left Column: Applicant Details */}
               <div className="space-y-6">
                 <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-                  <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">Applicant Information</h3>
+                  <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">
+                    <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white">Applicant Information</h3>
+                    <button onClick={handleEditFormClick} className="text-xs font-bold bg-brand-100 text-brand-700 hover:bg-brand-200 px-3 py-1.5 rounded-lg transition-colors">
+                      Edit Details
+                    </button>
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                     <div>
@@ -283,7 +333,87 @@ export default function NewStudents({ forms, fetchForms, authFetch }) {
             </div>
           </div>
         )}
-      </div>
+      {formToArchive && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Archive Application?</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Are you sure you want to archive the enrollment application for <strong className="text-slate-700 dark:text-slate-300">{formToArchive.student_first_name} {formToArchive.student_last_name}</strong>? They will be moved to the Archive list.
+              </p>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
+              <button onClick={() => setFormToArchive(null)} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                Cancel
+              </button>
+              <button onClick={confirmArchive} disabled={loading} className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors disabled:opacity-50 flex items-center">
+                {loading ? 'Archiving...' : 'Yes, Archive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditingForm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+              <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white">Edit Applicant Details</h3>
+              <button onClick={() => setIsEditingForm(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">First Name</label>
+                  <input type="text" value={editFormData.student_first_name} onChange={e => setEditFormData({...editFormData, student_first_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Last Name</label>
+                  <input type="text" value={editFormData.student_last_name} onChange={e => setEditFormData({...editFormData, student_last_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Middle Name</label>
+                  <input type="text" value={editFormData.middle_name} onChange={e => setEditFormData({...editFormData, middle_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Sex</label>
+                  <select value={editFormData.sex} onChange={e => setEditFormData({...editFormData, sex: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white">
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Birth Date</label>
+                  <input type="date" value={editFormData.birth_date} onChange={e => setEditFormData({...editFormData, birth_date: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Contact Number</label>
+                  <input type="text" value={editFormData.contact_number} onChange={e => setEditFormData({...editFormData, contact_number: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Home Address</label>
+                  <textarea value={editFormData.home_address} onChange={e => setEditFormData({...editFormData, home_address: e.target.value})} rows="2" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white"></textarea>
+                </div>
+              </div>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
+              <button onClick={() => setIsEditingForm(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                Cancel
+              </button>
+              <button onClick={saveFormEdits} disabled={loading} className="px-4 py-2 rounded-xl text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-colors disabled:opacity-50">
+                {loading ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+  </div>
   );
 }

@@ -12,6 +12,7 @@ from ..database import get_db
 from ..utils import validate_required_fields, check_duplicate_student
 from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights, generate_ai_report
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
+from ..school_config import TUITION_FEES
 
 aesms_router = APIRouter()
 
@@ -148,6 +149,11 @@ async def upload_student_image(
     file_url = f"/uploads/{file_name}"
     student.profile_image = file_url
     
+    # Sync to user account if exists
+    user_account = db.query(models.User).filter(models.User.student_id == student.id).first()
+    if user_account:
+        user_account.profile_picture = file_url
+        
     db.commit()
     db.refresh(student)
     return student
@@ -784,8 +790,6 @@ def lookup_student(
             pass
     elif next_grade == "Kinder":
         next_grade = "Grade 1"
-    elif next_grade == "Pre-Kinder":
-        next_grade = "Kinder"
         
     latest_form = db.query(models.EnrollmentForm).filter(
         models.EnrollmentForm.student_id == student.id
@@ -841,12 +845,25 @@ def create_enrollment_form(
     )
     if existing:
         student_id = existing.id
+        # Sync details
+        if payload.sex: existing.gender = payload.sex
+        if payload.birth_date: existing.date_of_birth = payload.birth_date
+        if payload.home_address: existing.address = payload.home_address
+        new_contact = payload.contact_number or payload.father_contact or payload.mother_contact
+        if new_contact: existing.contact_number = new_contact
+        new_parent = payload.father_name or payload.mother_name
+        if new_parent: existing.parent_name = new_parent
     else:
         new_student = models.Student(
             first_name=payload.student_first_name.strip(),
             last_name=payload.student_last_name.strip(),
             grade_level=payload.grade_applying_for or "Pending",
-            enrollment_status="Pending Validation"
+            enrollment_status="Pending Validation",
+            gender=payload.sex,
+            date_of_birth=payload.birth_date,
+            address=payload.home_address,
+            contact_number=payload.contact_number or payload.father_contact or payload.mother_contact,
+            parent_name=payload.father_name or payload.mother_name
         )
         db.add(new_student)
         db.flush()
@@ -985,12 +1002,26 @@ def public_preregister(
     if existing:
         student_id = existing.id
         existing.enrollment_status = "Pre-Registered"
+        
+        # Sync details
+        if payload.sex: existing.gender = payload.sex
+        if payload.birth_date: existing.date_of_birth = payload.birth_date
+        if payload.home_address: existing.address = payload.home_address
+        new_contact = payload.contact_number or payload.father_contact or payload.mother_contact
+        if new_contact: existing.contact_number = new_contact
+        new_parent = payload.father_name or payload.mother_name
+        if new_parent: existing.parent_name = new_parent
     else:
         new_student = models.Student(
             first_name=payload.student_first_name.strip(),
             last_name=payload.student_last_name.strip(),
             grade_level=payload.grade_applying_for or "Pending",
-            enrollment_status="Pre-Registered"
+            enrollment_status="Pre-Registered",
+            gender=payload.sex,
+            date_of_birth=payload.birth_date,
+            address=payload.home_address,
+            contact_number=payload.contact_number or payload.father_contact or payload.mother_contact,
+            parent_name=payload.father_name or payload.mother_name
         )
         db.add(new_student)
         db.flush()
@@ -1021,7 +1052,7 @@ def check_preregister_status(reference_id: int, db: Session = Depends(get_db)):
 
 @aesms_router.put("/enrollment_forms/{form_id}/assessment", response_model=schemas.EnrollmentForm)
 def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Principal", "Admission", "Registrar"]:
+    if current_user.role not in ["Principal", "Admission"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
@@ -1038,7 +1069,7 @@ def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db:
 
 @aesms_router.put("/enrollment_forms/{form_id}/interview", response_model=schemas.EnrollmentForm)
 def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Principal", "Admission", "Registrar"]:
+    if current_user.role not in ["Principal", "Admission"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
@@ -1057,13 +1088,11 @@ def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: 
 def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Principal", "Registrar"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    # Grade-to-Section mapping for automatic assignment
-    GRADE_SECTION_MAP = {
-        'Grade 7': 'Humility',
-        'Grade 8': 'Courage',
-        'Grade 9': 'Goodwill',
-        'Grade 10': 'Persistence',
-    }
+    
+    from ..school_config import SECTIONS, TUITION_FEES
+    
+    # Generate GRADE_SECTION_MAP from SECTIONS in config
+    GRADE_SECTION_MAP = {grade: info["name"] for grade, info in SECTIONS.items()}
 
     form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
     if not form:
@@ -1085,6 +1114,12 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                 student.req_form_138 = payload.req_form_138
                 student.req_good_moral = payload.req_good_moral
                 student.req_pictures = payload.req_pictures
+                
+                student.gender = form.sex
+                student.date_of_birth = form.birth_date
+                student.address = form.home_address
+                student.parent_name = form.father_name or form.mother_name
+                student.contact_number = form.contact_number or form.father_contact or form.mother_contact
 
                 if payload.status == "Success":
                     student.enrollment_status = "Enrolled"
@@ -1092,6 +1127,33 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                     grade = student.grade_level or (form.grade_applying_for or '')
                     if grade in GRADE_SECTION_MAP:
                         student.section = GRADE_SECTION_MAP[grade]
+                        
+                    # Auto-generate TuitionPayment
+                    if grade in TUITION_FEES:
+                        # Check if a tuition payment already exists for this term/year to avoid duplicates
+                        existing_tuition = db.query(models.TuitionPayment).filter(
+                            models.TuitionPayment.student_id == student.id,
+                            models.TuitionPayment.term == "SY 2026-2027"
+                        ).first()
+                        
+                        if not existing_tuition:
+                            base_tuition = TUITION_FEES[grade]
+                            new_tuition = models.TuitionPayment(
+                                student_id=student.id,
+                                tuition_fee=base_tuition,
+                                reg_fee=0.0,
+                                energy_fee=0.0,
+                                books_fee=0.0,
+                                esc_subsidy=0.0,
+                                discount=0.0,
+                                amount_due=base_tuition,
+                                amount_paid=0.0,
+                                term="SY 2026-2027",
+                                status="Pending",
+                                risk_score=0.0
+                            )
+                            db.add(new_tuition)
+                            
                 elif payload.status == "Approved Incomplete":
                     student.enrollment_status = "Approved: Incomplete Req"
                     # Still auto-assign section even if incomplete
@@ -1136,6 +1198,33 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
     db.refresh(form)
     return form
 
+@aesms_router.put("/enrollment_forms/{form_id}", response_model=schemas.EnrollmentForm)
+def edit_enrollment_form(form_id: int, payload: schemas.EnrollmentFormCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Superadmin", "Principal", "Registrar", "Admission"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions to edit enrollment forms")
+    
+    form = db.query(models.EnrollmentForm).filter(models.EnrollmentForm.id == form_id).first()
+    if not form:
+        raise HTTPException(status_code=404, detail="Form not found")
+        
+    for key, value in payload.dict(exclude_unset=True).items():
+        setattr(form, key, value)
+        
+    # Sync to student
+    if form.student_id:
+        student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
+        if student:
+            if payload.sex: student.gender = payload.sex
+            if payload.birth_date: student.date_of_birth = payload.birth_date
+            if payload.home_address: student.address = payload.home_address
+            new_contact = payload.contact_number or payload.father_contact or payload.mother_contact
+            if new_contact: student.contact_number = new_contact
+            new_parent = payload.father_name or payload.mother_name
+            if new_parent: student.parent_name = new_parent
+        
+    db.commit()
+    db.refresh(form)
+    return form
 
 # ---------------------------------------------------------------------------
 # Users & Auth
@@ -1156,7 +1245,12 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
     return {"access_token": access_token, "token_type": "bearer"}
 
 @aesms_router.get("/auth/me", response_model=schemas.User)
-def read_users_me(current_user: models.User = Depends(get_current_active_user)):
+def read_users_me(current_user: models.User = Depends(get_current_active_user), db: Session = Depends(get_db)):
+    if current_user.student_id:
+        student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+        if student and student.profile_image != current_user.profile_picture:
+            current_user.profile_picture = student.profile_image
+            db.commit()
     return current_user
 
 

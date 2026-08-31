@@ -18,7 +18,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
 
   // Encode Form State
   const [encodeData, setEncodeData] = useState({
-    student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Pre-Kinder',
+    student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Kinder',
     sex: '', birth_date: '', birth_place: '', home_address: '',
     father_name: '', father_contact: '', father_occupation: '', father_employer: '',
     mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
@@ -92,7 +92,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
         setSuccessMsg('Digital Enrollment Form successfully encoded!');
         setShowSuccessModal(true);
         setEncodeData({
-          student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Pre-Kinder',
+          student_first_name: '', student_last_name: '', form_type: 'New Student', grade_applying_for: 'Kinder',
           sex: '', birth_date: '', birth_place: '', home_address: '',
           father_name: '', father_contact: '', father_occupation: '', father_employer: '',
           mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
@@ -270,7 +270,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grade Applying For *</label>
                     <select required maxLength={maxLength} pattern={pattern} title={title} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={encodeData.grade_applying_for} onChange={e => setEncodeData({...encodeData, grade_applying_for: e.target.value})}>
-                      {['Pre-Kinder', 'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
+                      {['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
                   <InputField label="Sex" field="sex" encodeData={encodeData} setEncodeData={setEncodeData} />

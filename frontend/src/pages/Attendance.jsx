@@ -224,9 +224,13 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
                     <tr onClick={() => setExpandedStudentId(isExpanded ? null : s.id)} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center">
-                          <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 items-center justify-center mr-3 font-bold text-xs flex shadow-sm">
-                            {s.first_name[0]}{s.last_name[0]}
-                          </div>
+                          {s.profile_image ? (
+                            <img src={s.profile_image} alt="Profile" className="w-8 h-8 rounded-full object-cover mr-3 bg-brand-100 shadow-sm flex-shrink-0" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 items-center justify-center mr-3 font-bold text-xs flex shadow-sm flex-shrink-0">
+                              {s.first_name[0]}{s.last_name[0]}
+                            </div>
+                          )}
                           <div>
                             <span className="text-sm font-bold text-slate-800 dark:text-white">{s.last_name}, {s.first_name}</span>
                             <div className="text-[10px] text-slate-400 uppercase tracking-widest mt-0.5">ID: {String(s.id).padStart(4, '0')}</div>
