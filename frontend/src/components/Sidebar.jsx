@@ -5,7 +5,7 @@ const ROLE_COLORS = {
   Principal: 'bg-purple-600',
   Teacher:   'bg-blue-600',
   Registrar: 'bg-amber-600',
-  Admission: 'bg-indigo-600',
+  Admission: 'bg-brand-600',
   Cashier:   'bg-emerald-600',
   Student:   'bg-slate-600',
   Parent:    'bg-slate-500',

@@ -6,6 +6,7 @@ export default function UserManagement({ authFetch, currentRole }) {
   const [users, setUsers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '', title: 'Notice' });
   const [formData, setFormData] = useState({ username: '', full_name: '', password: '', confirm_password: '', role: 'Principal', student_id: '', is_active: 1, section: '' });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,10 +24,6 @@ export default function UserManagement({ authFetch, currentRole }) {
     return "";
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const fetchUsers = async () => {
     setLoading(true);
     const res = await authFetch(`${API}/users/`);
@@ -35,6 +32,10 @@ export default function UserManagement({ authFetch, currentRole }) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const openAddModal = () => {
     setEditingUser(null);
@@ -67,13 +68,17 @@ export default function UserManagement({ authFetch, currentRole }) {
       actionText: "Archive",
       isDestructive: true,
       onConfirm: async () => {
-        const res = await authFetch(`${API}/users/${user.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ is_archived: 1, is_active: 0 })
-        });
-        if (res?.ok) fetchUsers();
-        else alert("Failed to archive user.");
+        try {
+          const res = await authFetch(`${API}/users/${user.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_archived: 1, is_active: 0 })
+          });
+          if (res?.ok) fetchUsers();
+          else setAlertModal({ isOpen: true, message: "Failed to archive user.", title: "Error" });
+        } catch (err) {
+          setAlertModal({ isOpen: true, message: "An error occurred.", title: "Error" });
+        }
         setConfirmModal(null);
       }
     });
@@ -86,13 +91,17 @@ export default function UserManagement({ authFetch, currentRole }) {
       actionText: "Restore",
       isDestructive: false,
       onConfirm: async () => {
-        const res = await authFetch(`${API}/users/${user.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ is_archived: 0, is_active: 1 })
-        });
-        if (res?.ok) fetchUsers();
-        else alert("Failed to restore user.");
+        try {
+          const res = await authFetch(`${API}/users/${user.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_archived: 0, is_active: 1 })
+          });
+          if (res?.ok) fetchUsers();
+          else setAlertModal({ isOpen: true, message: "Failed to restore user.", title: "Error" });
+        } catch (err) {
+          setAlertModal({ isOpen: true, message: "An error occurred.", title: "Error" });
+        }
         setConfirmModal(null);
       }
     });
@@ -105,12 +114,16 @@ export default function UserManagement({ authFetch, currentRole }) {
       actionText: "Reset",
       isDestructive: true,
       onConfirm: async () => {
-        const res = await authFetch(`${API}/users/${user.id}/reset_password`, { method: 'POST' });
-        if (res?.ok) {
-          const data = await res.json();
-          alert(`Password reset successfully. The new default password is: ${data.default_password}\n\nPlease inform the staff or teacher.`);
-        } else {
-          alert("Failed to reset password.");
+        try {
+          const res = await authFetch(`${API}/users/${user.id}/reset_password`, { method: 'POST' });
+          if (res?.ok) {
+            const data = await res.json();
+            setAlertModal({ isOpen: true, message: `Password reset successfully. The new default password is: ${data.default_password}\n\nPlease inform the staff or teacher.`, title: "Password Reset" });
+          } else {
+            setAlertModal({ isOpen: true, message: "Failed to reset password.", title: "Error" });
+          }
+        } catch (err) {
+          setAlertModal({ isOpen: true, message: "An error occurred.", title: "Error" });
         }
         setConfirmModal(null);
       }
@@ -220,8 +233,8 @@ export default function UserManagement({ authFetch, currentRole }) {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
+        <div className="overflow-x-auto pb-4">
+          <table className="w-full text-left whitespace-nowrap">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-900 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
                 <th className="px-6 py-4">ID</th>
@@ -417,6 +430,20 @@ export default function UserManagement({ authFetch, currentRole }) {
               </button>
               <button onClick={confirmModal.onConfirm} className={`px-4 py-2 rounded-xl text-sm font-bold text-white shadow-sm transition-colors flex items-center ${confirmModal.isDestructive ? 'bg-red-600 hover:bg-red-700' : 'bg-brand-600 hover:bg-brand-700'}`}>
                 {confirmModal.actionText}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center whitespace-pre-wrap">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{alertModal.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">{alertModal.message}</p>
+              <button onClick={() => setAlertModal({ ...alertModal, isOpen: false })} className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-colors">
+                OK
               </button>
             </div>
           </div>

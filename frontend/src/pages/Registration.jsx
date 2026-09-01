@@ -116,7 +116,7 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
   // Verify Form State
   const [selectedForm, setSelectedForm] = useState(null);
   const [remarks, setRemarks] = useState('');
-  const [requirements, setRequirements] = useState({ req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0 });
+  const [requirements, setRequirements] = useState({ req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0, req_hard_copy: 0 });
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
@@ -484,7 +484,13 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                    )}
                  </div>
 
-                 <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">Encoded Data Review</h4>
+                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">
+                   <h4 className="font-bold text-brand-800 dark:text-brand-400 uppercase tracking-widest">Encoded Data Review</h4>
+                   <button onClick={() => window.print()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-brand-700 font-bold text-xs rounded shadow-sm border border-slate-200 flex items-center">
+                     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                     Print PDF
+                   </button>
+                 </div>
                  <div className="grid grid-cols-2 gap-y-3 text-sm text-slate-800 dark:text-slate-200">
                     <div className="text-slate-500 dark:text-slate-400">Student Name:</div><div className="font-semibold">{selectedForm.student_first_name || ''} {selectedForm.student_last_name || 'N/A'}</div>
                     <div className="text-slate-500 dark:text-slate-400">Form Type:</div><div className="font-semibold">{selectedForm.form_type}</div>
@@ -498,6 +504,24 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                     <div className="text-slate-500 dark:text-slate-400">Mother's Name:</div><div className="font-semibold">{selectedForm.mother_name || 'N/A'}</div>
                     <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
                     <div className="text-slate-500 dark:text-slate-400">Previous School:</div><div className="font-semibold">{selectedForm.previous_school || 'N/A'}</div>
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="col-span-2 font-bold text-brand-800 dark:text-brand-400">CHURCH INFORMATION</div>
+                    <div className="text-slate-500 dark:text-slate-400">Church Attended:</div><div className="font-semibold">{selectedForm.church_attended || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Member:</div><div className="font-semibold">{selectedForm.church_member || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Pastor's Name:</div><div className="font-semibold">{selectedForm.pastor_name || 'N/A'}</div>
+                    
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="col-span-2 font-bold text-brand-800 dark:text-brand-400">ACADEMIC & GENERAL INFO</div>
+                    <div className="text-slate-500 dark:text-slate-400">Repeated Grade:</div><div className="font-semibold">{selectedForm.repeated_grade || 'No'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Expelled/Dismissed:</div><div className="font-semibold">{selectedForm.expelled_dismissed || 'No'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Learning Disabilities:</div><div className="font-semibold">{selectedForm.learning_disabilities || 'None'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Special Talents:</div><div className="font-semibold">{selectedForm.special_talents || 'None'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">How Heard:</div><div className="font-semibold">{selectedForm.how_heard || 'N/A'}</div>
+                    <div className="text-slate-500 dark:text-slate-400">Reason for Selecting:</div><div className="font-semibold">{selectedForm.reason_selecting || 'N/A'}</div>
+                    
+                    <div className="col-span-2 border-t border-slate-200 dark:border-slate-700 my-2"></div>
+                    <div className="col-span-2 font-bold text-brand-800 dark:text-brand-400">SIBLINGS</div>
+                    <div className="col-span-2 text-sm whitespace-pre-wrap">{selectedForm.siblings || 'None listed'}</div>
                  </div>
                  
                  {selectedForm.file_path && (
@@ -521,6 +545,34 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_form_138} onChange={e=>setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)</label>
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_good_moral} onChange={e=>setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate</label>
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_pictures} onChange={e=>setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures</label>
+                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_hard_copy} onChange={e=>setRequirements({...requirements, req_hard_copy: e.target.checked?1:0})} /> Received Hard Copy</label>
+                   </div>
+                   
+                   <div className="grid grid-cols-2 gap-2">
+                     <div>
+                       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Assessment Status</label>
+                       <select className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded text-sm text-slate-800 dark:text-white" value={selectedForm.assessment_status || 'Pending'} onChange={async (e) => {
+                         const val = e.target.value;
+                         const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status: val, remarks: ''}) });
+                         if (res?.ok) { fetchForms(); const updated = await res.json(); setSelectedForm(updated); }
+                       }}>
+                         <option value="Pending">Pending</option>
+                         <option value="Passed">Passed</option>
+                         <option value="Failed">Failed</option>
+                       </select>
+                     </div>
+                     <div>
+                       <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">Interview Status</label>
+                       <select className="w-full px-2 py-1.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded text-sm text-slate-800 dark:text-white" value={selectedForm.interview_status || 'Pending'} onChange={async (e) => {
+                         const val = e.target.value;
+                         const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/interview`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status: val, remarks: ''}) });
+                         if (res?.ok) { fetchForms(); const updated = await res.json(); setSelectedForm(updated); }
+                       }}>
+                         <option value="Pending">Pending</option>
+                         <option value="Passed">Passed</option>
+                         <option value="Failed">Failed</option>
+                       </select>
+                     </div>
                    </div>
                    
                    <div>
@@ -529,6 +581,10 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                    </div>
                    
                    <div className="grid grid-cols-3 gap-2 pt-4">
+                      <button onClick={() => window.print()} className="py-2.5 col-span-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-lg text-sm transition flex justify-center items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        Print PDF / Download Form
+                      </button>
                       <button onClick={() => handleVerify('Success')} disabled={loading || selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed'} className={`py-2.5 font-bold rounded-lg text-sm transition ${selectedForm.assessment_status === 'Passed' && selectedForm.interview_status === 'Passed' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`} title={selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed' ? "Assessment and Interview must be Passed first" : ""}>Approve & Enroll</button>
                       <button onClick={() => handleVerify('Approved Incomplete')} disabled={loading || selectedForm.assessment_status !== 'Passed' || selectedForm.interview_status !== 'Passed'} className={`py-2.5 font-bold rounded-lg text-sm transition ${selectedForm.assessment_status === 'Passed' && selectedForm.interview_status === 'Passed' ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>Approved (Incomplete)</button>
                       <button onClick={() => handleVerify('Hold')} disabled={loading} className="py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg text-sm transition">Hold (Incomplete)</button>

@@ -220,6 +220,7 @@ class EnrollmentFormBase(BaseModel):
     special_talents: Optional[str] = None
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    siblings: Optional[str] = None
     
     # New Fields (V2.0 Major Inspection Report)
     middle_name: Optional[str] = None
@@ -287,12 +288,14 @@ class EnrollmentFormCreate(BaseModel):
     # General
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    siblings: Optional[str] = None
     
     # Document Requirements checklist
     req_birth_cert: Optional[int] = 0
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0
     req_pictures: Optional[int] = 0
+    req_hard_copy: Optional[int] = 0
 
 class AdmissionUpdatePayload(BaseModel):
     status: str
@@ -325,6 +328,7 @@ class PublicEnrollmentSubmit(BaseModel):
     special_talents: Optional[str] = None
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    siblings: Optional[str] = None
 
     # New Fields (V2.0 Major Inspection Report)
     middle_name: Optional[str] = None
@@ -351,6 +355,7 @@ class EnrollmentFormVerify(BaseModel):
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0
     req_pictures: Optional[int] = 0
+    req_hard_copy: Optional[int] = 0
 
 class EnrollmentForm(EnrollmentFormBase):
     id: int
@@ -467,6 +472,7 @@ class StudentEnrollmentSubmit(BaseModel):
     # General
     how_heard: Optional[str] = None
     reason_selecting: Optional[str] = None
+    siblings: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------

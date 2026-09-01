@@ -15,6 +15,7 @@ export default function StudentPortal({ students, attendance, currentRole, user,
   const [requestingDoc, setRequestingDoc] = useState(false);
   const [newRequestType, setNewRequestType] = useState('Form 137 (Permanent Record)');
   const [mySchedule, setMySchedule] = useState([]);
+  const [myForm, setMyForm] = useState(null);
   
   const [activeDate, setActiveDate] = useState(new Date());
   const handlePrevMonth = () => setActiveDate(new Date(activeDate.getFullYear(), activeDate.getMonth() - 1, 1));
@@ -61,6 +62,11 @@ export default function StudentPortal({ students, attendance, currentRole, user,
           }
         }).catch(() => {});
     }
+    
+    authFetch(`${API}/forms/`).then(r => r?.ok ? r.json() : []).then(forms => {
+      const form = forms.find(f => f.student_id === demoStudent.id);
+      if (form) setMyForm(form);
+    }).catch(() => {});
   }, [demoStudent?.id]);
 
   const handleRequestDocument = async (e) => {
@@ -192,6 +198,51 @@ export default function StudentPortal({ students, attendance, currentRole, user,
           My Class Schedule
         </h3>
         {renderCalendar(mySchedule)}
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+          <h3 className="font-bold font-cinzel tracking-wider text-slate-800 dark:text-white flex items-center">
+            <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            Personal Information
+          </h3>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-800 dark:text-slate-200">
+          <div>
+            <h4 className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-3 border-b border-slate-100 dark:border-slate-700 pb-2">Personal Details</h4>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Date of Birth:</span> <span className="font-bold">{myForm?.birth_date || studentData.date_of_birth || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Gender:</span> <span className="font-bold">{myForm?.sex || studentData.gender || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Blood Type:</span> <span className="font-bold">N/A</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Nationality:</span> <span className="font-bold">{myForm?.nationality || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Religion:</span> <span className="font-bold">{myForm?.religion || 'N/A'}</span></p>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-3 border-b border-slate-100 dark:border-slate-700 pb-2">Contact & Address</h4>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Email:</span> <span className="font-bold">{studentData.contact_email || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Phone:</span> <span className="font-bold">{myForm?.contact_number || studentData.contact_number || 'N/A'}</span></p>
+              <p className="flex"><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block shrink-0">Address:</span> <span className="font-bold">{myForm?.home_address || studentData.address || 'N/A'}</span></p>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-3 border-b border-slate-100 dark:border-slate-700 pb-2">Family Background</h4>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Mother:</span> <span className="font-bold">{myForm?.mother_name || 'N/A'} ({myForm?.mother_contact || 'N/A'})</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Father:</span> <span className="font-bold">{myForm?.father_name || 'N/A'} ({myForm?.father_contact || 'N/A'})</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Emergency:</span> <span className="font-bold">{myForm?.emergency_contact_name || 'N/A'} ({myForm?.emergency_contact_number || 'N/A'})</span></p>
+            </div>
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-500 uppercase tracking-widest text-xs mb-3 border-b border-slate-100 dark:border-slate-700 pb-2">Other Details</h4>
+            <div className="space-y-2">
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">LRN:</span> <span className="font-bold">{studentData.lrn || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Previous School:</span> <span className="font-bold">{myForm?.previous_school || 'N/A'}</span></p>
+              <p><span className="font-semibold text-slate-500 dark:text-slate-400 w-32 inline-block">Med Conditions:</span> <span className="font-bold">{myForm?.medical_conditions || 'None'}</span></p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">

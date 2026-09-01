@@ -148,26 +148,43 @@ html.accessible-mode .dark {
   scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
 }
 
-
 /* Print Layout CSS */
 @media print {
   @page {
-    margin: 0;
-    size: portrait;
+    margin: 10mm 8mm;
+    size: A4 portrait;
   }
   
+  /* Each form page: fits exactly one printed page */
   .print-page {
-    padding: 2mm;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    width: 100%;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    display: block;
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    overflow: hidden;
+  }
+  
+  /* The empty page-break spacer divs */
+  .page-break {
+    display: block;
+    height: 0;
+    page-break-before: always;
+    break-before: page;
   }
   
   body {
     background-color: white !important;
     color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
   }
+  
   ::-webkit-scrollbar {
     display: none !important;
   }
@@ -200,4 +217,5 @@ html.accessible-mode .dark {
     box-shadow: none !important;
     border: 1px solid #e2e8f0 !important;
   }
+  
 }

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
@@ -1098,14 +1098,17 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
     if not form:
         raise HTTPException(status_code=404, detail="Form not found")
         
-    form.status = payload.status
+    if payload.status == "Success":
+        form.status = "Enrolled"
+    else:
+        form.status = payload.status
     if payload.remarks:
         form.remarks = payload.remarks
     
     if payload.status in ["Success", "Hold", "Approved Incomplete"]:
         if payload.status == "Success":
-            if form.assessment_status != "Passed" or form.interview_status != "Passed":
-                raise HTTPException(status_code=400, detail="Cannot enroll student: Assessment and Interview must be Passed first.")
+            if form.assessment_status != "Passed":
+                raise HTTPException(status_code=400, detail="Cannot enroll student: Assessment must be Passed first.")
         
         if form.student_id:
             student = db.query(models.Student).filter(models.Student.id == form.student_id).first()
@@ -1114,6 +1117,7 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                 student.req_form_138 = payload.req_form_138
                 student.req_good_moral = payload.req_good_moral
                 student.req_pictures = payload.req_pictures
+                student.req_hard_copy = payload.req_hard_copy
                 
                 student.gender = form.sex
                 student.date_of_birth = form.birth_date
@@ -1170,16 +1174,13 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
             else:
                 fn = payload.student_first_name or (student.first_name if student else f"student_{form.student_id}")
                 ln = payload.student_last_name or (student.last_name if student else "")
-                dob = payload.student_dob or "cca2026"
                 
-                base_username = fn.strip().lower().replace(" ", "_")
+                base_username = f"{fn.strip().lower()}.{ln.strip().lower()}".replace(" ", "")
                 count = db.query(models.User).filter(models.User.username.like(f"{base_username}%")).count()
                 if count > 0:
                     base_username = f"{base_username}{count+1}"
                 
-                initial_pw = f"{ln}{dob}".strip()
-                if not initial_pw:
-                    initial_pw = "cca2026"
+                initial_pw = "password123"
                 
                 if student:
                     student.account_username = base_username
@@ -1232,7 +1233,7 @@ def edit_enrollment_form(form_id: int, payload: schemas.EnrollmentFormCreate, db
 
 
 @aesms_router.post("/auth/login")
-def login(username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+def login(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     username_clean = username.strip().lower()
     user = db.query(models.User).filter(models.User.username == username_clean).first()
     if not user or not verify_password(password, user.hashed_password):
@@ -1241,6 +1242,22 @@ def login(username: str = Form(...), password: str = Form(...), db: Session = De
     if getattr(user, 'is_active', 1) == 0:
         raise HTTPException(status_code=403, detail="Account pending Registrar verification")
     
+    # Log access
+    try:
+        ip = request.client.host if request.client else "Unknown"
+        log = models.SystemLog(
+            user_id=user.id,
+            action="Login",
+            ip_address=ip,
+            timestamp=datetime.now().isoformat(),
+            details=f"Successful login for {user.role}"
+        )
+        db.add(log)
+        db.commit()
+    except Exception as e:
+        print(f"Failed to log access: {e}")
+        db.rollback()
+
     access_token = create_access_token(data={"sub": user.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -1862,6 +1879,7 @@ def get_student_form(form_type: str, student_id: int, db: Session = Depends(get_
         "req_form_138": student.req_form_138,
         "req_good_moral": student.req_good_moral,
         "req_pictures": student.req_pictures,
+        "req_hard_copy": student.req_hard_copy,
     }
     
     return generate_form_html(form_type, student_data)
@@ -2185,3 +2203,49 @@ def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: model
         "pending_document_requests": pending_requests,
     }
 
+
+# ---------------------------------------------------------------------------
+# Superadmin Security Dashboard
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/superadmin/security-dashboard")
+def superadmin_security_dashboard(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Dashboard statistics for Superadmin focusing on Security, Access, and Provisioning."""
+    if current_user.role != "Superadmin":
+        raise HTTPException(status_code=403, detail="Not authorized. Superadmin access required.")
+    
+    # Provisioning Metrics
+    total_users = db.query(models.User).count()
+    active_users = db.query(models.User).filter(models.User.is_active == 1).count()
+    archived_users = db.query(models.User).filter(models.User.is_archived == 1).count()
+    
+    # Access Logs
+    logs = db.query(models.SystemLog).order_by(models.SystemLog.id.desc()).limit(15).all()
+    access_logs = []
+    for log in logs:
+        user_name = log.user.username if log.user else "System"
+        role = log.user.role if log.user else "System"
+        access_logs.append({
+            "id": log.id,
+            "user": user_name,
+            "role": role,
+            "action": log.action,
+            "ip_address": log.ip_address,
+            "timestamp": log.timestamp,
+            "details": log.details
+        })
+    
+    # Role distribution for security auditing
+    roles = db.query(models.User.role, func.count(models.User.id)).group_by(models.User.role).all()
+    role_distribution = {role: count for role, count in roles}
+
+    return {
+        "provisioning": {
+            "total_users": total_users,
+            "active_users": active_users,
+            "inactive_users": total_users - active_users,
+            "archived_users": archived_users,
+            "role_distribution": role_distribution
+        },
+        "access_logs": access_logs
+    }

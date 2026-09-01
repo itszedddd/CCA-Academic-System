@@ -197,7 +197,7 @@ export default function Reports({ API, authFetch }) {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
             <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Status Breakdown</h3>
             <ul className="space-y-2">
@@ -208,6 +208,27 @@ export default function Reports({ API, authFetch }) {
                 </li>
               ))}
             </ul>
+          </div>
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Aging Balance</h3>
+            <div className="flex flex-col items-center justify-center h-20">
+               <span className="text-2xl font-bold text-red-600 dark:text-red-400">₱{reportData.aging_balance?.toLocaleString(undefined, {minimumFractionDigits: 2}) || "0.00"}</span>
+               <span className="text-xs text-slate-500 uppercase font-bold mt-1">Total Overdue</span>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Transactions</h3>
+            <div className="flex flex-col items-center justify-center h-20">
+               <span className="text-3xl font-bold text-brand-600 dark:text-brand-400">{reportData.total_transactions || 0}</span>
+               <span className="text-xs text-slate-500 uppercase font-bold mt-1">Total Payment Records</span>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm">
+            <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Promissory Notes</h3>
+            <div className="flex flex-col items-center justify-center h-20">
+               <span className="text-3xl font-bold text-amber-500 dark:text-amber-400">{reportData.promissory_count || 0}</span>
+               <span className="text-xs text-slate-500 uppercase font-bold mt-1">Active Agreements</span>
+            </div>
           </div>
         </div>
       </div>
@@ -328,6 +349,18 @@ export default function Reports({ API, authFetch }) {
             Registrar Wide Report
           </button>
           <button 
+            className={`px-4 py-2 rounded font-medium ${reportType === 'financial' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            onClick={() => setReportType('financial')}
+          >
+            Financial Report
+          </button>
+          <button 
+            className={`px-4 py-2 rounded font-medium ${reportType === 'clearance' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            onClick={() => setReportType('clearance')}
+          >
+            Clearance Report
+          </button>
+          <button 
             className={`px-4 py-2 rounded font-medium ${reportType === 'teacher_allocation' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
             onClick={() => setReportType('teacher_allocation')}
           >
@@ -344,6 +377,8 @@ export default function Reports({ API, authFetch }) {
             </h2>
             
             {reportType === 'enrollment' && renderEnrollmentReport()}
+            {reportType === 'financial' && renderFinancialReport()}
+            {reportType === 'clearance' && renderClearanceReport()}
             {reportType === 'teacher_allocation' && renderTeacherAllocationReport()}
             
             <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 print:border-black text-center text-sm text-gray-500 dark:text-gray-400 print:text-black">

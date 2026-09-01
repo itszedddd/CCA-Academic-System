@@ -45,15 +45,10 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
   const myStudent = students?.find(s => s.id === user?.student_id);
 
   const [formData, setFormData] = useState({
-    student_first_name: myStudent?.first_name || user?.full_name?.split(' ')[0] || '',
-    student_last_name: myStudent?.last_name || user?.full_name?.split(' ').slice(1).join(' ') || '',
+    course: 'Basic Education',
+    term: 'Full Year',
     grade_applying_for: '',
-    sex: '', birth_date: '', birth_place: '', home_address: '', contact_email: '',
-    father_name: '', father_contact: '', father_occupation: '', father_employer: '',
-    mother_name: '', mother_contact: '', mother_occupation: '', mother_employer: '',
-    church_attended: '', church_member: '', pastor_name: '',
-    previous_school: '', repeated_grade: '', expelled_dismissed: '', learning_disabilities: '',
-    special_talents: '', how_heard: '', reason_selecting: '',
+    payment_term: 'Full Payment',
   });
 
   const fetchMyForms = async () => {
@@ -70,17 +65,7 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
     fetchMyForms();
   }, []);
 
-  // Auto-fill from existing student data
-  useEffect(() => {
-    if (myStudent) {
-      setFormData(prev => ({
-        ...prev,
-        student_first_name: myStudent.first_name || prev.student_first_name,
-        student_last_name: myStudent.last_name || prev.student_last_name,
-        contact_email: myStudent.contact_email || prev.contact_email,
-      }));
-    }
-  }, [myStudent]);
+  // Removed auto-fill useEffect since we don't need those fields anymore
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,10 +73,18 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
     setErrorMsg('');
     setSuccessMsg('');
     try {
+      const payload = {
+        student_first_name: myStudent?.first_name || user?.full_name?.split(' ')[0] || 'Unknown',
+        student_last_name: myStudent?.last_name || user?.full_name?.split(' ').slice(1).join(' ') || 'Unknown',
+        grade_applying_for: formData.grade_applying_for,
+        form_type: 'Enrollment Application',
+        remarks: `Course: ${formData.course} | Term: ${formData.term} | Payment Term: ${formData.payment_term}`,
+      };
+
       const res = await authFetch(`${API}/enrollment_forms/student-submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       if (res?.ok) {
         setSuccessMsg('Your enrollment form has been submitted successfully! The Admission office will review and verify it.');
@@ -109,7 +102,7 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
     }
   };
 
-  const totalSteps = 4;
+  const totalSteps = 2;
   const progressPct = Math.round((step / totalSteps) * 100);
 
   const gradeOptions = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
@@ -277,10 +270,8 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                 </div>
                 <div className="grid grid-cols-4 gap-2 mt-4">
                   {[
-                    { num: 1, label: 'Student Info' },
-                    { num: 2, label: 'Family Info' },
-                    { num: 3, label: 'Academic History' },
-                    { num: 4, label: 'Review & Submit' },
+                    { num: 1, label: 'Enrollment Details' },
+                    { num: 2, label: 'Review & Submit' },
                   ].map(s => (
                     <button
                       type="button"
@@ -294,83 +285,24 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                 </div>
               </div>
 
-              {/* Step 1: Student Information */}
+              {/* Step 1: Enrollment Details */}
               {step === 1 && (
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
                   <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
                     <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    Student Information
+                    Enrollment Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="First Name" field="student_first_name" required formData={formData} setFormData={setFormData} />
-                    <InputField label="Last Name" field="student_last_name" required formData={formData} setFormData={setFormData} />
-                    <SelectField label="Grade Applying For" field="grade_applying_for" required options={gradeOptions} formData={formData} setFormData={setFormData} />
-                    <SelectField label="Sex" field="sex" options={['Male', 'Female']} formData={formData} setFormData={setFormData} />
-                    <InputField label="Date of Birth" field="birth_date" type="date" formData={formData} setFormData={setFormData} />
-                    <InputField label="Place of Birth" field="birth_place" formData={formData} setFormData={setFormData} />
-                    <div className="md:col-span-2">
-                      <InputField label="Home Address" field="home_address" formData={formData} setFormData={setFormData} />
-                    </div>
-                    <InputField label="Contact Email" field="contact_email" type="email" formData={formData} setFormData={setFormData} />
+                    <SelectField label="Course / Track" field="course" required options={['Basic Education', 'JHS', 'SHS - STEM', 'SHS - ABM', 'SHS - HUMSS']} formData={formData} setFormData={setFormData} />
+                    <SelectField label="Term / School Year" field="term" required options={['Full Year', 'Term 1', 'Term 2', 'Term 3']} formData={formData} setFormData={setFormData} />
+                    <SelectField label="Grade Level" field="grade_applying_for" required options={gradeOptions} formData={formData} setFormData={setFormData} />
+                    <SelectField label="Payment Term" field="payment_term" required options={['Full Payment', 'Semi-Annual', 'Quarterly', 'Monthly']} formData={formData} setFormData={setFormData} />
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Family Information */}
+              {/* Step 2: Review & Submit */}
               {step === 2 && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
-                  <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    Family Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <h4 className="md:col-span-2 text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 pb-2">Father's Information</h4>
-                    <InputField label="Father's Name" field="father_name" formData={formData} setFormData={setFormData} />
-                    <InputField label="Contact Number" field="father_contact" formData={formData} setFormData={setFormData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
-                    <InputField label="Occupation" field="father_occupation" formData={formData} setFormData={setFormData} />
-                    <InputField label="Employer" field="father_employer" formData={formData} setFormData={setFormData} />
-
-                    <h4 className="md:col-span-2 text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 pb-2 mt-2">Mother's Information</h4>
-                    <InputField label="Mother's Name" field="mother_name" formData={formData} setFormData={setFormData} />
-                    <InputField label="Contact Number" field="mother_contact" formData={formData} setFormData={setFormData}  maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" />
-                    <InputField label="Occupation" field="mother_occupation" formData={formData} setFormData={setFormData} />
-                    <InputField label="Employer" field="mother_employer" formData={formData} setFormData={setFormData} />
-
-                    <h4 className="md:col-span-2 text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700 pb-2 mt-2">Church Information</h4>
-                    <InputField label="Church Attended" field="church_attended" formData={formData} setFormData={setFormData} />
-                    <SelectField label="Church Member?" field="church_member" options={['Yes', 'No']} formData={formData} setFormData={setFormData} />
-                    <InputField label="Pastor's Name" field="pastor_name" formData={formData} setFormData={setFormData} />
-                  </div>
-                </div>
-              )}
-
-              {/* Step 3: Academic History */}
-              {step === 3 && (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
-                  <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                    Academic History
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <InputField label="Previous School" field="previous_school" formData={formData} setFormData={setFormData} />
-                    <InputField label="Learning Disabilities" field="learning_disabilities" placeholder="If any..." formData={formData} setFormData={setFormData} />
-                    <InputField label="Special Talents" field="special_talents" placeholder="Music, sports, art..." formData={formData} setFormData={setFormData} />
-                    <SelectField label="How Did You Hear About CCA?" field="how_heard" options={['Social Media', 'Referral', 'Church', 'Website', 'Walk-in', 'Other']} formData={formData} setFormData={setFormData} />
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Reason for Selecting CCA</label>
-                      <textarea
-                        rows={3}
-                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 transition-all resize-none"
-                        value={formData.reason_selecting || ''}
-                        onChange={e => setFormData({ ...formData, reason_selecting: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Step 4: Review & Submit */}
-              {step === 4 && (
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
                   <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
                     <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
@@ -379,21 +311,15 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
 
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 text-sm text-blue-700 dark:text-blue-300 flex items-start space-x-3">
                     <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <p>Please review your information carefully. After submission, the Admission office will verify your application and contact you regarding the required documents.</p>
+                    <p>Please review your information carefully. After submission, the Admission office will verify your application and contact you regarding the next steps.</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { label: 'Full Name', value: `${formData.student_first_name} ${formData.student_last_name}` },
-                      { label: 'Grade Applying For', value: formData.grade_applying_for || 'N/A' },
-                      { label: 'Sex', value: formData.sex || 'N/A' },
-                      { label: 'Date of Birth', value: formData.birth_date || 'N/A' },
-                      { label: 'Home Address', value: formData.home_address || 'N/A' },
-                      { label: 'Contact Email', value: formData.contact_email || 'N/A' },
-                      { label: 'Father', value: formData.father_name || 'N/A' },
-                      { label: 'Mother', value: formData.mother_name || 'N/A' },
-                      { label: 'Previous School', value: formData.previous_school || 'N/A' },
-                      { label: 'Church', value: formData.church_attended || 'N/A' },
+                      { label: 'Course / Track', value: formData.course },
+                      { label: 'Term / School Year', value: formData.term },
+                      { label: 'Grade Level', value: formData.grade_applying_for || 'N/A' },
+                      { label: 'Payment Term', value: formData.payment_term },
                     ].map((item, i) => (
                       <div key={i} className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3.5 border border-slate-100 dark:border-slate-700">
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{item.label}</p>

@@ -14,6 +14,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   const [enrollmentTrends, setEnrollmentTrends] = useState(null);
   const [studentPopulation, setStudentPopulation] = useState(null);
   const [registrarStats, setRegistrarStats] = useState(null);
+  const [superadminStats, setSuperadminStats] = useState(null);
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   
@@ -100,6 +101,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
     if (currentRole === 'Registrar') {
       authFetch('/api/registrar/dashboard-stats').then(r => r?.ok ? r.json() : null).then(setRegistrarStats).catch(()=>{});
+    }
+
+    if (currentRole === 'Superadmin') {
+      authFetch('/api/superadmin/security-dashboard').then(r => r?.ok ? r.json() : null).then(setSuperadminStats).catch(()=>{});
     }
 
     // Fetch new dashboard widgets
@@ -194,8 +199,12 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     }
   };
   
-  const todayAbsences = attendance.filter(a => a.status === 'Absent').length;
   const teacherStudents = currentRole === 'Teacher' ? students.filter(s => s.section === user?.section) : students;
+  const todayAbsences = currentRole === 'Student' 
+    ? attendance.filter(a => a.status === 'Absent' && a.student_id === user?.student_id).length
+    : currentRole === 'Teacher'
+      ? attendance.filter(a => a.status === 'Absent' && teacherStudents.some(s => s.id === a.student_id)).length
+      : attendance.filter(a => a.status === 'Absent').length;
   const enrolledCount = teacherStudents.filter(s => s.enrollment_status === 'Enrolled').length;
   const totalSectionStudents = teacherStudents.length;
   const filteredWarnings = currentRole === 'Teacher' ? warnings.filter(w => teacherStudents.some(s => s.id === w.student_id)) : warnings;
@@ -608,10 +617,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     </>
   );
 
-  const HeaderTitle = ({ title, subtitle }) => (
+  const HeaderTitle = ({ title, subtitle, titleClassName }) => (
     <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
-        <h2 className="text-2xl font-extrabold font-cinzel text-slate-800 dark:text-white tracking-widest uppercase">{title}</h2>
+        <h2 className={`text-2xl font-extrabold font-cinzel tracking-widest uppercase ${titleClassName || 'text-slate-800 dark:text-white'}`}>{title}</h2>
         <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{subtitle}</p>
       </div>
       {currentRole === 'Principal' && (
@@ -625,7 +634,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   if (currentRole === 'Registrar') {
     return (
       <div className="space-y-6">
-        <HeaderTitle title="Registrar's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <HeaderTitle title="REGISTRAR'S DASHBOARD" titleClassName="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {!registrarStats ? <div className="animate-pulse h-28 bg-slate-100 dark:bg-slate-800 rounded-2xl"></div> : (
@@ -658,7 +667,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
     return (
       <div className="space-y-6">
-        <HeaderTitle title="Admission's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <HeaderTitle title="ADMISSION'S DASHBOARD" titleClassName="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -687,6 +696,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         <HeaderTitle title="Institution Overview" subtitle="AI-driven analytics and academic health tracking." />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
+            {RenderEventsAndAnnouncements()}
             {!reportData ? (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-pulse">
                 {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-28 border border-slate-100 dark:border-slate-700" />)}
@@ -708,13 +718,96 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               </>
             )}
             <RenderGeminiInsights />
-            {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar label="Principal" />
           </div>
         </div>
         {RenderModals()}
+      </div>
+    );
+  }
+
+  if (currentRole === 'Superadmin') {
+    return (
+      <div className="space-y-6">
+        <HeaderTitle title="Security & Provisioning Dashboard" subtitle="Access logs, user activity, and system integrity." />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            {!superadminStats ? (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-pulse">
+                {[1,2,3,4].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-28 border border-slate-100 dark:border-slate-700" />)}
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                  <StatCard label="Total Accounts" value={superadminStats.provisioning.total_users} sub="All provisioned users" color="text-indigo-500" icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <StatCard label="Active Accounts" value={superadminStats.provisioning.active_users} sub="Currently active" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <StatCard label="Inactive Accounts" value={superadminStats.provisioning.inactive_users} sub="Pending/Suspended" color="text-amber-500" icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <StatCard label="Archived Accounts" value={superadminStats.provisioning.archived_users} sub="Soft deleted" color="text-red-500" icon="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </div>
+                
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 overflow-hidden">
+                   <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center">
+                     <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                     Recent Access Logs
+                   </h3>
+                   <div className="overflow-x-auto">
+                     <table className="w-full text-left border-collapse">
+                       <thead>
+                         <tr className="border-b border-slate-100 dark:border-slate-700">
+                           <th className="py-2 px-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Timestamp</th>
+                           <th className="py-2 px-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">User</th>
+                           <th className="py-2 px-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Role</th>
+                           <th className="py-2 px-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</th>
+                           <th className="py-2 px-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">IP Address</th>
+                         </tr>
+                       </thead>
+                       <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                         {superadminStats.access_logs.length === 0 ? (
+                           <tr>
+                             <td colSpan="5" className="py-4 text-center text-sm text-slate-500">No access logs found.</td>
+                           </tr>
+                         ) : (
+                           superadminStats.access_logs.map((log, idx) => (
+                             <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                               <td className="py-3 px-3 text-sm text-slate-600 dark:text-slate-300">{new Date(log.timestamp).toLocaleString()}</td>
+                               <td className="py-3 px-3 text-sm font-bold text-slate-800 dark:text-white">{log.user}</td>
+                               <td className="py-3 px-3 text-xs">
+                                 <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold">{log.role}</span>
+                               </td>
+                               <td className="py-3 px-3 text-sm text-brand-600 dark:text-brand-400 font-medium">{log.action}</td>
+                               <td className="py-3 px-3 text-xs text-slate-500 font-mono">{log.ip_address}</td>
+                             </tr>
+                           ))
+                         )}
+                       </tbody>
+                     </table>
+                   </div>
+                </div>
+              </>
+            )}
+          </div>
+          
+          <div className="lg:col-span-1 space-y-6">
+            <AIAssistantSidebar label="Superadmin Security" prompts={["Identify inactive accounts", "Show unauthorized access attempts", "Provisioning summary"]} />
+            
+            {superadminStats && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700">
+                 <h3 className="font-bold text-slate-800 dark:text-white text-sm uppercase tracking-widest mb-4">Role Distribution</h3>
+                 <ul className="space-y-3">
+                   {Object.entries(superadminStats.provisioning.role_distribution || {}).map(([role, count]) => (
+                     <li key={role} className="flex justify-between items-center text-sm">
+                       <span className="text-slate-600 dark:text-slate-300 font-medium">{role}</span>
+                       <span className="bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 rounded-full font-bold text-brand-600 dark:text-brand-400">{count}</span>
+                     </li>
+                   ))}
+                 </ul>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -767,7 +860,6 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     return (
       <div className="space-y-6">
         <HeaderTitle title="Teacher's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
-        {RenderEventsAndAnnouncements()}
         <div className="mb-8 flex flex-col lg:flex-row gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
             {user?.profile_picture ? (
@@ -799,6 +891,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             </div>
           </div>
         </div>
+        {RenderEventsAndAnnouncements()}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -865,12 +958,24 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           {user?.profile_picture ? (
             <img src={user.profile_picture} alt="Profile" className="w-20 h-20 rounded-full object-cover border-2 border-brand-100 dark:border-brand-900 shadow-sm" />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-sm border-2 border-brand-100 dark:border-brand-900 flex-shrink-0">
-              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'S'}
-            </div>
+            (() => {
+              const myStudent = students.find(s => s.id === user?.student_id);
+              const initial = myStudent ? myStudent.first_name?.charAt(0) : (user?.full_name ? user.full_name.charAt(0) : 'S');
+              return (
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-3xl font-black text-white shadow-sm border-2 border-brand-100 dark:border-brand-900 flex-shrink-0">
+                  {initial?.toUpperCase() || 'S'}
+                </div>
+              );
+            })()
           )}
           <div>
-            <h2 className="text-xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1 uppercase">{user?.full_name || 'Student Name'}</h2>
+            <h2 className="text-xl font-black font-cinzel tracking-wider text-slate-800 dark:text-white mb-1 uppercase">
+              {(() => {
+                const myStudent = students.find(s => s.id === user?.student_id);
+                if (myStudent) return `${myStudent.first_name || ''} ${myStudent.last_name || ''}`.trim();
+                return user?.full_name || 'Student Name';
+              })()}
+            </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
               {(() => {
                 const myStudent = students.find(s => s.id === user?.student_id);

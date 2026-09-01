@@ -55,6 +55,15 @@ def get_financial_report(db: Session) -> Dict[str, Any]:
     # Pending/Overdue
     by_status = dict(db.query(models.TuitionPayment.status, func.count(models.TuitionPayment.id))
                      .group_by(models.TuitionPayment.status).all())
+
+    # Aging (Overdue balance)
+    aging_balance = db.query(func.sum(models.TuitionPayment.amount_due - models.TuitionPayment.amount_paid)).filter(models.TuitionPayment.status == "Overdue").scalar() or 0
+
+    # Promissory Notes (Mocked from Overdue students count for now since no exact column exists, representing students under financial agreement)
+    promissory_count = db.query(models.TuitionPayment).filter(models.TuitionPayment.status == "Overdue").count()
+
+    # Transactions (Total Payment Records)
+    total_transactions = db.query(models.PaymentRecord).count()
                      
     return {
         "title": "Financial Collection Summary",
@@ -62,7 +71,11 @@ def get_financial_report(db: Session) -> Dict[str, Any]:
         "total_collected": total_paid,
         "collection_rate": (total_paid / total_due * 100) if total_due > 0 else 0,
         "by_term": by_term,
-        "status_counts": by_status
+        "status_counts": by_status,
+        "efficiency": (total_paid / total_due * 100) if total_due > 0 else 0,
+        "aging_balance": aging_balance,
+        "promissory_count": promissory_count,
+        "total_transactions": total_transactions
     }
 
 def get_clearance_report(db: Session, school_year: str = "2026-2027") -> Dict[str, Any]:

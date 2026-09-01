@@ -96,7 +96,14 @@ export default function Attendance({ students, attendance, fetchAttendance, curr
               onClick={() => { setSectionFilter(user?.section || 'All'); setViewMode('List'); }}
               className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col justify-center items-center hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 transition-colors duration-200 shadow-sm hover:shadow-md group"
             >
-              <span className="font-bold text-lg mb-2 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+              <span className="font-bold text-lg mb-1 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+              {currentRole === 'Teacher' && user?.schedule && (() => {
+                try {
+                  const parsed = JSON.parse(user.schedule);
+                  const subjects = [...new Set(parsed.map(s => s.subject))].filter(Boolean);
+                  if (subjects.length > 0) return <span className="text-xs font-bold text-slate-500 group-hover:text-brand-200 mb-2">{subjects.join(', ')}</span>;
+                } catch { return null; }
+              })()}
               <span className="bg-brand-600 group-hover:bg-white group-hover:text-brand-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">View Attendance</span>
             </button>
           </div>

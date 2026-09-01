@@ -30,6 +30,7 @@ class Student(Base):
     req_form_138 = Column(Integer, default=0)
     req_good_moral = Column(Integer, default=0)
     req_pictures = Column(Integer, default=0)
+    req_hard_copy = Column(Integer, default=0)
 
     # Auto-generated Account Details (for teacher to notify student)
     account_username = Column(String, nullable=True)
@@ -108,6 +109,7 @@ class EnrollmentForm(Base):
     special_talents = Column(String, nullable=True)
     how_heard = Column(String, nullable=True)
     reason_selecting = Column(String, nullable=True)
+    siblings = Column(String, nullable=True) # JSON array of siblings
 
     # New Fields (V2.0 Major Inspection Report)
     middle_name = Column(String, nullable=True)
@@ -129,6 +131,7 @@ class EnrollmentForm(Base):
     req_form_138 = Column(Integer, default=0)
     req_good_moral = Column(Integer, default=0)
     req_pictures = Column(Integer, default=0)
+    req_hard_copy = Column(Integer, default=0)
     
     file_path = Column(String, nullable=True)
     remarks = Column(String, nullable=True)
@@ -292,4 +295,16 @@ class StudentHistory(Base):
 
     student = relationship("Student")
     recorder = relationship("User")
+
+
+class SystemLog(Base):
+    __tablename__ = "system_logs"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String) # e.g. "Login", "Create User", "Update Settings"
+    ip_address = Column(String, nullable=True)
+    timestamp = Column(String)
+    details = Column(String, nullable=True)
+
+    user = relationship("User")
 

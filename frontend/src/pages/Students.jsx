@@ -11,7 +11,7 @@ const SECTION_META = {
 };
 const API = '/api';
 
-export default function Students({ students, isStudentsLoading, fetchStudents, fetchWarnings, currentRole, authFetch, forms, searchQuery, setSearchQuery, user }) {
+export default function Students({ students, attendance, isStudentsLoading, fetchStudents, fetchWarnings, currentRole, authFetch, forms, searchQuery, setSearchQuery, user }) {
   // Teacher only sees their section's students
   const visibleStudents = currentRole === 'Teacher' && user?.section
     ? students.filter(s => s.section === user.section)
@@ -19,6 +19,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
   const [showEdit, setShowEdit] = useState(false);
   const [showEndYearConfirm, setShowEndYearConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '', title: 'Notice' });
   const [expandedStudentId, setExpandedStudentId] = useState(null);
   const [viewMode, setViewMode] = useState('Overview');
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -255,7 +256,14 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 onClick={() => { setSectionFilter(user?.section || 'All Sections'); setViewMode('List'); }}
                 className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 flex flex-col justify-center items-center hover:bg-brand-800 hover:text-white dark:hover:bg-brand-800 transition-colors duration-200 shadow-sm hover:shadow-md group"
               >
-                <span className="font-bold text-lg mb-2 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+                <span className="font-bold text-lg mb-1 group-hover:text-white text-slate-800 dark:text-white">{user?.section || 'Advisory Class'}</span>
+                {currentRole === 'Teacher' && user?.schedule && (() => {
+                  try {
+                    const parsed = JSON.parse(user.schedule);
+                    const subjects = [...new Set(parsed.map(s => s.subject))].filter(Boolean);
+                    if (subjects.length > 0) return <span className="text-xs font-bold text-slate-500 group-hover:text-brand-200 mb-2">{subjects.join(', ')}</span>;
+                  } catch { return null; }
+                })()}
                 <span className="bg-brand-600 group-hover:bg-white group-hover:text-brand-800 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">{visibleStudents.length} Students</span>
               </button>
             </div>
@@ -413,7 +421,7 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                     <div className="col-span-2"><span className="block text-xs text-slate-500 mb-1">Address</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.address || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Parent/Guardian</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.parent_name || 'Not specified'}</span></div>
                     <div><span className="block text-xs text-slate-500 mb-1">Contact Number</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.contact_number || 'Not specified'}</span></div>
-                    {currentRole === 'Teacher' && (
+                    {['Teacher', 'Principal', 'Registrar'].includes(currentRole) && (
                       <>
                         <div className="col-span-2 border-t border-slate-100 dark:border-slate-700 pt-3 mt-1"></div>
                         <div className="col-span-2 sm:col-span-1"><span className="block text-xs text-slate-500 mb-1">Default Username</span><span className="font-semibold text-slate-800 dark:text-slate-200">{selectedStudent.account_username || 'Not generated'}</span></div>
@@ -503,16 +511,26 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 {/* Attendance */}
                 <section>
                   <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Attendance</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 p-4 rounded-xl text-center">
-                      <span className="block text-2xl font-black text-green-700 dark:text-green-400">95%</span>
-                      <span className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-widest">Present</span>
-                    </div>
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 p-4 rounded-xl text-center">
-                      <span className="block text-2xl font-black text-red-700 dark:text-red-400">5%</span>
-                      <span className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-widest">Absent</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    const studentAtt = (attendance || []).filter(a => a.student_id === selectedStudent.id);
+                    const totalDays = studentAtt.length;
+                    const presentCount = studentAtt.filter(a => a.status === 'Present').length;
+                    const absentCount = studentAtt.filter(a => a.status === 'Absent').length;
+                    const presentPct = totalDays === 0 ? 0 : Math.round((presentCount / totalDays) * 100);
+                    const absentPct = totalDays === 0 ? 0 : Math.round((absentCount / totalDays) * 100);
+                    return (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/30 p-4 rounded-xl text-center">
+                          <span className="block text-2xl font-black text-green-700 dark:text-green-400">{totalDays === 0 ? '-' : presentPct + '%'}</span>
+                          <span className="text-xs font-bold text-green-600 dark:text-green-500 uppercase tracking-widest">Present</span>
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 p-4 rounded-xl text-center">
+                          <span className="block text-2xl font-black text-red-700 dark:text-red-400">{totalDays === 0 ? '-' : absentPct + '%'}</span>
+                          <span className="text-xs font-bold text-red-600 dark:text-red-500 uppercase tracking-widest">Absent</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </section>
 
                 {/* Requirements */}
@@ -633,15 +651,24 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">First Name</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.first_name} onChange={e => setEditingStudent({...editingStudent, first_name:e.target.value})} /></div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Last Name</label><input required className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.last_name} onChange={e => setEditingStudent({...editingStudent, last_name:e.target.value})} /></div>
               </div>
-              <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grade Level</label>
-                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.grade_level} onChange={e => setEditingStudent({...editingStudent, grade_level:e.target.value})}>
-                  {GRADES.map(g => <option key={g}>{g}</option>)}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Grade Level</label>
+                  <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.grade_level} onChange={e => setEditingStudent({...editingStudent, grade_level:e.target.value})}>
+                    <option value="">None</option>
+                    {GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Section</label>
+                  <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.section || ''} onChange={e => setEditingStudent({...editingStudent, section:e.target.value})}>
+                    <option value="">None</option>
+                    {SECTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Enrollment Status</label>
                   <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-brand-500" value={editingStudent.enrollment_status} onChange={e => setEditingStudent({...editingStudent, enrollment_status:e.target.value})}>
-                    {['Enrolled','Pending','Hold: Incomplete Req', 'Dropped', 'Transferred', 'Archived', 'Graduated', 'Rejected'].map(s => <option key={s}>{s}</option>)}
+                    {['Enrolled','Pending','Hold: Incomplete Req', 'Dropped', 'Transferred', 'Archived', 'Graduated', 'Rejected'].map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
                 <div><label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">School Year</label>
@@ -675,13 +702,16 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
               <button onClick={() => setShowEndYearConfirm(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancel</button>
               <button onClick={async () => {
                 setShowEndYearConfirm(false);
-                const token = localStorage.getItem('token');
-                const res = await fetch('/api/admin/end_school_year', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
-                if (res.ok) {
-                  alert('School year ended successfully.');
-                  fetchStudents();
-                } else {
-                  alert('Failed to end school year.');
+                try {
+                  const res = await authFetch(`${API}/students/end_school_year`, { method: 'POST' });
+                  if (res?.ok) {
+                    setAlertModal({ isOpen: true, message: 'School year ended successfully.', title: 'Success' });
+                    fetchStudents();
+                  } else {
+                    setAlertModal({ isOpen: true, message: 'Failed to end school year.', title: 'Error' });
+                  }
+                } catch (err) {
+                  setAlertModal({ isOpen: true, message: 'Failed to end school year.', title: 'Error' });
                 }
               }} className="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow transition">Confirm End Year</button>
             </div>
@@ -717,18 +747,22 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
             <div className="flex justify-end space-x-3">
               <button onClick={() => setShowPaymentModal(false)} className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">Cancel</button>
               <button onClick={async () => {
-                if (paymentForm.amount) {
-                  const token = localStorage.getItem('token');
-                  const res = await fetch(`/api/tuition_payments/${paymentForm.tpId}`, {
-                    method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ amount_paid: parseFloat(paymentForm.amount), or_number: paymentForm.or_number })
-                  });
-                  if (res.ok) {
-                    setShowPaymentModal(false);
-                    fetchStudents();
-                  } else {
-                    alert('Failed to update payment');
+                try {
+                  if (paymentForm.amount) {
+                    const res = await authFetch(`/api/tuition_payments/${paymentForm.tpId}`, {
+                      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ amount_paid: parseFloat(paymentForm.amount), or_number: paymentForm.or_number })
+                    });
+                    if (res?.ok) {
+                      fetchStudents();
+                      setSelectedStudent(null);
+                      setShowPaymentModal(false);
+                    } else {
+                      setAlertModal({ isOpen: true, message: 'Failed to update payment', title: 'Error' });
+                    }
                   }
+                } catch (err) {
+                  setAlertModal({ isOpen: true, message: 'Failed to update payment', title: 'Error' });
                 }
               }} className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">Save Payment</button>
             </div>
@@ -753,11 +787,25 @@ export default function Students({ students, isStudentsLoading, fetchStudents, f
                 Cancel
               </button>
               <button onClick={async () => {
-                await authFetch(`/api/students/${studentToArchive.id}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
+                await authFetch(`/api/students/${studentToArchive.id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ is_archived: 1, enrollment_status: 'Archived' }) });
                 setStudentToArchive(null);
                 fetchStudents();
               }} className="px-4 py-2 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors flex items-center">
                 Yes, Archive
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center whitespace-pre-wrap">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{alertModal.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">{alertModal.message}</p>
+              <button onClick={() => setAlertModal({ ...alertModal, isOpen: false })} className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-colors">
+                OK
               </button>
             </div>
           </div>

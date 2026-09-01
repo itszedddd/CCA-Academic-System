@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PrintableAdmissionForm from '../components/PrintableAdmissionForm';
 
 const API = '/api';
 
@@ -9,7 +10,10 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
   const [selectedForm, setSelectedForm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [admissionStatus, setAdmissionStatus] = useState('Passed');
+  const [interviewStatus, setInterviewStatus] = useState('Pending');
+  const [requirements, setRequirements] = useState({ req_birth_cert: 0, req_form_138: 0, req_good_moral: 0, req_pictures: 0, req_hard_copy: 0 });
   const [admissionRemarks, setAdmissionRemarks] = useState('');
+  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '', title: 'Notice' });
   
   const [enrollmentStatus, setEnrollmentStatus] = useState('Success');
   const [enrollmentRemarks, setEnrollmentRemarks] = useState('');
@@ -31,7 +35,15 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
 
   const handleEvaluateClick = (form) => {
     setSelectedForm(form);
-    setAdmissionStatus(form.assessment_status === 'Passed' ? 'Passed' : 'Pending');
+    setAdmissionStatus(form.assessment_status === 'Passed' ? 'Passed' : form.assessment_status === 'Failed' ? 'Failed' : 'Pending');
+    setInterviewStatus(form.interview_status === 'Passed' ? 'Passed' : form.interview_status === 'Failed' ? 'Failed' : 'Pending');
+    setRequirements({
+      req_birth_cert: form.req_birth_cert || 0,
+      req_form_138: form.req_form_138 || 0,
+      req_good_moral: form.req_good_moral || 0,
+      req_pictures: form.req_pictures || 0,
+      req_hard_copy: form.req_hard_copy || 0
+    });
     setAdmissionRemarks(form.remarks || '');
     setView('evaluate');
   };
@@ -100,15 +112,27 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
     if (loading) return;
     setLoading(true);
     try {
-      const res = await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, {
+      await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: admissionStatus, remarks: admissionRemarks })
       });
-      if (res?.ok) {
-        fetchForms();
-        setView('list');
-      }
+      await authFetch(`${API}/enrollment_forms/${selectedForm.id}/interview`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: interviewStatus, remarks: admissionRemarks })
+      });
+      await authFetch(`${API}/enrollment_forms/${selectedForm.id}/verify`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: selectedForm.status || 'Needs Review',
+          remarks: selectedForm.remarks || '',
+          ...requirements
+        })
+      });
+      fetchForms();
+      setView('list');
     } finally {
       setLoading(false);
     }
@@ -132,7 +156,7 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
         fetchForms();
         setView('list');
       } else {
-        alert("Failed to enroll student.");
+        setAlertModal({ isOpen: true, message: 'Failed to enroll student. Please check if the assessment is passed.', title: 'Enrollment Error' });
       }
     } finally {
       setLoading(false);
@@ -148,7 +172,8 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+      <div className="print:hidden">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-8 flex justify-between items-center relative overflow-hidden">
           <div className="relative z-10 group">
             <h2 className="text-2xl font-black font-cinzel text-brand-900 dark:text-brand-400 group-hover:text-blue-600 transition-colors tracking-widest uppercase mb-1 flex items-center">
@@ -180,11 +205,9 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
           <div className="p-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
               {gradeLevels.map(grade => {
-                const count = forms.filter(f => {
-                  if (f.grade_applying_for !== grade || ['Enrolled', 'Archived'].includes(f.status)) return false;
-                  if (currentRole === 'Registrar') return f.assessment_status === 'Passed';
-                  return true;
-                }).length;
+                const pendingCount = forms.filter(f => f.grade_applying_for === grade && !['Enrolled', 'Archived'].includes(f.status) && f.assessment_status !== 'Passed').length;
+                const acceptedCount = forms.filter(f => f.grade_applying_for === grade && !['Enrolled', 'Archived'].includes(f.status) && f.assessment_status === 'Passed').length;
+                
                 return (
                   <div 
                     key={grade} 
@@ -198,9 +221,14 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                       {grade.replace('Grade ', 'G').replace('Kinder', 'K')}
                     </div>
                     <h3 className="font-bold text-slate-800 dark:text-white mb-1">{grade}</h3>
-                    <div className="mt-auto">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${count > 0 ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600'}`}>
-                        {count} Pending
+                    <div className="mt-auto flex flex-col gap-1 w-full mt-2">
+                      {currentRole !== 'Registrar' && (
+                        <span className={`inline-flex justify-center items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${pendingCount > 0 ? 'bg-amber-100 text-amber-700 border border-amber-200' : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600'}`}>
+                          {pendingCount} Pending
+                        </span>
+                      )}
+                      <span className={`inline-flex justify-center items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${acceptedCount > 0 ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600'}`}>
+                        {acceptedCount} Accepted
                       </span>
                     </div>
                   </div>
@@ -284,9 +312,15 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                 <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
                   <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-3 mb-4">
                     <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white">Applicant Information</h3>
-                    <button onClick={handleEditFormClick} className="text-xs font-bold bg-brand-100 text-brand-700 hover:bg-brand-200 px-3 py-1.5 rounded-lg transition-colors">
-                      Edit Details
-                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={() => window.print()} className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-brand-700 font-bold text-xs rounded-lg shadow-sm border border-slate-200 flex items-center transition">
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        Print / Download PDF
+                      </button>
+                      <button onClick={handleEditFormClick} className="text-xs font-bold bg-brand-100 text-brand-700 hover:bg-brand-200 px-3 py-1.5 rounded-lg transition-colors">
+                        Edit Details
+                      </button>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4 text-sm mb-6">
@@ -306,11 +340,63 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                       <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Contact</p>
                       <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.contact_number}</p>
                     </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Sex</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.sex || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Address</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.home_address || 'N/A'}</p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Family Background</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Father's Name</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.father_name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Father's Contact</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.father_contact || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Mother's Name</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.mother_name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Mother's Contact</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.mother_contact || 'N/A'}</p>
+                    </div>
                   </div>
 
                   <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Previous Education</h3>
-                  <div className="text-sm space-y-2 text-slate-600 dark:text-slate-400">
+                  <div className="text-sm space-y-2 text-slate-600 dark:text-slate-400 mb-6">
                     <p><span className="font-semibold">School:</span> {selectedForm.previous_school || 'N/A'}</p>
+                  </div>
+
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Medical Information</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Medical Conditions</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.medical_conditions || 'None'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Allergies</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.allergies || 'None'}</p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Current Medications</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.current_medications || 'None'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Physician Name</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.physician_name || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Physician Contact</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{selectedForm.physician_contact || 'N/A'}</p>
+                    </div>
                   </div>
                 </div>
 
@@ -323,6 +409,29 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                     </a>
                   </div>
                 )}
+
+                <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-sm font-black font-cinzel text-slate-800 dark:text-white mb-4">Requirements Checklist</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_birth_cert === 1} onChange={e => setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)
+                    </label>
+                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_form_138 === 1} onChange={e => setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)
+                    </label>
+                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_good_moral === 1} onChange={e => setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate
+                    </label>
+                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_pictures === 1} onChange={e => setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures
+                    </label>
+                    <div className="border-t border-slate-200 dark:border-slate-700 my-2 pt-2">
+                      <label className="flex items-center text-sm font-bold text-slate-800 dark:text-slate-200">
+                        <input type="checkbox" className="mr-3 w-4 h-4 text-green-600 rounded" checked={requirements.req_hard_copy === 1} onChange={e => setRequirements({...requirements, req_hard_copy: e.target.checked?1:0})} /> Received & Signed Hard Copy
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Right Column: Assessment/Enrollment Input */}
@@ -333,17 +442,31 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                     <h3 className="text-xl font-black font-cinzel text-brand-900 dark:text-brand-400 mb-6">Assessment Decision</h3>
                     
                     <div className="space-y-5">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Assessment Status</label>
-                        <select 
-                          value={admissionStatus} 
-                          onChange={e => setAdmissionStatus(e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Passed">Passed (Accept)</option>
-                          <option value="Failed">Failed (Reject)</option>
-                        </select>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Assessment Test</label>
+                          <select 
+                            value={admissionStatus} 
+                            onChange={e => setAdmissionStatus(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Passed">Passed (Accept)</option>
+                            <option value="Failed">Failed (Reject)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Interview Status</label>
+                          <select 
+                            value={interviewStatus} 
+                            onChange={e => setInterviewStatus(e.target.value)}
+                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500"
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Passed">Passed (Accept)</option>
+                            <option value="Failed">Failed (Reject)</option>
+                          </select>
+                        </div>
                       </div>
 
                       <div>
@@ -491,7 +614,26 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
           </div>
         </div>
       )}
+
+      {alertModal.isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{alertModal.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">{alertModal.message}</p>
+              <button onClick={() => setAlertModal({ ...alertModal, isOpen: false })} className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm transition-colors">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+        </div>
+      </div>
+
+      {view === 'evaluate' && selectedForm && (
+        <PrintableAdmissionForm formData={selectedForm} />
+      )}
     </div>
-  </div>
   );
 }
