@@ -350,6 +350,33 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                     </div>
                   </div>
 
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Admission Progress</h3>
+                  <div className="grid grid-cols-3 gap-4 text-sm mb-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 text-center">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Assessment Test</p>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedForm.assessment_status === 'Passed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        selectedForm.assessment_status === 'Failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      }`}>{selectedForm.assessment_status || 'Pending'}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 text-center">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Interview</p>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedForm.interview_status === 'Passed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        selectedForm.interview_status === 'Failed' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                      }`}>{selectedForm.interview_status || 'Pending'}</span>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 text-center">
+                      <p className="text-slate-500 dark:text-slate-400 text-xs uppercase font-bold tracking-wider mb-1">Hard Copy</p>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
+                        selectedForm.req_hard_copy === 1 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                        'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                      }`}>{selectedForm.req_hard_copy === 1 ? 'Received & Signed' : 'Not Yet'}</span>
+                    </div>
+                  </div>
+
                   <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">Family Background</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm mb-6">
                     <div>

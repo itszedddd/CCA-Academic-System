@@ -25,6 +25,18 @@ export default function Reports({ API, authFetch }) {
         return;
       }
 
+      if (reportType === 'official_records') {
+        const res = await authFetch(`${API}/document-requests/`);
+        if (res?.ok) {
+           const requests = await res.json();
+           setReportData({ title: 'Official Records Issuance Log', requests });
+        } else {
+           setReportData(null);
+        }
+        setLoading(false);
+        return;
+      }
+
       const endpoint = reportType === 'analytics' ? `${API}/analytics/report` : `${API}/reports/${reportType}`;
       const res = await authFetch(endpoint);
       if (res?.ok) {
@@ -95,6 +107,68 @@ export default function Reports({ API, authFetch }) {
                 </div>
              );
           })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderOfficialRecordsReport = () => {
+    if (!reportData || !reportData.requests) return null;
+    const requests = reportData.requests;
+    const pendingCount = requests.filter(r => r.status === 'Pending').length;
+    const approvedCount = requests.filter(r => r.status === 'Approved').length;
+    
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r">
+            <p className="text-sm text-blue-700 dark:text-blue-400 font-semibold uppercase">Total Requests</p>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-200">{requests.length}</p>
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r">
+            <p className="text-sm text-amber-700 dark:text-amber-400 font-semibold uppercase">Pending Requests</p>
+            <p className="text-2xl font-bold text-amber-900 dark:text-amber-200">{pendingCount}</p>
+          </div>
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r">
+            <p className="text-sm text-green-700 dark:text-green-400 font-semibold uppercase">Approved/Released</p>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-200">{approvedCount}</p>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-700 p-6 border dark:border-slate-600 rounded shadow-sm">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-4 border-b dark:border-slate-600 pb-2">Recent Document Requests</h3>
+          {requests.length === 0 ? (
+            <p className="text-sm text-slate-500 dark:text-slate-400 italic text-center py-4">No document requests found.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm border-collapse">
+                <thead>
+                  <tr className="border-b dark:border-slate-600">
+                    <th className="py-3 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Date</th>
+                    <th className="py-3 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Student ID</th>
+                    <th className="py-3 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Document Type</th>
+                    <th className="py-3 px-4 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-600/50">
+                  {requests.map(req => (
+                    <tr key={req.id}>
+                      <td className="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">{new Date(req.created_at).toLocaleDateString()}</td>
+                      <td className="py-3 px-4 text-slate-600 dark:text-slate-300">{req.student_id}</td>
+                      <td className="py-3 px-4 font-bold text-slate-700 dark:text-white">{req.document_type}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                          ${req.status === 'Approved' || req.status === 'Released' ? 'bg-green-100 text-green-800' : 
+                            req.status === 'Rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                          {req.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -366,6 +440,12 @@ export default function Reports({ API, authFetch }) {
           >
             Teacher Subject Allocation
           </button>
+          <button 
+            className={`px-4 py-2 rounded font-medium ${reportType === 'official_records' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700'}`}
+            onClick={() => setReportType('official_records')}
+          >
+            Official Records Issuance
+          </button>
         </div>
         
         {loading ? (
@@ -380,6 +460,7 @@ export default function Reports({ API, authFetch }) {
             {reportType === 'financial' && renderFinancialReport()}
             {reportType === 'clearance' && renderClearanceReport()}
             {reportType === 'teacher_allocation' && renderTeacherAllocationReport()}
+            {reportType === 'official_records' && renderOfficialRecordsReport()}
             
             <div className="mt-12 pt-4 border-t border-gray-300 dark:border-slate-600 print:border-black text-center text-sm text-gray-500 dark:text-gray-400 print:text-black">
               Generated on {new Date().toLocaleDateString()} | CCA EduSys

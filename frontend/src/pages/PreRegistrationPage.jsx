@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import PrintableAdmissionForm from '../components/PrintableAdmissionForm';
 
 export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavigateHome }) {
   const [step, setStep] = useState(0); // 0: Start, 1: Student/ID, 2: Medical, 3: Waiver, 4: Consent, 5: Success, 6: Check Status
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [referenceId, setReferenceId] = useState(null);
-  
+
   // Status check state
   const [statusCheckId, setStatusCheckId] = useState('');
   const [statusResult, setStatusResult] = useState(null);
@@ -22,40 +24,40 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     religion: '',
     home_address: '',
     contact_number: '',
-    
+
     father_name: '',
     father_contact: '',
     father_occupation: '',
     father_employer: '',
-    
+
     mother_name: '',
     mother_contact: '',
     mother_occupation: '',
     mother_employer: '',
-    
+
     emergency_contact_name: '',
     emergency_contact_number: '',
-    
+
     church_attended: '',
     church_member: '',
     pastor_name: '',
-    
+
     previous_school: '',
     repeated_grade: '',
     expelled_dismissed: '',
     learning_disabilities: '',
     special_talents: '',
-    
+
     how_heard: '',
     reason_selecting: '',
     siblings: '',
-    
+
     allergies: '',
     current_medications: '',
     medical_conditions: '',
     physician_name: '',
     physician_contact: '',
-    
+
     waiver_agreed_1: false,
     waiver_agreed_2: false,
     waiver_agreed_3: false,
@@ -74,10 +76,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
       setError("You must agree to all conditions in the Waiver and Consent forms to proceed.");
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const res = await fetch('/api/enrollment_forms/public-preregister', {
         method: 'POST',
@@ -85,7 +87,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      
+
       if (res.ok) {
         setReferenceId(data.id);
         setStep(5);
@@ -104,11 +106,11 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     setLoading(true);
     setError('');
     setStatusResult(null);
-    
+
     try {
       const res = await fetch(`/api/enrollment_forms/check-status/${statusCheckId}`);
       const data = await res.json();
-      
+
       if (res.ok) {
         setStatusResult(data);
       } else {
@@ -121,13 +123,13 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     }
   };
 
-  const inputClass = "w-full p-3 rounded-xl border outline-none focus:ring-2 focus:ring-[#022868]/50 transition-all " + 
+  const inputClass = "w-full p-3 rounded-xl border outline-none focus:ring-2 focus:ring-[#022868]/50 transition-all " +
     (isDarkMode ? "bg-slate-800 border-slate-700 text-white placeholder-slate-500" : "bg-white border-slate-200 text-slate-800 placeholder-slate-400");
   const labelClass = "block text-sm font-semibold mb-1 " + (isDarkMode ? "text-slate-300" : "text-slate-600");
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-700 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
-      
+
       {/* Header */}
       <header className={`py-4 px-6 md:px-12 flex justify-between items-center shadow-sm z-10 print:hidden ${isDarkMode ? 'bg-slate-800 border-b border-slate-700' : 'bg-white border-b border-slate-200'}`}>
         <div className="flex items-center gap-4">
@@ -136,7 +138,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
         </div>
         <div className="flex items-center gap-4">
           <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-full transition-all ${isDarkMode ? 'bg-slate-700 text-yellow-400' : 'bg-slate-100 text-slate-500'}`}>
-             {isDarkMode ? '🌙' : '☀️'}
+            {isDarkMode ? '🌙' : '☀️'}
           </button>
           <button onClick={onNavigateHome} className={`px-4 py-2 font-bold text-sm rounded-lg border transition-all ${isDarkMode ? 'border-slate-700 text-white hover:bg-slate-700' : 'border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
             Return to Login
@@ -147,11 +149,17 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
       {/* Main Content */}
       <main className="flex-grow flex flex-col print:block print:overflow-visible print:m-0 print:p-0">
         <div className={`w-full flex-grow mx-auto p-6 md:p-10 print:p-0 print:border-none print:bg-white border-t transition-colors ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-          
-          <div className="flex justify-between items-center mb-8">
+
+          <div className="flex justify-between items-center mb-8 print:hidden">
             <h2 className={`text-3xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-[#022868]'}`}>
               {step === 6 ? 'Check Application Status' : 'Online Pre-Registration'}
             </h2>
+            {step >= 1 && step <= 5 && (
+              <button type="button" onClick={() => window.print()} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all print:hidden ${isDarkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                Print PDF / Download Form
+              </button>
+            )}
           </div>
 
           {error && (
@@ -180,7 +188,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
 
           {(step >= 1 && step <= 4) && (
             <form onSubmit={step === 4 ? handleSubmit : (e) => { e.preventDefault(); setStep(step + 1); }} className="space-y-8 print:hidden">
-              
+
               {/* Progress Wizard */}
               <div className="hidden md:flex justify-between items-center mb-10 relative print:hidden">
                 <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-700 z-0 rounded-full"></div>
@@ -270,7 +278,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <div><label className={labelClass}>Emergency Contact Name *</label><input required name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className={inputClass} placeholder="Person to contact in case of emergency" /></div>
                     <div><label className={labelClass}>Emergency Contact Number *</label><input required name="emergency_contact_number" value={formData.emergency_contact_number} onChange={handleChange} className={inputClass} maxLength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits" /></div>
                   </div>
-                  
+
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
                     <h4 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Siblings</h4>
                     <div><label className={labelClass}>List Siblings (Name & Birth date)</label><textarea name="siblings" value={formData.siblings} onChange={handleChange} className={`${inputClass} min-h-[80px]`} placeholder="List siblings here. Type 'None' if none." /></div>
@@ -296,12 +304,12 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <h4 className={`text-lg font-bold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Academic & General Info</h4>
                     <div className="space-y-4">
                       <div><label className={labelClass}>Previous School Attended</label><input name="previous_school" value={formData.previous_school} onChange={handleChange} className={inputClass} placeholder="Name of previous school" /></div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div><label className={labelClass}>Has the child ever repeated any grade? (If yes, explain)</label><input name="repeated_grade" value={formData.repeated_grade} onChange={handleChange} className={inputClass} /></div>
                         <div><label className={labelClass}>Has the student ever been expelled/dismissed? (If yes, explain)</label><input name="expelled_dismissed" value={formData.expelled_dismissed} onChange={handleChange} className={inputClass} /></div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div><label className={labelClass}>Any learning disabilities?</label><input name="learning_disabilities" value={formData.learning_disabilities} onChange={handleChange} className={inputClass} /></div>
                         <div><label className={labelClass}>Special abilities or talents?</label><input name="special_talents" value={formData.special_talents} onChange={handleChange} className={inputClass} /></div>
@@ -323,7 +331,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Medical &amp; Health Form</h3>
                     <p className="text-slate-500 text-sm mt-1">It is mandatory that pupils who show symptoms of a communicable disease be excluded from classes until readmission is acceptable. Your cooperation will be greatly appreciated. Thank you!</p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <h4 className="font-bold uppercase text-brand-800 dark:text-brand-400">PAST DISEASES</h4>
                     <p className="text-sm text-slate-500 mb-4">(If your child has had any of the following, please state the age when he/she had them. Leave blank if none)</p>
@@ -396,7 +404,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                         </div>
                       ))}
                     </div>
-                    
+
                     <div className="space-y-4 mt-6">
                       <div>
                         <label className={labelClass}>When is his/her regular bedtime?</label>
@@ -433,7 +441,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Waiver for Progressive Implementation of Face-to-Face Classes</h3>
                   </div>
                   <div className={`p-6 rounded-xl border h-96 overflow-y-auto text-sm leading-relaxed space-y-4 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
-                    <p className="font-bold text-center">CALVARY CHRISTIAN ACADEMY, INC.<br/>Blk. 1, Lot 9, Sarmiento Townville, Poblacion I,<br/>City of San Jose del Monte, Bulacan<br/>Tel. No.: 09561504946</p>
+                    <p className="font-bold text-center">CALVARY CHRISTIAN ACADEMY, INC.<br />Blk. 1, Lot 9, Sarmiento Townville, Poblacion I,<br />City of San Jose del Monte, Bulacan<br />Tel. No.: 09561504946</p>
                     <h4 className="font-bold text-center uppercase mt-4">WAIVER FOR PROGRESSIVE IMPLEMENTATION OF FACE-TO-FACE CLASSES</h4>
                     <p>In order for the Calvary Christian Academy, Inc. to efficiently move forward with the DepEd directive of Progress Implementation for Face-to-Face classes, the following matters of point must be agreed upon by the parents, in waiving any responsibility of the school should their child contract COVID-19 during School Year 2026-2027:</p>
                     <ol className="list-decimal pl-5 space-y-2">
@@ -454,7 +462,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <p className="mt-4 font-bold">CONTACT DETAILS FOR QUESTIONS OR PROBLEMS</p>
                     <p>For any concern or clarification, you may contact the school at 09561504946.</p>
                   </div>
-                  <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.waiver_agreed_1 ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({...formData, waiver_agreed_1: !formData.waiver_agreed_1})}>
+                  <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.waiver_agreed_1 ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({ ...formData, waiver_agreed_1: !formData.waiver_agreed_1 })}>
                     <input type="checkbox" name="waiver_agreed_1" checked={formData.waiver_agreed_1} onChange={handleChange} className="mt-1 w-5 h-5 cursor-pointer" />
                     <div>
                       <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I agree to the Waiver *</h5>
@@ -471,8 +479,8 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Data Privacy Consent Form</h3>
                   </div>
                   <div className={`p-6 rounded-xl border h-96 overflow-y-auto text-sm leading-relaxed space-y-4 ${isDarkMode ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
-                    <p className="font-bold text-center">CALVARY CHRISTIAN ACADEMY, INC.<br/>Blk. 1 Lot 9&10 Sarmiento Townville, Poblacion 1<br/>City of San Jose Del Monte, Bulacan<br/>09561504946</p>
-                    <h4 className="font-bold text-center uppercase mt-4">Consent Form<br/>Data Privacy SY 2026-2027<br/>Applicant for Enrollment and Student</h4>
+                    <p className="font-bold text-center">CALVARY CHRISTIAN ACADEMY, INC.<br />Blk. 1 Lot 9&10 Sarmiento Townville, Poblacion 1<br />City of San Jose Del Monte, Bulacan<br />09561504946</p>
+                    <h4 className="font-bold text-center uppercase mt-4">Consent Form<br />Data Privacy SY 2026-2027<br />Applicant for Enrollment and Student</h4>
                     <p className="font-bold uppercase mt-4">Statement of Policy</p>
                     <p>Calvary Christian Academy, Inc. is committed to respect and value the privacy rights of individuals. We will ensure that all personal data are protected and processed in accordance with Republic Act No. 10173 or the Data Privacy Act of 2012 and its Implementing Rules and Regulations. We recognize the confidentiality of personal data and adhere to the general principles of transparency, legitimate purpose, and proportionality.</p>
                     <p>Calvary Christian Academy, Inc is registered as a Personal Information Controller (PIC) with the National Privacy Commission under the Data Privacy Act of 2012 (DPA). As an applicant for enrollment, we will collect and process your personal data that you knowingly and voluntarily provide during or in connection with your enrollment with us, or where legitimate educational or institutional interests exists as determined by Calvary Christian Academy or as may be provided under the law.</p>
@@ -536,7 +544,7 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                     <p>I give my written consent that Calvary Christian Academy, Inc. may collect and process my personal data as set out above and/or for other legitimate purposes. In cases where my personal data was acquired by Calvary Christian Academy, Inc. from a third party, I warrant that such third party has been duly authorized by me to disclose my personal data to Calvary Christian Academy, Inc. pursuant to the purposes set out above. I also agree to comply with all reasonable requests of Calvary Christian Academy, Inc. to enable compliance with its obligations under the Data Privacy Act or other applicable laws, regulations and/or guidelines.</p>
                     <p>This consent form shall be valid while you are an applicant, a student, or an alumna of Calvary Christian Academy, Inc.</p>
                   </div>
-                  <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.consent_agreed ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({...formData, consent_agreed: !formData.consent_agreed})}>
+                  <div className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-colors ${formData.consent_agreed ? (isDarkMode ? 'bg-blue-900/20 border-blue-500' : 'bg-blue-50 border-[#022868]') : (isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200')}`} onClick={() => setFormData({ ...formData, consent_agreed: !formData.consent_agreed })}>
                     <input type="checkbox" name="consent_agreed" checked={formData.consent_agreed} onChange={handleChange} className="mt-1 w-5 h-5 cursor-pointer" />
                     <div>
                       <h5 className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>I understand all the Consent &amp; Data Privacy form. *</h5>
@@ -567,16 +575,16 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
           {step === 5 && (
             <div className="text-center space-y-8 py-10 animate-zoom-in print:hidden">
               <div className="flex justify-center mb-6">
-                <img 
-                  src={isDarkMode ? "/assets/[CCA L2.1] CCA Logo Icon White Transparent_.png" : "/assets/[CCA L2.2] CCA Logo Icon Blue Transparent.png"} 
-                  alt="CCA Logo" 
+                <img
+                  src={isDarkMode ? "/assets/[CCA L2.1] CCA Logo Icon White Transparent_.png" : "/assets/[CCA L2.2] CCA Logo Icon Blue Transparent.png"}
+                  alt="CCA Logo"
                   className="w-24 h-24 object-contain"
                 />
               </div>
               <div className="w-24 h-24 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               </div>
-              
+
               <div>
                 <h3 className={`text-3xl font-bold font-cinzel mb-4 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Pre-Registration Submitted!</h3>
                 <p className={`text-lg max-w-xl mx-auto ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -616,15 +624,15 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                 <h3 className={`text-2xl font-bold font-cinzel ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Check Application Status</h3>
                 <p className={`text-sm mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Enter your Reference Number to view the progress of your admission.</p>
               </div>
-              
+
               <form onSubmit={handleCheckStatus} className="flex gap-4">
-                <input 
-                  required 
-                  type="number" 
-                  placeholder="Reference Number (e.g. 1024)" 
-                  value={statusCheckId} 
-                  onChange={e => setStatusCheckId(e.target.value)} 
-                  className={inputClass} 
+                <input
+                  required
+                  type="number"
+                  placeholder="Reference Number (e.g. 1024)"
+                  value={statusCheckId}
+                  onChange={e => setStatusCheckId(e.target.value)}
+                  className={inputClass}
                 />
                 <button type="submit" disabled={loading} className="px-8 py-3 rounded-xl font-bold text-white bg-[#022868] hover:bg-[#053b96] transition-colors shadow-md disabled:opacity-50 whitespace-nowrap">
                   Check Status
@@ -638,29 +646,26 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
                       <h4 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Ref #{statusResult.id}</h4>
                       <p className={`text-sm font-medium mt-1 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{statusResult.student_first_name} {statusResult.student_last_name}</p>
                     </div>
-                    <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${
-                      statusResult.status === 'Success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                    <div className={`px-4 py-2 rounded-full text-sm font-bold uppercase tracking-wider ${statusResult.status === 'Success' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
                       {statusResult.status}
                     </div>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className={`font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Assessment Status</span>
-                      <span className={`px-3 py-1 rounded-lg text-sm font-bold ${
-                        statusResult.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' : 
-                        statusResult.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' : 
-                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                      }`}>{statusResult.assessment_status}</span>
+                      <span className={`px-3 py-1 rounded-lg text-sm font-bold ${statusResult.assessment_status === 'Passed' ? 'bg-green-100 text-green-700' :
+                          statusResult.assessment_status === 'Failed' ? 'bg-red-100 text-red-700' :
+                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                        }`}>{statusResult.assessment_status}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className={`font-medium ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Interview Status</span>
-                      <span className={`px-3 py-1 rounded-lg text-sm font-bold ${
-                        statusResult.interview_status === 'Passed' ? 'bg-green-100 text-green-700' : 
-                        statusResult.interview_status === 'Failed' ? 'bg-red-100 text-red-700' : 
-                        'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
-                      }`}>{statusResult.interview_status}</span>
+                      <span className={`px-3 py-1 rounded-lg text-sm font-bold ${statusResult.interview_status === 'Passed' ? 'bg-green-100 text-green-700' :
+                          statusResult.interview_status === 'Failed' ? 'bg-red-100 text-red-700' :
+                            'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                        }`}>{statusResult.interview_status}</span>
                     </div>
                   </div>
                 </div>
@@ -675,7 +680,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
           )}
         </div>
 
-
+        {/* Printable Format (Hidden on Screen, Visible on Print) */}
+        {(step >= 1 && step <= 4) && (
+          <PrintableAdmissionForm formData={formData} />
+        )}
       </main>
     </div>
   );

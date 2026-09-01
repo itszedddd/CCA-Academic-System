@@ -277,9 +277,13 @@ export default function StudentClearance({ API, authFetch, token, students, curr
         const isExpanded = clearance && expandedCards.has(clearance.id);
         
         if (!clearance) {
+          const isExpanded = expandedCards.has('no-clearance-' + student.id);
           return (
             <div key={student.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 mb-4 overflow-hidden transition-all duration-200">
-              <div className="p-5 hover:bg-slate-50 dark:hover:bg-slate-700/30 flex justify-between items-center transition-colors">
+              <div 
+                onClick={() => toggleCard('no-clearance-' + student.id)}
+                className="p-5 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer flex justify-between items-center transition-colors"
+              >
                 <div className="flex items-center">
                   {student.profile_image ? (
                     <img src={student.profile_image} alt="Profile" className="w-10 h-10 rounded-full object-cover mr-4 bg-brand-50 shadow-sm flex-shrink-0" />
@@ -300,14 +304,20 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
+                  <svg className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+              <div className={`overflow-hidden transition-all duration-300 bg-slate-50 dark:bg-slate-900/50 ${isExpanded ? 'max-h-[200px] border-t border-slate-100 dark:border-slate-700' : 'max-h-0'}`}>
+                <div className="p-6 flex flex-col items-center justify-center text-center">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">This student does not have an active clearance record for the current term.</p>
                   {["Principal", "Registrar", "Teacher", "Superadmin"].includes(currentRole) && (
                     <button 
-                      onClick={() => handleCreateClearance(student.id)}
+                      onClick={(e) => { e.stopPropagation(); handleCreateClearance(student.id); }}
                       disabled={creating}
-                      className="bg-brand-600 text-white px-4 py-1.5 rounded-lg hover:bg-brand-700 transition shadow-sm font-bold text-xs flex items-center"
+                      className="bg-brand-600 text-white px-6 py-2.5 rounded-xl hover:bg-brand-700 transition shadow-md font-bold text-sm flex items-center"
                     >
-                      <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                      Initiate Clearance
+                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      {creating ? 'Initiating...' : 'Initiate Clearance Now'}
                     </button>
                   )}
                 </div>
@@ -315,6 +325,7 @@ export default function StudentClearance({ API, authFetch, token, students, curr
             </div>
           );
         }
+
 
         return (
         <div key={clearance.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 mb-4 overflow-hidden transition-all duration-200">
