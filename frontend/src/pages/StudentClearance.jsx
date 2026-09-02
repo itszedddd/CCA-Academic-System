@@ -377,12 +377,10 @@ export default function StudentClearance({ API, authFetch, token, students, curr
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
-                {clearance.items && clearance.items.map((item, index) => {
-                  const isLocked = index > 0 && clearance.items[index - 1].status !== 'Cleared';
+                {clearance.items && clearance.items.filter(i => !['Library', 'Clinic'].includes(i.department)).map((item, index, filteredItems) => {
+                  const isLocked = index > 0 && filteredItems[index - 1].status !== 'Cleared';
                   const DEPT_ROLE_MAP = {
                     'Subjects': ['Teacher'],
-                    'Library': ['Registrar', 'Principal'],
-                    'Clinic': ['Registrar', 'Principal'],
                     'Cashier': ['Cashier'],
                     'Registrar': ['Registrar'],
                     'Principal': ['Principal'],

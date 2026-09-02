@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Query, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func
 from typing import List, Optional
 import os
@@ -26,16 +26,24 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @aesms_router.get("/students/", response_model=List[schemas.Student])
 def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    # Use selectinload to prevent N+1 query problem when serializing relationships
+    base_query = db.query(models.Student).options(
+        selectinload(models.Student.academic_records),
+        selectinload(models.Student.tuition_payments)
+    )
+    
     if current_user.role == "Teacher":
         # Teachers only see students in their assigned section
         assigned = getattr(current_user, 'section', None)
         if not assigned:
             return []  # No section assigned — show nothing (secure default)
-        return db.query(models.Student).filter(models.Student.section == assigned).all()
+        return base_query.filter(models.Student.section == assigned).all()
+        
     if current_user.role not in ["Principal", "Registrar", "Admission", "Cashier"]:
         # Students/Parents see only themselves
-        return db.query(models.Student).filter(models.Student.id == current_user.student_id).all()
-    return db.query(models.Student).offset(skip).limit(limit).all()
+        return base_query.filter(models.Student.id == current_user.student_id).all()
+        
+    return base_query.offset(skip).limit(limit).all()
 
 @aesms_router.post("/students/", response_model=schemas.Student)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -412,9 +420,20 @@ def update_academic_warning_remark(remark: RemarkUpdate, db: Session = Depends(g
 
 @aesms_router.get("/tuition/", response_model=List[schemas.TuitionPayment])
 def get_tuition(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    base_query = db.query(models.TuitionPayment).options(
+        selectinload(models.TuitionPayment.payments),
+        selectinload(models.TuitionPayment.schedules)
+    )
     if current_user.role not in ["Principal", "Teacher", "Admission", "Cashier"]:
-        return db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == current_user.student_id).all()
-    return db.query(models.TuitionPayment).all()
+        return base_query.filter(models.TuitionPayment.student_id == current_user.student_id).all()
+    # Only return tuitions for non-archived, enrolled students (exclude orphaned seed/mock data)
+    return (
+        base_query
+        .join(models.Student, models.TuitionPayment.student_id == models.Student.id)
+        .filter(models.Student.is_archived == 0)
+        .filter(models.Student.enrollment_status == "Enrolled")
+        .all()
+    )
 
 @aesms_router.post("/tuition/", response_model=schemas.TuitionPayment)
 def create_tuition(tuition: schemas.TuitionPaymentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
@@ -1911,7 +1930,7 @@ def create_student_clearance(clearance: schemas.StudentClearanceCreate, db: Sess
     db.refresh(db_clearance)
     
     # Auto-generate items for standard departments in sequence
-    departments = ["Subjects", "Library", "Clinic", "Cashier", "Principal", "Registrar"]
+    departments = ["Subjects", "Cashier", "Principal", "Registrar"]
     for dept in departments:
         item = models.ClearanceItem(
             clearance_id=db_clearance.id,
@@ -1934,7 +1953,7 @@ def update_clearance_item(item_id: int, payload: schemas.ClearanceItemBase, db: 
     if payload.status == "Cleared":
         # Check sequence
         clearance = db.query(models.StudentClearance).filter(models.StudentClearance.id == item.clearance_id).first()
-        departments_order = ["Subjects", "Library", "Clinic", "Cashier", "Principal", "Registrar"]
+        departments_order = ["Subjects", "Cashier", "Principal", "Registrar"]
         try:
             dept_index = departments_order.index(item.department)
         except ValueError:

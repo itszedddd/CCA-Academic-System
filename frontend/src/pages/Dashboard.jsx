@@ -581,7 +581,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
     return (
       <div className="space-y-6">
-        <HeaderTitle title="ADMISSION'S DASHBOARD" titleClassName="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        <HeaderTitle title="ADMISSION'S DASHBOARD" titleClassName="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -742,20 +742,40 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <StatCard label="Deficit Balance" value={`₱${tBal.toLocaleString()}`} sub="Active remaining" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               <StatCard label="Alert Triggers" value={oCount} sub="Overdue accounts" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-brand-50 border border-brand-100 rounded-xl p-5 shadow-sm dark:bg-brand-900/20 dark:border-brand-800">
-                <h4 className="font-bold text-brand-800 dark:text-brand-300 mb-2">Real-time Collections</h4>
-                <p className="text-sm text-brand-600 dark:text-brand-400">Total collected today and pending clearings.</p>
-              </div>
-              <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 shadow-sm dark:bg-amber-900/20 dark:border-amber-800">
-                <h4 className="font-bold text-amber-800 dark:text-amber-300 mb-2">Daily Outstanding</h4>
-                <p className="text-sm text-amber-600 dark:text-amber-400">Overdue payments requiring immediate follow-up.</p>
-              </div>
-              <div className="bg-green-50 border border-green-100 rounded-xl p-5 shadow-sm dark:bg-green-900/20 dark:border-green-800">
-                <h4 className="font-bold text-green-800 dark:text-green-300 mb-2">Expected Revenue</h4>
-                <p className="text-sm text-green-600 dark:text-green-400">Projected income based on active promissory notes.</p>
-              </div>
-            </div>
+            {(() => {
+              const today = new Date().toISOString().slice(0, 10);
+              const todayCollected = tuitions.reduce((sum, t) => {
+                if (!t.payments) return sum;
+                return sum + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).reduce((s, p) => s + (p.amount || 0), 0);
+              }, 0);
+              const todayTxCount = tuitions.reduce((count, t) => {
+                if (!t.payments) return count;
+                return count + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).length;
+              }, 0);
+              const overdueTotal = tuitions.filter(t => t.status === 'Overdue').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
+              const overdueStudents = tuitions.filter(t => t.status === 'Overdue').length;
+              const pendingRevenue = tuitions.filter(t => t.status !== 'Paid').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
+              const pendingStudents = tuitions.filter(t => t.status !== 'Paid').length;
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="bg-brand-50 border border-brand-100 rounded-xl p-5 shadow-sm dark:bg-brand-900/20 dark:border-brand-800">
+                    <h4 className="font-bold text-brand-800 dark:text-brand-300 mb-1">Real-time Collections</h4>
+                    <p className="text-2xl font-extrabold text-brand-700 dark:text-brand-300">₱{todayCollected.toLocaleString()}</p>
+                    <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">{todayTxCount} transaction{todayTxCount !== 1 ? 's' : ''} recorded today</p>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 shadow-sm dark:bg-amber-900/20 dark:border-amber-800">
+                    <h4 className="font-bold text-amber-800 dark:text-amber-300 mb-1">Daily Outstanding</h4>
+                    <p className="text-2xl font-extrabold text-amber-700 dark:text-amber-300">₱{overdueTotal.toLocaleString()}</p>
+                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{overdueStudents} overdue account{overdueStudents !== 1 ? 's' : ''} requiring follow-up</p>
+                  </div>
+                  <div className="bg-green-50 border border-green-100 rounded-xl p-5 shadow-sm dark:bg-green-900/20 dark:border-green-800">
+                    <h4 className="font-bold text-green-800 dark:text-green-300 mb-1">Expected Revenue</h4>
+                    <p className="text-2xl font-extrabold text-green-700 dark:text-green-300">₱{pendingRevenue.toLocaleString()}</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">{pendingStudents} active account{pendingStudents !== 1 ? 's' : ''} with remaining balance</p>
+                  </div>
+                </div>
+              );
+            })()}
             {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">

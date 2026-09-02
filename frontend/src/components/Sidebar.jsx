@@ -73,8 +73,8 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
         </ul>
       </nav>
 
-      {/* User Info & Logout */}
-      <div className="p-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
+      {/* User Info & Logout — pinned to bottom */}
+      <div className="mt-auto p-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
         {user && (
           <div className="flex items-center space-x-3 p-2">
             {user.profile_picture ? (
@@ -107,7 +107,7 @@ export default function Sidebar({ navigation, activeTab, setActiveTab, currentRo
   return (
     <>
       {/* Desktop: static sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-shrink-0 print:hidden">
+      <div className="hidden md:flex md:w-64 md:flex-shrink-0 h-full print:hidden">
         {sidebarContent}
       </div>
 
