@@ -99,11 +99,11 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
       }
     }
 
-    if (currentRole === 'Registrar') {
+    if (currentRole === 'Registrar' || currentRole === 'Principal') {
       authFetch('/api/registrar/dashboard-stats').then(r => r?.ok ? r.json() : null).then(setRegistrarStats).catch(()=>{});
     }
 
-    if (currentRole === 'Superadmin') {
+    if (currentRole === 'Superadmin' || currentRole === 'Principal') {
       authFetch('/api/superadmin/security-dashboard').then(r => r?.ok ? r.json() : null).then(setSuperadminStats).catch(()=>{});
     }
 
@@ -548,6 +548,12 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   if (currentRole === 'Registrar') {
     return (
       <div className="space-y-6">
+        {user?.role === 'Principal' && (
+          <button onClick={() => setActiveTab('Dashboard')} className="mb-2 flex items-center text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back to Principal Overview
+          </button>
+        )}
         <HeaderTitle title="REGISTRAR'S DASHBOARD" titleClassName="text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -612,24 +618,98 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           <div className="lg:col-span-2 space-y-6">
             {RenderEventsAndAnnouncements()}
             {!reportData ? (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-5 animate-pulse">
-                {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-28 border border-slate-100 dark:border-slate-700" />)}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-pulse">
+                {[1,2,3].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-48 border border-slate-100 dark:border-slate-700" />)}
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                  <StatCard label="Total Student Body" value={reportData.total_students} sub="Registered students" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  <StatCard label="Active Enrollments" value={reportData.enrolled_students} sub="Currently enrolled" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <StatCard label="Global Average" value={`${reportData.global_academic_average}%`} sub="Academic performance" color="text-indigo-500" icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  <StatCard label="Academic Warnings" value={reportData.active_academic_warnings} sub="Declining trends" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* Academics Overview */}
+                <div onClick={() => setActiveTab('Teacher View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-blue-500 transition-colors">See All &rarr;</span>
+                    </div>
+                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Academics</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Teacher & Student Performance</p>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Staff Attendance</span>
+                        <span className="font-bold text-amber-500">2 Absent Today</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Academic Warnings</span>
+                        <span className="font-bold text-red-500">{reportData.active_academic_warnings} Flags</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Global Average</span>
+                        <span className="font-bold text-slate-800 dark:text-white">{reportData.global_academic_average}%</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                  <StatCard label="Tuition Expected" value={`₱${reportData.total_tuition_due.toLocaleString()}`} sub="Total amount due" color="text-brand-600" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <StatCard label="Tuition Collected" value={`₱${reportData.total_tuition_collected.toLocaleString()}`} sub="Total received" color="text-green-500" icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                  <StatCard label="Outstanding Balance" value={`₱${reportData.outstanding_balance.toLocaleString()}`} sub="Unpaid balance" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  <StatCard label="High-Risk Flags" value={reportData.high_risk_tuition_flags} sub="Default exposure" color="text-red-500" icon="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92z" />
+
+                {/* Finance Overview */}
+                <div onClick={() => setActiveTab('Cashier View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-emerald-500 transition-colors">See All &rarr;</span>
+                    </div>
+                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Finance</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Cashier & Collections</p>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Outstanding Balance</span>
+                        <span className="font-bold text-amber-500">₱{reportData.outstanding_balance.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">High-Risk Flags</span>
+                        <span className="font-bold text-red-500">{reportData.high_risk_tuition_flags} Alerts</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Expected Total</span>
+                        <span className="font-bold text-slate-800 dark:text-white">₱{reportData.total_tuition_due.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </>
+
+                {/* Administration Overview */}
+                <div onClick={() => setActiveTab('Registrar View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      </div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-indigo-500 transition-colors">See All &rarr;</span>
+                    </div>
+                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Administration</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Registrar & Enrollment</p>
+                    
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Pending Requests</span>
+                        <span className="font-bold text-amber-500">{pendingRequestsCount} Docs</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Uncleared Students</span>
+                        <span className="font-bold text-red-500">{reportData.total_students - reportData.enrolled_students} Pending</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600 dark:text-slate-300">Total Enrolled</span>
+                        <span className="font-bold text-slate-800 dark:text-white">{reportData.enrolled_students}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
             <RenderGeminiInsights />
           </div>
@@ -733,7 +813,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     const oCount = tuitions.filter(t => t.status === 'Overdue').length;
     return (
       <div className="space-y-6">
-        <HeaderTitle title="Cashier's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
+        {user?.role === 'Principal' && (
+          <button onClick={() => setActiveTab('Dashboard')} className="mb-2 flex items-center text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back to Principal Overview
+          </button>
+        )}
+        <HeaderTitle title="CASHIER'S DASHBOARD" titleClassName="text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
@@ -793,6 +879,12 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   if (currentRole === 'Teacher') {
     return (
       <div className="space-y-6">
+        {user?.role === 'Principal' && (
+          <button onClick={() => setActiveTab('Dashboard')} className="mb-2 flex items-center text-sm font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors">
+            <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back to Principal Overview
+          </button>
+        )}
         <HeaderTitle title="Teacher's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
         <div className="mb-8 flex flex-col lg:flex-row gap-6">
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
