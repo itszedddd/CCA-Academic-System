@@ -373,7 +373,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     </div>
   );
 
-  const AIAssistantSidebar = ({ label, prompts = ["Summarize data", "Show recent activity"] }) => (
+  const AIAssistantSidebar = ({ label, prompts = ["Summarize data", "Show recent activity"], contextData = null }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col min-h-[400px]">
       <div className="flex items-center mb-4">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
@@ -385,8 +385,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         </div>
       </div>
 
-      <div className="flex-1 min-h-[300px] relative">
-        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" prompts={prompts} />
+      <div className="flex-1 min-h-0 relative">
+        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" prompts={prompts} contextData={contextData} />
       </div>
     </div>
   );
@@ -572,6 +572,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <AIAssistantSidebar 
               label="Registrar" 
               prompts={["Enrollment statistics", "Missing requirements", "Section distribution", "Generate masterlist"]} 
+              contextData={{ registrarStats }}
             />
           </div>
         </div>
@@ -602,6 +603,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <AIAssistantSidebar 
               label="Admission" 
               prompts={["How many pre-registered?", "Pending requirements?", "Enrollment summary", "Assessment schedule"]} 
+              contextData={{ preRegistered, readyForAssessment, pendingReqs, rejectedCount }}
             />
           </div>
         </div>
@@ -714,7 +716,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             <RenderGeminiInsights />
           </div>
           <div className="lg:col-span-1">
-            <AIAssistantSidebar label="Principal" />
+            <AIAssistantSidebar label="Principal" contextData={{ reportData, pendingRequestsCount }} />
           </div>
         </div>
         {RenderModals()}

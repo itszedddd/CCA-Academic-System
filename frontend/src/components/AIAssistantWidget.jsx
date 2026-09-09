@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-export default function AIAssistantWidget({ API_URL, token, mode = 'floating', prompts = [] }) {
+export default function AIAssistantWidget({ API_URL, token, mode = 'floating', prompts = [], contextData = null }) {
   // mode can be 'floating', 'sidebar-button', 'inline', 'dashboard-button', 'embedded'
   const [isOpen, setIsOpen] = useState(mode === 'inline' || mode === 'embedded');
   const [messages, setMessages] = useState([
@@ -8,6 +8,7 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating', p
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedModel, setSelectedModel] = useState('gemini-3.5-flash-lite');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -39,7 +40,12 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating', p
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ message: userMessage, history: messages.slice(1).map(m => ({ role: m.role, content: m.content })) })
+        body: JSON.stringify({ 
+          message: userMessage, 
+          model: selectedModel, 
+          history: messages.slice(1).map(m => ({ role: m.role, content: m.content })),
+          context_data: contextData
+        })
       });
       
       if (res.ok) {
@@ -59,7 +65,7 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating', p
   const ChatUI = (
     <div className={`flex flex-col bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-700 overflow-hidden ${
       (mode === 'inline' || mode === 'embedded')
-        ? 'w-full h-full rounded-2xl shadow-sm border flex-1 min-h-[400px]' 
+        ? 'w-full h-full rounded-2xl shadow-sm border flex-1 min-h-[400px] max-h-[600px]' 
         : 'fixed bottom-24 right-6 w-80 sm:w-96 rounded-xl shadow-2xl border z-50 h-[500px] max-h-[calc(100vh-120px)]'
     }`}>
       {/* Header */}
@@ -72,7 +78,18 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating', p
           </div>
           <div>
             <h3 className="font-bold text-sm">CCA AI Assistant</h3>
-            <p className="text-xs text-brand-100">Powered by Gemini</p>
+            <div className="flex flex-col gap-1 mt-1">
+              <select 
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="text-[10px] bg-brand-700/50 text-white border border-brand-500 rounded px-1.5 py-0.5 outline-none hover:bg-brand-700"
+              >
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Fastest)</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash (Standard)</option>
+                <option value="gemini-3.8-flash">Gemini 3.8 Flash (Advanced)</option>
+              </select>
+              <p className="text-[9px] text-brand-200">Rate Limit: 15 RPM / 1M TPM / 1500 RPD</p>
+            </div>
           </div>
         </div>
         {mode !== 'inline' && mode !== 'embedded' && (
@@ -85,10 +102,10 @@ export default function AIAssistantWidget({ API_URL, token, mode = 'floating', p
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto bg-slate-50 dark:bg-slate-900 flex flex-col gap-3">
+      <div className="flex-1 min-h-0 p-4 overflow-y-auto bg-slate-50 dark:bg-slate-900 flex flex-col gap-3">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-xl text-sm leading-relaxed ${
+            <div className={`max-w-[85%] p-3 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
               msg.role === 'user' 
                 ? 'bg-brand-600 text-white rounded-tr-sm shadow-md' 
                 : 'bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-800 dark:text-slate-200 rounded-tl-sm shadow-sm'

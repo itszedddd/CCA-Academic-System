@@ -1019,32 +1019,25 @@ def public_preregister(
         db, models.Student, payload.student_first_name, payload.student_last_name
     )
     if existing:
-        student_id = existing.id
-        existing.enrollment_status = "Pre-Registered"
-        
-        # Sync details
-        if payload.sex: existing.gender = payload.sex
-        if payload.birth_date: existing.date_of_birth = payload.birth_date
-        if payload.home_address: existing.address = payload.home_address
-        new_contact = payload.contact_number or payload.father_contact or payload.mother_contact
-        if new_contact: existing.contact_number = new_contact
-        new_parent = payload.father_name or payload.mother_name
-        if new_parent: existing.parent_name = new_parent
-    else:
-        new_student = models.Student(
-            first_name=payload.student_first_name.strip(),
-            last_name=payload.student_last_name.strip(),
-            grade_level=payload.grade_applying_for or "Pending",
-            enrollment_status="Pre-Registered",
-            gender=payload.sex,
-            date_of_birth=payload.birth_date,
-            address=payload.home_address,
-            contact_number=payload.contact_number or payload.father_contact or payload.mother_contact,
-            parent_name=payload.father_name or payload.mother_name
+        raise HTTPException(
+            status_code=400,
+            detail="A student with this name already exists in the system. Please log in to your account to enroll, or contact the registrar."
         )
-        db.add(new_student)
-        db.flush()
-        student_id = new_student.id
+        
+    new_student = models.Student(
+        first_name=payload.student_first_name.strip(),
+        last_name=payload.student_last_name.strip(),
+        grade_level=payload.grade_applying_for or "Pending",
+        enrollment_status="Pre-Registered",
+        gender=payload.sex,
+        date_of_birth=payload.birth_date,
+        address=payload.home_address,
+        contact_number=payload.contact_number or payload.father_contact or payload.mother_contact,
+        parent_name=payload.father_name or payload.mother_name
+    )
+    db.add(new_student)
+    db.flush()
+    student_id = new_student.id
 
     payload_data = payload.model_dump(exclude={"student_first_name", "student_last_name"})
     
@@ -2012,11 +2005,14 @@ from pydantic import BaseModel
 
 class ChatMessage(BaseModel):
     message: str
+    model: Optional[str] = "gemini-3.5-flash-lite"
+    history: Optional[list] = []
+    context_data: Optional[dict] = None
 
 @aesms_router.post("/ai/chat")
 def ai_chat(payload: ChatMessage, current_user: models.User = Depends(get_current_active_user)):
     """Endpoint for the floating AI assistant widget."""
-    response = chat_with_assistant(payload.message, current_user.role)
+    response = chat_with_assistant(payload.message, current_user.role, payload.context_data, payload.model)
     return {"response": response}
 
 

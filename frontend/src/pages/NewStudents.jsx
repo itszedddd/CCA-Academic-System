@@ -80,10 +80,21 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
       student_first_name: selectedForm.student_first_name || '',
       student_last_name: selectedForm.student_last_name || '',
       middle_name: selectedForm.middle_name || '',
+      grade_applying_for: selectedForm.grade_applying_for || '',
       sex: selectedForm.sex || '',
       birth_date: selectedForm.birth_date || '',
       home_address: selectedForm.home_address || '',
       contact_number: selectedForm.contact_number || '',
+      father_name: selectedForm.father_name || '',
+      father_contact: selectedForm.father_contact || '',
+      mother_name: selectedForm.mother_name || '',
+      mother_contact: selectedForm.mother_contact || '',
+      previous_school: selectedForm.previous_school || '',
+      medical_conditions: selectedForm.medical_conditions || '',
+      allergies: selectedForm.allergies || '',
+      current_medications: selectedForm.current_medications || '',
+      physician_name: selectedForm.physician_name || '',
+      physician_contact: selectedForm.physician_contact || '',
     });
     setIsEditingForm(true);
   };
@@ -609,6 +620,13 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                   <input type="text" value={editFormData.middle_name} onChange={e => setEditFormData({...editFormData, middle_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
                 </div>
                 <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Grade Applied For</label>
+                  <select value={editFormData.grade_applying_for} onChange={e => setEditFormData({...editFormData, grade_applying_for: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white">
+                    <option value="">Select Grade</option>
+                    {gradeLevels.map(grade => <option key={grade} value={grade}>{grade}</option>)}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Sex</label>
                   <select value={editFormData.sex} onChange={e => setEditFormData({...editFormData, sex: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white">
                     <option value="">Select</option>
@@ -627,6 +645,55 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-slate-500 mb-1">Home Address</label>
                   <textarea value={editFormData.home_address} onChange={e => setEditFormData({...editFormData, home_address: e.target.value})} rows="2" className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white"></textarea>
+                </div>
+                <div className="sm:col-span-2 border-t border-slate-200 dark:border-slate-700 mt-2 pt-4">
+                  <h4 className="text-sm font-bold text-brand-600 dark:text-brand-400 mb-3 uppercase tracking-wider">Family Background</h4>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Father's Name</label>
+                  <input type="text" value={editFormData.father_name} onChange={e => setEditFormData({...editFormData, father_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Father's Contact</label>
+                  <input type="text" value={editFormData.father_contact} onChange={e => setEditFormData({...editFormData, father_contact: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Mother's Name</label>
+                  <input type="text" value={editFormData.mother_name} onChange={e => setEditFormData({...editFormData, mother_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Mother's Contact</label>
+                  <input type="text" value={editFormData.mother_contact} onChange={e => setEditFormData({...editFormData, mother_contact: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div className="sm:col-span-2 border-t border-slate-200 dark:border-slate-700 mt-2 pt-4">
+                  <h4 className="text-sm font-bold text-brand-600 dark:text-brand-400 mb-3 uppercase tracking-wider">Previous Education</h4>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Previous School</label>
+                  <input type="text" value={editFormData.previous_school} onChange={e => setEditFormData({...editFormData, previous_school: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div className="sm:col-span-2 border-t border-slate-200 dark:border-slate-700 mt-2 pt-4">
+                  <h4 className="text-sm font-bold text-brand-600 dark:text-brand-400 mb-3 uppercase tracking-wider">Medical Information</h4>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Medical Conditions</label>
+                  <input type="text" value={editFormData.medical_conditions} onChange={e => setEditFormData({...editFormData, medical_conditions: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Allergies</label>
+                  <input type="text" value={editFormData.allergies} onChange={e => setEditFormData({...editFormData, allergies: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Current Medications</label>
+                  <input type="text" value={editFormData.current_medications} onChange={e => setEditFormData({...editFormData, current_medications: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Physician Name</label>
+                  <input type="text" value={editFormData.physician_name} onChange={e => setEditFormData({...editFormData, physician_name: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Physician Contact</label>
+                  <input type="text" value={editFormData.physician_contact} onChange={e => setEditFormData({...editFormData, physician_contact: e.target.value})} className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none focus:border-brand-500 dark:text-white" />
                 </div>
               </div>
             </div>

@@ -2,6 +2,16 @@ import React from 'react';
 
 export default function PrintableAdmissionForm({ formData }) {
   if (!formData) return null;
+
+  // Derive robust values handling cases where data is nested inside 'student' object
+  const sFirstName = formData.student?.first_name || formData.student_first_name || ' ';
+  const sLastName = formData.student?.last_name || formData.student_last_name || ' ';
+  const sMiddleName = formData.student?.middle_name || formData.middle_name || ' ';
+  const sSex = formData.student?.gender || formData.sex || ' ';
+  const sBirthDate = formData.student?.date_of_birth || formData.birth_date || ' ';
+  const sAddress = formData.student?.address || formData.home_address || ' ';
+  const sGrade = formData.student?.grade_level || formData.grade_applying_for || ' ';
+  
   return (
     <div className="hidden print:block w-full text-black bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
 
@@ -16,36 +26,36 @@ export default function PrintableAdmissionForm({ formData }) {
           <h2 className="text-center text-2xl font-bold uppercase mb-8 tracking-widest">Student Information Form</h2>
 
           <div className="border-2 border-black p-4 flex-grow flex flex-col justify-center">
-            <div className="grid grid-cols-3 gap-y-12 gap-x-6 text-base">
-              <div className="col-span-3 grid grid-cols-12 gap-6 border-b-2 border-gray-400 pb-8">
+            <div className="grid grid-cols-3 gap-y-6 gap-x-6 text-base">
+              <div className="col-span-3 grid grid-cols-12 gap-6 border-b-2 border-gray-400 pb-4">
                 <div className="col-span-4">
                   <p className="font-bold text-sm text-gray-500 uppercase mb-2">Last Name</p>
-                  <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.student_last_name || ' '}</p>
+                  <p className="font-bold text-xl border-b-2 border-black pb-1">{sLastName}</p>
                 </div>
                 <div className="col-span-4">
                   <p className="font-bold text-sm text-gray-500 uppercase mb-2">First Name</p>
-                  <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.student_first_name || ' '}</p>
+                  <p className="font-bold text-xl border-b-2 border-black pb-1">{sFirstName}</p>
                 </div>
                 <div className="col-span-4">
                   <p className="font-bold text-sm text-gray-500 uppercase mb-2">Middle Name</p>
-                  <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.middle_name || ' '}</p>
+                  <p className="font-bold text-xl border-b-2 border-black pb-1">{sMiddleName}</p>
                 </div>
               </div>
 
               <div className="col-span-1 border-r-2 border-gray-400 pr-6">
                 <p className="font-bold text-sm text-gray-500 uppercase mb-2">Grade Applying For</p>
-                <p className="font-bold text-xl">{formData.grade_applying_for}</p>
+                <p className="font-bold text-xl">{sGrade}</p>
               </div>
               <div className="col-span-1 border-r-2 border-gray-400 px-6">
                 <p className="font-bold text-sm text-gray-500 uppercase mb-2">Sex</p>
-                <p className="font-bold text-xl">{formData.sex}</p>
+                <p className="font-bold text-xl">{sSex}</p>
               </div>
               <div className="col-span-1 pl-6">
                 <p className="font-bold text-sm text-gray-500 uppercase mb-2">Date of Birth</p>
-                <p className="font-bold text-xl">{formData.birth_date}</p>
+                <p className="font-bold text-xl">{sBirthDate}</p>
               </div>
 
-              <div className="col-span-3 grid grid-cols-2 gap-8 border-t-2 border-gray-400 pt-8">
+              <div className="col-span-3 grid grid-cols-2 gap-8 border-t-2 border-gray-400 pt-4">
                 <div>
                   <p className="font-bold text-sm text-gray-500 uppercase mb-2">Place of Birth</p>
                   <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.birth_place || ' '}</p>
@@ -56,12 +66,12 @@ export default function PrintableAdmissionForm({ formData }) {
                 </div>
               </div>
 
-              <div className="col-span-3 border-t-2 border-gray-400 pt-8">
+              <div className="col-span-3 border-t-2 border-gray-400 pt-4">
                 <p className="font-bold text-sm text-gray-500 uppercase mb-2">Complete Home Address</p>
-                <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.home_address || ' '}</p>
+                <p className="font-bold text-xl border-b-2 border-black pb-1">{sAddress}</p>
               </div>
 
-              <div className="col-span-3 grid grid-cols-2 gap-y-10 gap-x-8 border-t-2 border-gray-400 pt-8">
+              <div className="col-span-3 grid grid-cols-2 gap-y-6 gap-x-8 border-t-2 border-gray-400 pt-4">
                 <div>
                   <p className="font-bold text-sm text-gray-500 uppercase mb-2">Father's Name</p>
                   <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.father_name || ' '}</p>
@@ -88,7 +98,6 @@ export default function PrintableAdmissionForm({ formData }) {
       </div>
 
       {/* FORM 2: MEDICAL HISTORY FORM */}
-      <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
       <div className="w-full print-page text-[10pt] leading-snug">
         <div className="flex items-center justify-center mb-4">
           <img src="/assets/Primary Logo [2 Clear].png" alt="CCA Logo" className="h-16 w-auto mr-4" />
@@ -101,9 +110,9 @@ export default function PrintableAdmissionForm({ formData }) {
         <p className="text-xs text-center italic mb-4">It is mandatory that pupils who show symptoms of a communicable disease be excluded from classes until readmission is acceptable. Your cooperation will be greatly appreciated. Thank you!</p>
 
         <div className="flex justify-between mb-4 font-bold border-b border-black pb-1">
-          <span>Student's Name: <span className="font-normal underline">{formData.student_last_name}, {formData.student_first_name} {formData.middle_name}</span></span>
-          <span>Birth date: <span className="font-normal underline">{formData.birth_date}</span></span>
-          <span>Gender: <span className="font-normal underline">{formData.sex}</span></span>
+          <span>Student's Name: <span className="font-normal underline">{sLastName}, {sFirstName} {sMiddleName}</span></span>
+          <span>Birth date: <span className="font-normal underline">{sBirthDate}</span></span>
+          <span>Gender: <span className="font-normal underline">{sSex}</span></span>
         </div>
 
         <div className="mb-4">
@@ -194,7 +203,6 @@ export default function PrintableAdmissionForm({ formData }) {
       </div>
 
       {/* FORM 3: WAIVER FORM */}
-      <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
       <div className="w-full print-page text-[11pt] leading-normal">
         <div className="flex flex-col items-center justify-center mb-6 text-center">
           <img src="/assets/Primary Logo [2 Clear].png" alt="CCA Logo" className="h-20 w-auto mb-2" />
@@ -223,7 +231,7 @@ export default function PrintableAdmissionForm({ formData }) {
           </ol>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-4">
           <p className="font-bold mb-1">CONTACT DETAILS FOR QUESTIONS OR PROBLEMS</p>
           <p className="italic mb-2">For any concern or clarification, you may contact the school at 09561504946.</p>
           <table className="w-full border-collapse border border-black text-sm">
@@ -233,21 +241,20 @@ export default function PrintableAdmissionForm({ formData }) {
                 <td className="border border-black p-2 h-24 align-top w-1/2">Contact Details:</td>
               </tr>
               <tr>
-                <td className="border border-black p-2 h-16 align-top">Name of Child/ren with grade level: <br /><br />{formData.student_first_name} {formData.student_last_name} - {formData.grade_applying_for}</td>
+                <td className="border border-black p-2 h-16 align-top">Name of Child/ren with grade level: <br /><br />{sFirstName} {sLastName} - {sGrade}</td>
                 <td className="border border-black p-2 h-16 align-top">Date:</td>
               </tr>
             </tbody>
           </table>
           <p className="mt-2 text-sm">* Please submit this form to your child's adviser prior to the conduct of face-to-face classes.</p>
         </div>
-        <p className="text-center text-xs font-bold mt-8">To honor God by providing an academe conducive to learning, that will mold Christ-like leaders who are equipped to be locally committed and globally competent.</p>
+        <p className="text-center text-xs font-bold mt-2">To honor God by providing an academe conducive to learning, that will mold Christ-like leaders who are equipped to be locally committed and globally competent.</p>
       </div>
 
       {/* FORM 4: DATA PRIVACY FORM */}
-      <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
-      <div className="w-full print-page text-[10pt] leading-normal">
-        <h1 className="font-bold text-xl text-center mb-1">CALVARY CHRISTIAN ACADEMY, INC.</h1>
-        <p className="text-center text-xs mb-4">Blk. 1 Lot 9&10 Sarmiento Townville, Poblacion 1<br />City of San Jose Del Monte, Bulacan<br />09561504946</p>
+      <div className="w-full print-page text-[8pt] leading-tight">
+        <h1 className="font-bold text-lg text-center mb-1">CALVARY CHRISTIAN ACADEMY, INC.</h1>
+        <p className="text-center text-[10px] mb-2">Blk. 1 Lot 9&10 Sarmiento Townville, Poblacion 1<br />City of San Jose Del Monte, Bulacan<br />09561504946</p>
         <h2 className="font-bold text-center text-sm mb-1">Consent Form<br />Data Privacy SY 2026-2027<br />Applicant for Enrollment and Student</h2>
 
         <div className="text-justify mb-4">
@@ -282,12 +289,6 @@ export default function PrintableAdmissionForm({ formData }) {
             <li>iii. awarding of financial aid and scholarship grants</li>
           </ul>
           <p className="mb-2">c) Sharing of relevant data to potential donors, funders, or benefactors for purposes of scholarships, grants, and other forms of assistance including the distribution to donors, funders, or benefactors of scholar's graduation brochure</p>
-        </div>
-      </div>
-
-      <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
-      <div className="w-full print-page text-[10pt] leading-normal">
-        <div className="text-justify mb-4">
           <p className="mb-2">d) Publishing and distribution in brochures, tarpaulins, and other school publications and/or posting online (e.g., <strong>Calvary Christian Academy, Inc.</strong> website, social media sites/platforms) and/or in school bulletin boards of:</p>
           <ul className="list-none pl-8 mb-2 space-y-1">
             <li>i. list and photographs of graduates and awardees during commencement exercises</li>
@@ -307,23 +308,23 @@ export default function PrintableAdmissionForm({ formData }) {
           <p className="mb-2">h) Sharing of personal data and student records in the conduct of internal research, surveys, presentation, publication, and utilization of research output for purposes of institutional development</p>
           <p className="mb-2">i) Reporting and disclosing of pertinent data to the Department of Education (DepEd), National Privacy Commission (NPC), and other government agencies and regulatory bodies when required or allowed and mandated by law</p>
           <p className="mb-2">j) Sharing of personal data and school records in compliance with court orders, subpoenas, and other legal processes</p>
-          <p className="mb-4 mt-4">To ensure the proper functioning of <strong>Calvary Christian Academy, Inc.</strong> as a Basic Education Institution, <strong>Calvary Christian Academy, Inc.</strong> may share your personal data and school records with various Principals, Assistant Principals, Academic Heads and Heads of Non-Teaching Personnel</p>
-          <p className="mb-4">Department, as well as necessary Officers and Personnel, to process grades, honors, awards, applications for scholarships, and the like; to impose disciplinary sanctions; and to administer the necessary health, medical and psychological examinations. <strong>Calvary Christian Academy, Inc.</strong> may also, from time to time, consider it appropriate to disclose your relevant personal data and student records to members of staff committees and organizations within <strong>Calvary Christian Academy, Inc.</strong></p>
-          <p className="mb-4">If <strong>Calvary Christian Academy, Inc.</strong> intends to use or share your personal data and/or student record for purposes other than for legitimate institutional and/or academic purposes and those above-described, <strong>Calvary Christian Academy, Inc.</strong> shall obtain your written consent for that purpose, unless you yourself makes a specific request to process the personal data and/or student record for such purpose, or if such processing without your consent is allowed under the DPA or other laws, or where such disclosure is for the prevention or detection of crime, the apprehension or prosecution of offenders, or for the protection of your health, security and safety, and that of others.</p>
+          <p className="mb-2 mt-2">To ensure the proper functioning of <strong>Calvary Christian Academy, Inc.</strong> as a Basic Education Institution, <strong>Calvary Christian Academy, Inc.</strong> may share your personal data and school records with various Principals, Assistant Principals, Academic Heads and Heads of Non-Teaching Personnel</p>
+          <p className="mb-2">Department, as well as necessary Officers and Personnel, to process grades, honors, awards, applications for scholarships, and the like; to impose disciplinary sanctions; and to administer the necessary health, medical and psychological examinations. <strong>Calvary Christian Academy, Inc.</strong> may also, from time to time, consider it appropriate to disclose your relevant personal data and student records to members of staff committees and organizations within <strong>Calvary Christian Academy, Inc.</strong></p>
+          <p className="mb-2">If <strong>Calvary Christian Academy, Inc.</strong> intends to use or share your personal data and/or student record for purposes other than for legitimate institutional and/or academic purposes and those above-described, <strong>Calvary Christian Academy, Inc.</strong> shall obtain your written consent for that purpose, unless you yourself makes a specific request to process the personal data and/or student record for such purpose, or if such processing without your consent is allowed under the DPA or other laws, or where such disclosure is for the prevention or detection of crime, the apprehension or prosecution of offenders, or for the protection of your health, security and safety, and that of others.</p>
         </div>
 
-        <div className="mt-8">
+        <div className="mt-4">
           <p className="font-bold text-center mb-4">DECLARATION</p>
-          <ul className="list-disc pl-8 mb-6 space-y-2">
+          <ul className="list-disc pl-8 mb-2 space-y-1">
             <li>I have read and understood the contents of this Consent Form. As an applicant for enrollment or student of <strong>Calvary Christian Academy, Inc.,</strong></li>
             <li>I give my written consent that <strong>Calvary Christian Academy, Inc.</strong> may collect and process my personal data as set out above and/or for other legitimate purposes. In cases where my personal data was acquired by <strong>Calvary Christian Academy, Inc.</strong> from a third party, I warrant that such third party has been duly authorized by me to disclose my personal data to <strong>Calvary Christian Academy, Inc.</strong> pursuant to the purposes set out above. I also agree to comply with all reasonable requests of <strong>Calvary Christian Academy, Inc.</strong> to enable compliance with its obligations under the Data Privacy Act or other applicable laws, regulations and/or guidelines.</li>
           </ul>
-          <p className="italic font-bold mb-8">This consent form shall be valid while you are an applicant, a student, or an alumna of Calvary Christian Academy, Inc.</p>
+          <p className="italic font-bold mb-4">This consent form shall be valid while you are an applicant, a student, or an alumna of Calvary Christian Academy, Inc.</p>
 
-          <div className="space-y-4">
+          <div className="space-y-2">
             <div className="flex">
               <span className="w-48">Name of the student:</span>
-              <span className="flex-grow border-b border-black text-center font-bold">{formData.student_first_name} {formData.student_last_name}</span>
+              <span className="flex-grow border-b border-black text-center font-bold">{sFirstName} {sLastName}</span>
             </div>
             <div className="flex">
               <span className="w-80">Name & signature of the parent/guardian:</span>
@@ -337,7 +338,6 @@ export default function PrintableAdmissionForm({ formData }) {
         </div>
       </div>
       {/* FORM 6: ID INFORMATION FORM */}
-      <div className="page-break" style={{ pageBreakBefore: 'always' }}></div>
       <div className="w-full print-page">
         <div>
           <div className="flex flex-col items-center justify-center border-b-2 border-black pb-4 mb-8 text-center">
@@ -354,12 +354,12 @@ export default function PrintableAdmissionForm({ formData }) {
               <div className="flex-grow space-y-8 flex flex-col justify-center">
                 <div>
                   <p className="text-sm font-bold text-gray-500 uppercase mb-2">Student Name</p>
-                  <p className="font-bold text-2xl border-b-2 border-black uppercase pb-1">{formData.student_last_name}, {formData.student_first_name} {formData.middle_name}</p>
+                  <p className="font-bold text-2xl border-b-2 border-black uppercase pb-1">{sLastName}, {sFirstName} {sMiddleName}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-8">
                   <div>
                     <p className="text-sm font-bold text-gray-500 uppercase mb-2">Grade Level</p>
-                    <p className="font-bold text-xl border-b-2 border-black pb-1">{formData.grade_applying_for}</p>
+                    <p className="font-bold text-xl border-b-2 border-black pb-1">{sGrade}</p>
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-500 uppercase mb-2">Contact Person</p>

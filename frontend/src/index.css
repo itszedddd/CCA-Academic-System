@@ -152,7 +152,7 @@ html.accessible-mode .dark {
 @media print {
   @page {
     margin: 10mm 8mm;
-    size: A4 portrait;
+    size: legal portrait;
   }
   
   /* Each form page: fits exactly one printed page */
@@ -167,6 +167,11 @@ html.accessible-mode .dark {
     page-break-inside: avoid;
     break-inside: avoid;
     overflow: hidden;
+  }
+  
+  .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
   
   /* The empty page-break spacer divs */
