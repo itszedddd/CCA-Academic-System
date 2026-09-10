@@ -1021,7 +1021,7 @@ def public_preregister(
     if existing:
         raise HTTPException(
             status_code=400,
-            detail="A student with this name already exists in the system. Please log in to your account to enroll, or contact the registrar."
+            detail="There's an existing information in our system."
         )
         
     new_student = models.Student(
@@ -2218,6 +2218,39 @@ def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: model
         "pending_document_requests": pending_requests,
     }
 
+
+# ---------------------------------------------------------------------------
+# Registrar Teacher Management
+# ---------------------------------------------------------------------------
+@aesms_router.get("/registrar/teachers", response_model=List[schemas.User])
+def get_registrar_teachers(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Registrar", "Superadmin"]:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    return db.query(models.User).filter(models.User.role == "Teacher").all()
+
+@aesms_router.post("/registrar/teachers", response_model=schemas.User)
+def create_registrar_teacher(payload: schemas.UserCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Registrar", "Superadmin"]:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    
+    existing = db.query(models.User).filter(models.User.username == payload.username).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    payload.role = "Teacher"
+    db_user = models.User(
+        username=payload.username,
+        full_name=payload.full_name,
+        role=payload.role,
+        is_active=getattr(payload, 'is_active', 1),
+        section=getattr(payload, 'section', None),
+        schedule=getattr(payload, 'schedule', '[]'), # Used for Subjects JSON array
+        hashed_password=get_password_hash(payload.password)
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 # ---------------------------------------------------------------------------
 # Superadmin Security Dashboard

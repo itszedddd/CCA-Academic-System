@@ -21,7 +21,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   // Post modal states
   const [showPostModal, setShowPostModal] = useState(false);
   const [postType, setPostType] = useState('Announcement'); // 'Announcement' or 'Event'
-  const [postForm, setPostForm] = useState({ title: '', content: '', date: '', time: '', location: '', target_section: '' });
+  const [postForm, setPostForm] = useState({ title: '', content: '', date: '', start_time: '', end_time: '', location: '', target_audience: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isStudent = currentRole === 'Student' || currentRole === 'Parent';
@@ -35,7 +35,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           title: postForm.title,
           content: postForm.content,
           is_pinned: 0,
-          target_section: postForm.target_section || null
+          target_section: postForm.target_audience.length > 0 ? postForm.target_audience.join(', ') : null
         };
         const res = await authFetch('/api/announcements/', {
           method: 'POST',
@@ -51,9 +51,9 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           title: postForm.title,
           description: postForm.content,
           event_date: postForm.date,
-          event_time: postForm.time || null,
+          event_time: postForm.start_time && postForm.end_time ? `${postForm.start_time} - ${postForm.end_time}` : (postForm.start_time || null),
           location: postForm.location || null,
-          target_section: postForm.target_section || null
+          target_section: postForm.target_audience.length > 0 ? postForm.target_audience.join(', ') : null
         };
         const res = await authFetch('/api/events/', {
           method: 'POST',
@@ -66,7 +66,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
         }
       }
       setShowPostModal(false);
-      setPostForm({ title: '', content: '', date: '', time: '', location: '', target_section: '' });
+      setPostForm({ title: '', content: '', date: '', start_time: '', end_time: '', location: '', target_audience: [] });
     } finally {
       setIsSubmitting(false);
     }
@@ -484,13 +484,19 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               
               {postType === 'Event' && (
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
+                  <div className="col-span-2 sm:col-span-1">
                     <label className="block text-xs font-bold text-slate-500 mb-1">Date</label>
                     <input required type="date" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.date} onChange={e => setPostForm({...postForm, date: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Time (Optional)</label>
-                    <input type="text" placeholder="e.g. 9:00 AM" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.time} onChange={e => setPostForm({...postForm, time: e.target.value})} />
+                  <div className="col-span-2 sm:col-span-1 grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Start Time</label>
+                      <input type="time" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.start_time} onChange={e => setPostForm({...postForm, start_time: e.target.value})} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 mb-1">End Time</label>
+                      <input type="time" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.end_time} onChange={e => setPostForm({...postForm, end_time: e.target.value})} />
+                    </div>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs font-bold text-slate-500 mb-1">Location (Optional)</label>
@@ -502,19 +508,38 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               {(currentRole === 'Teacher' || currentRole === 'Registrar') && (
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Target Audience</label>
-                  <select className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 dark:text-white" value={postForm.target_section} onChange={e => setPostForm({...postForm, target_section: e.target.value})}>
-                    <option value="">All Students (Public)</option>
+                  <div className="border border-slate-200 dark:border-slate-600 rounded-lg text-sm bg-white dark:bg-slate-800 max-h-40 overflow-y-auto p-2">
+                    <label className="flex items-center space-x-2 p-1 hover:bg-slate-50 dark:hover:bg-slate-700 rounded cursor-pointer">
+                      <input type="checkbox" checked={postForm.target_audience.length === 0} onChange={() => setPostForm({...postForm, target_audience: []})} className="rounded text-brand-600 focus:ring-brand-500" />
+                      <span className="text-slate-700 dark:text-slate-300">All Students (Public)</span>
+                    </label>
                     {currentRole === 'Teacher' && user?.section && (
-                      <option value={user.section}>{user.section} (My Section Only)</option>
+                      <label className="flex items-center space-x-2 p-1 hover:bg-slate-50 dark:hover:bg-slate-700 rounded cursor-pointer">
+                        <input type="checkbox" checked={postForm.target_audience.includes(user.section)} onChange={(e) => {
+                          const newAudience = e.target.checked 
+                            ? [...postForm.target_audience, user.section]
+                            : postForm.target_audience.filter(a => a !== user.section);
+                          setPostForm({...postForm, target_audience: newAudience});
+                        }} className="rounded text-brand-600 focus:ring-brand-500" />
+                        <span className="text-slate-700 dark:text-slate-300">{user.section} (My Section Only)</span>
+                      </label>
                     )}
                     {currentRole === 'Registrar' && (
                       <>
                         {['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(grade => (
-                          <option key={grade} value={grade}>{grade}</option>
+                          <label key={grade} className="flex items-center space-x-2 p-1 hover:bg-slate-50 dark:hover:bg-slate-700 rounded cursor-pointer">
+                            <input type="checkbox" checked={postForm.target_audience.includes(grade)} onChange={(e) => {
+                              const newAudience = e.target.checked 
+                                ? [...postForm.target_audience, grade]
+                                : postForm.target_audience.filter(a => a !== grade);
+                              setPostForm({...postForm, target_audience: newAudience});
+                            }} className="rounded text-brand-600 focus:ring-brand-500" />
+                            <span className="text-slate-700 dark:text-slate-300">{grade}</span>
+                          </label>
                         ))}
                       </>
                     )}
-                  </select>
+                  </div>
                 </div>
               )}
               
@@ -531,10 +556,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     </>
   );
 
-  const HeaderTitle = ({ title, subtitle, titleClassName }) => (
+  const HeaderTitle = ({ title, subtitle }) => (
     <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div>
-        <h2 className={`text-2xl font-extrabold font-cinzel tracking-widest uppercase ${titleClassName || 'text-slate-800 dark:text-white'}`}>{title}</h2>
+        <h2 className="text-2xl font-extrabold font-cinzel tracking-widest uppercase text-[#022868] dark:text-blue-400">{title}</h2>
         <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">{subtitle}</p>
       </div>
       {currentRole === 'Principal' && (
@@ -565,8 +590,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                 <StatCard label="Document Requests" value={registrarStats.pending_document_requests} sub="Pending requests" color="text-amber-500" icon="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </div>
             )}
-            <RenderGeminiInsights />
             {RenderEventsAndAnnouncements()}
+            <RenderGeminiInsights />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar 
