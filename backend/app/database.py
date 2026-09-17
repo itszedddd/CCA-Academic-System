@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 
 # Use DATABASE_URL env var in production (PostgreSQL).
 # Falls back to Render PostgreSQL DB so the live site works without manual config.
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://cca_db_l21e_user:B2g65PhdGG7DmRgSN3DQOgHTkTITGpcj@dpg-dalmcp942hec73cvublg-a.singapore-postgres.render.com/cca_db_l21e")
+# Use `or` to also handle empty-string values from the Render dashboard.
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL") or "postgresql://cca_db_l21e_user:B2g65PhdGG7DmRgSN3DQOgHTkTITGpcj@dpg-dalmcp942hec73cvublg-a.singapore-postgres.render.com/cca_db_l21e"
 
 # Render/Railway provide URLs starting with 'postgres://' but SQLAlchemy
 # requires 'postgresql://'.

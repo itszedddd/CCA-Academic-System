@@ -9,7 +9,7 @@ services:
       - key: PORT
         value: 8000
       - key: DATABASE_URL
-        sync: false
+        value: postgresql://cca_db_l21e_user:B2g65PhdGG7DmRgSN3DQOgHTkTITGpcj@dpg-dalmcp942hec73cvublg-a.singapore-postgres.render.com/cca_db_l21e
       - key: GEMINI_API_KEY
         sync: false
       - key: FRONTEND_ORIGIN
