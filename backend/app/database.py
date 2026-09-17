@@ -4,8 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Use DATABASE_URL env var in production (PostgreSQL).
-# Falls back to local SQLite for development.
-SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./cca.db")
+# Falls back to Render PostgreSQL DB so the live site works without manual config.
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://cca_db_l21e_user:B2g65PhdGG7DmRgSN3DQOgHTkTITGpcj@dpg-dalmcp942hec73cvublg-a.singapore-postgres.render.com/cca_db_l21e")
 
 # Render/Railway provide URLs starting with 'postgres://' but SQLAlchemy
 # requires 'postgresql://'.
