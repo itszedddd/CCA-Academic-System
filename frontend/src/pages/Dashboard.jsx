@@ -100,7 +100,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     }
 
     if (currentRole === 'Registrar' || currentRole === 'Principal') {
-      authFetch('/api/registrar/dashboard-stats').then(r => r?.ok ? r.json() : null).then(setRegistrarStats).catch(()=>{});
+      authFetch('/api/registrar/dashboard-stats', { cache: 'no-store' }).then(r => r?.ok ? r.json() : null).then(setRegistrarStats).catch(()=>{});
     }
 
     if (currentRole === 'Superadmin' || currentRole === 'Principal') {
@@ -607,9 +607,10 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
   }
 
   if (currentRole === 'Admission') {
-    const preRegistered = forms.filter(f => f.status !== 'Enrolled').length;
-    const readyForAssessment = forms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
-    const pendingReqs = forms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
+    const activeForms = forms.filter(f => !['Enrolled', 'Archived'].includes(f.status));
+    const preRegistered = activeForms.length;
+    const readyForAssessment = activeForms.filter(f => f.assessment_status === 'Passed' && f.interview_status !== 'Passed').length;
+    const pendingReqs = activeForms.filter(f => f.status === 'Hold: Incomplete Req' || f.status === 'Pending').length;
     const rejectedCount = forms.filter(f => f.status === 'Rejected' || f.assessment_status === 'Failed' || f.interview_status === 'Failed').length;
     return (
       <div className="space-y-6">

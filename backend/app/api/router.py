@@ -1039,7 +1039,7 @@ def public_preregister(
     db.flush()
     student_id = new_student.id
 
-    payload_data = payload.model_dump(exclude={"student_first_name", "student_last_name"})
+    payload_data = payload.model_dump(exclude={"student_first_name", "student_last_name"}, exclude_none=True)
     
     db_form = models.EnrollmentForm(
         student_id=student_id,
@@ -2198,8 +2198,10 @@ def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: model
     all_students = db.query(models.Student).filter(models.Student.is_archived == 0).all()
     
     # Count old vs new students (based on enrollment forms/pre-registration)
-    enrolled_forms = db.query(models.EnrollmentForm).all()
-    new_student_ids = set(f.student_id for f in enrolled_forms if f.student_id)
+    new_student_forms = db.query(models.EnrollmentForm).filter(
+        models.EnrollmentForm.form_type.in_(["New Student", "Online Pre-Registration", "Pre-Registration Application"])
+    ).all()
+    new_student_ids = set(f.student_id for f in new_student_forms if f.student_id)
     
     old_students = [s for s in all_students if s.id not in new_student_ids]
     new_students = [s for s in all_students if s.id in new_student_ids]
