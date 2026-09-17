@@ -834,8 +834,8 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
           </button>
         )}
         <HeaderTitle title="Teacher's Dashboard" subtitle={new Date().toLocaleString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} />
-        <div className="mb-8 flex flex-col lg:flex-row gap-6">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6 flex-1">
+        <div className="mb-8 flex flex-col gap-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center space-x-6">
             {user?.profile_picture ? (
               <img src={user.profile_picture} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-brand-100 dark:border-brand-900 shadow-md" />
             ) : (
@@ -849,7 +849,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <p className="text-slate-500 dark:text-slate-400 text-xs">Manage your section's attendance and academic progress.</p>
             </div>
           </div>
-          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 lg:w-[400px] flex-shrink-0 text-white">
+          <div className="bg-gradient-to-r from-brand-900 to-brand-700 dark:from-slate-800 dark:to-slate-700 rounded-2xl p-6 shadow-sm border border-brand-800 dark:border-slate-600 w-full text-white">
             <h3 className="font-bold text-sm text-brand-200 dark:text-slate-400 mb-4 uppercase tracking-widest flex items-center">
               <svg className="w-4 h-4 mr-2 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               Today's Schedule
