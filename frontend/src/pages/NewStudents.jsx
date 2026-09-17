@@ -585,7 +585,7 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
               </div>
               <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Archive Application?</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Are you sure you want to archive the enrollment application for <strong className="text-slate-700 dark:text-slate-300">{formToArchive.student_first_name} {formToArchive.student_last_name}</strong>? They will be moved to the Archive list.
+                Are you sure you want to archive the enrollment application for <strong className="text-slate-700 dark:text-slate-300">{formToArchive.student?.first_name} {formToArchive.student?.last_name}</strong>? They will be moved to the Archive list.
               </p>
             </div>
             <div className="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-700">
