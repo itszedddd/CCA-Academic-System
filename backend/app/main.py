@@ -80,7 +80,9 @@ if os.path.isdir(FRONTEND_DIR):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "system": "CCA", "version": "1.0.1-debug-seed"}
+    from .database import SQLALCHEMY_DATABASE_URL
+    db_type = "postgresql" if "postgresql" in SQLALCHEMY_DATABASE_URL else "sqlite"
+    return {"status": "ok", "system": "CCA", "version": "1.0.2", "db": db_type}
 
 # Catch-all: serve index.html for any non-API route (SPA support)
 @app.get("/{full_path:path}")
