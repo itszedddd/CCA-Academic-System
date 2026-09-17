@@ -49,15 +49,17 @@ def migrate_data(pg_url: str):
             print(f"  -> Found {len(records)} records.")
 
         # Write to PostgreSQL
+        batch_failed = False
         with pg_engine.begin() as pg_conn:
             try:
                 pg_conn.execute(table.insert(), records)
                 print(f"  -> Successfully migrated {len(records)} records to {table.name}.")
             except Exception as e:
                 print(f"  -> Batch insert failed due to constraints. Falling back to row-by-row...")
+                batch_failed = True
                 
         # If batch failed, we have to do it in a new transaction row-by-row
-        if 'Batch insert failed' in str(locals().get('e', '')):
+        if batch_failed:
             success_count = 0
             for record in records:
                 try:
@@ -72,7 +74,6 @@ def migrate_data(pg_url: str):
     # Postgres needs sequences reset when IDs are explicitly inserted
     with pg_engine.begin() as pg_conn:
         for table in tables:
-            # Check if table has an 'id' column
             if 'id' in table.columns.keys():
                 seq_query = text(f"SELECT setval(pg_get_serial_sequence('{table.name}', 'id'), coalesce(max(id),0) + 1, false) FROM {table.name};")
                 try:
@@ -81,7 +82,7 @@ def migrate_data(pg_url: str):
                 except Exception as e:
                     print(f"  -> Could not reset sequence for {table.name}: {e}")
 
-    print("\n✅ MIGRATION COMPLETE! All local data is now on Render.")
+    print("\n[SUCCESS] MIGRATION COMPLETE! All local data is now on Render.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Migrate SQLite to Render Postgres")
