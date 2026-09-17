@@ -32,6 +32,7 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
 
   const archivedForms = (forms || []).filter(f => f.status === 'Archived');
   const filteredArchivedForms = archivedForms.filter(f => {
+    if (f.grade_applying_for === 'Grade 11' || f.grade_applying_for === 'Grade 12') return false;
     const search = searchQuery.toLowerCase();
     const fullName = `${f.student?.first_name || ''} ${f.student?.last_name || ''}`.toLowerCase();
     const matchesSearch = fullName.includes(search) || String(f.id).includes(search);
@@ -66,6 +67,7 @@ export default function Archive({ students, forms, authFetch, currentRole }) {
     const grouped = {};
     rows.forEach(r => {
       const g = r.grade_level || 'Unassigned';
+      if (g === 'Grade 11' || g === 'Grade 12') return;
       if (!grouped[g]) grouped[g] = [];
       grouped[g].push(r);
     });
