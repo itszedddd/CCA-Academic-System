@@ -5,11 +5,15 @@ from app.models import Base, Student, User, AcademicRecord, Attendance, TuitionP
 from app.auth import get_password_hash
 from app.ai_engine import predict_tuition_default
 
-# Must match the URL in database.py
-SQLALCHEMY_DATABASE_URL = "sqlite:///./cca.db"
+# Use same DATABASE_URL as database.py
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./cca.db")
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+_is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    **({"connect_args": {"check_same_thread": False}} if _is_sqlite else {})
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

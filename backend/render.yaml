@@ -8,7 +8,9 @@ services:
     envVars:
       - key: PORT
         value: 8000
-    disk:
-      name: cca-data
-      mountPath: /app/data
-      sizeGB: 1
+      - key: DATABASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false

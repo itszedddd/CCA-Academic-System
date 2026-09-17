@@ -3,9 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Ensure the backend root is on sys.path so seed_cca.py can be imported
+# regardless of where uvicorn is launched from (needed in Docker).
+_backend_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _backend_root not in sys.path:
+    sys.path.insert(0, _backend_root)
 
 from .database import engine, Base, SessionLocal
 from .api.router import aesms_router
@@ -44,13 +51,19 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# CORS: always allow localhost + the Render backend URL.
+# Add your Vercel/Namecheap frontend URL via the FRONTEND_ORIGIN env var.
+_extra_origin = os.environ.get("FRONTEND_ORIGIN", "")
+_allowed_origins = [
+    "http://localhost:5173",
+    "https://cca-academic-system.onrender.com",
+]
+if _extra_origin:
+    _allowed_origins.append(_extra_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://cca-academic-system.onrender.com",
-        "https://your-frontend.vercel.app" # Add Vercel deployment URL here
-    ],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
