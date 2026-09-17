@@ -248,6 +248,7 @@ class EnrollmentFormBase(BaseModel):
     extracted_text: Optional[str] = None
     remarks: Optional[str] = None
     submitted_by: Optional[int] = None
+    date_submitted: Optional[str] = None
     student: Optional[StudentBase] = None
 
 class EnrollmentFormCreate(BaseModel):

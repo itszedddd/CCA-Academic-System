@@ -292,7 +292,7 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                         {student.assessment_status === 'Passed' ? 'Accepted' : student.assessment_status === 'Failed' ? 'Rejected' : 'Pending'}
                       </td>
                       <td className="p-4 text-xs font-bold text-slate-500">
-                        {student.date_submitted ? (() => { const d = student.date_submitted.split('T')[0].split('-'); return `${d[1]}/${d[2]}/${d[0]}`; })() : '08/29/2026'}
+                        {student.date_submitted ? (() => { const d = student.date_submitted.split('T')[0].split('-'); return `${d[1]}/${d[2]}/${d[0]}`; })() : 'Unknown'}
                       </td>
                       <td className="p-4 flex flex-col sm:flex-row gap-3 justify-center items-center h-full pt-5">
                         <button type="button"

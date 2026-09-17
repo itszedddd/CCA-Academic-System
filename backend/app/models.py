@@ -136,6 +136,7 @@ class EnrollmentForm(Base):
     file_path = Column(String, nullable=True)
     remarks = Column(String, nullable=True)
     submitted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    date_submitted = Column(String, nullable=True)
     
     student = relationship("Student", backref="enrollment_forms")
 

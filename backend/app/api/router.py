@@ -889,6 +889,7 @@ def create_enrollment_form(
         student_id = new_student.id
 
     db_form = models.EnrollmentForm(
+        date_submitted=datetime.utcnow().isoformat(),
         student_id=student_id,
         form_type=payload.form_type,
         status="Needs Review",
@@ -946,6 +947,7 @@ def student_submit_form(payload: schemas.PublicEnrollmentSubmit, db: Session = D
         student.enrollment_status = "Pre-Registered"
         
     db_form = models.EnrollmentForm(
+        date_submitted=datetime.utcnow().isoformat(),
         student_id=current_user.student_id,
         form_type="Online Enrollment",
         status="Needs Review",
@@ -1042,6 +1044,7 @@ def public_preregister(
     payload_data = payload.model_dump(exclude={"student_first_name", "student_last_name"}, exclude_none=True)
     
     db_form = models.EnrollmentForm(
+        date_submitted=datetime.utcnow().isoformat(),
         student_id=student_id,
         form_type="Online Pre-Registration",
         status="Needs Review",
@@ -1747,6 +1750,7 @@ def student_submit_enrollment(
             student_id = new_student.id
 
     db_form = models.EnrollmentForm(
+        date_submitted=datetime.utcnow().isoformat(),
         student_id=student_id,
         form_type="Online Pre-Registration",
         status="Needs Review",
