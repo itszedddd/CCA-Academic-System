@@ -57,6 +57,8 @@ _extra_origin = os.environ.get("FRONTEND_ORIGIN", "")
 _allowed_origins = [
     "http://localhost:5173",
     "https://cca-academic-system.onrender.com",
+    "https://ccaedusys.site",
+    "https://www.ccaedusys.site",
 ]
 if _extra_origin:
     _allowed_origins.append(_extra_origin)
