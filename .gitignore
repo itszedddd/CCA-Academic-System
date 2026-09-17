@@ -14,7 +14,7 @@ env/
 *.sqlite3
 
 # Uploads
-backend/uploads/
+# backend/uploads/
 
 # Node
 node_modules/
