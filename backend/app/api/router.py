@@ -1098,7 +1098,7 @@ def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: 
 
 @aesms_router.put("/enrollment_forms/{form_id}/verify", response_model=schemas.EnrollmentForm)
 def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Principal", "Registrar"]:
+    if current_user.role not in ["Principal", "Registrar", "Admission"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     from ..school_config import SECTIONS, TUITION_FEES

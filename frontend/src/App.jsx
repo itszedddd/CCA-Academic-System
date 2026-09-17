@@ -184,8 +184,7 @@ export default function App() {
   const navigation = navConfig.filter(n => n.roles.includes(currentRole));
 
   useEffect(() => {
-    const hiddenTabs = ['Registrar View', 'Cashier View', 'Teacher View'];
-    if (!navigation.find(n => n.name === activeTab) && !hiddenTabs.includes(activeTab)) {
+    if (!navigation.find(n => n.name === activeTab)) {
       setActiveTab(navigation[0]?.name || 'Dashboard');
     }
   }, [currentRole, activeTab, navigation]);
@@ -250,9 +249,7 @@ export default function App() {
         <main className="flex-1 overflow-x-hidden overflow-y-auto print:overflow-visible print:h-auto bg-slate-50 dark:bg-slate-900 p-4 md:p-8 transition-colors duration-300">
           <div className="max-w-7xl mx-auto">
             {activeTab === 'Dashboard'          && <Dashboard {...sharedProps} setActiveTab={setActiveTab} />}
-            {activeTab === 'Registrar View'     && <Dashboard {...sharedProps} currentRole="Registrar" setActiveTab={setActiveTab} />}
-            {activeTab === 'Cashier View'       && <Dashboard {...sharedProps} currentRole="Cashier" setActiveTab={setActiveTab} />}
-            {activeTab === 'Teacher View'       && <Dashboard {...sharedProps} currentRole="Teacher" setActiveTab={setActiveTab} />}
+
             {activeTab === 'Students' && currentRole !== 'Cashier' && <Students {...sharedProps} />}
             {activeTab === 'Students' && currentRole === 'Cashier' && <TuitionML {...sharedProps} />}
             {activeTab === 'Attendance'         && <Attendance {...sharedProps} />}

@@ -69,6 +69,10 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
       if (res?.ok) {
         fetchForms();
         setFormToArchive(null);
+      } else {
+        const err = await res?.json().catch(() => null);
+        setAlertModal({ isOpen: true, title: 'Archive Failed', message: err?.detail || 'Could not archive this application. Please try again.' });
+        setFormToArchive(null);
       }
     } finally {
       setLoading(false);

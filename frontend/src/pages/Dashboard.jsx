@@ -649,93 +649,13 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                 {[1,2,3].map(i => <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 h-48 border border-slate-100 dark:border-slate-700" />)}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* Academics Overview */}
-                <div onClick={() => setActiveTab('Teacher View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-blue-500 transition-colors">See All &rarr;</span>
-                    </div>
-                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Academics</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Teacher & Student Performance</p>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Staff Attendance</span>
-                        <span className="font-bold text-amber-500">2 Absent Today</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Academic Warnings</span>
-                        <span className="font-bold text-red-500">{reportData.active_academic_warnings} Flags</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Global Average</span>
-                        <span className="font-bold text-slate-800 dark:text-white">{reportData.global_academic_average}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Finance Overview */}
-                <div onClick={() => setActiveTab('Cashier View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-emerald-500 transition-colors">See All &rarr;</span>
-                    </div>
-                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Finance</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Cashier & Collections</p>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Outstanding Balance</span>
-                        <span className="font-bold text-amber-500">₱{reportData.outstanding_balance.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">High-Risk Flags</span>
-                        <span className="font-bold text-red-500">{reportData.high_risk_tuition_flags} Alerts</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Expected Total</span>
-                        <span className="font-bold text-slate-800 dark:text-white">₱{reportData.total_tuition_due.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Administration Overview */}
-                <div onClick={() => setActiveTab('Registrar View')} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-lg transition-all cursor-pointer group flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-indigo-500 transition-colors">See All &rarr;</span>
-                    </div>
-                    <h3 className="text-xl font-bold font-cinzel text-slate-800 dark:text-white mb-1">Administration</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Registrar & Enrollment</p>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Pending Requests</span>
-                        <span className="font-bold text-amber-500">{pendingRequestsCount} Docs</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Uncleared Students</span>
-                        <span className="font-bold text-red-500">{reportData.total_students - reportData.enrolled_students} Pending</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-600 dark:text-slate-300">Total Enrolled</span>
-                        <span className="font-bold text-slate-800 dark:text-white">{reportData.enrolled_students}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <StatCard label="Total Students" value={reportData.total_students} sub="Registered in system" color="text-brand-600" icon="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                <StatCard label="Enrolled Students" value={reportData.enrolled_students} sub="Currently active" color="text-green-500" icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <StatCard label="Academic Warnings" value={reportData.active_academic_warnings} sub="Flags detected" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                <StatCard label="Global Average" value={`${reportData.global_academic_average}%`} sub="Academic performance" color="text-blue-500" icon="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <StatCard label="Outstanding Balance" value={`₱${reportData.outstanding_balance.toLocaleString()}`} sub="Unpaid tuition" color="text-amber-500" icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v1m0 4v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <StatCard label="High-Risk Defaults" value={reportData.high_risk_tuition_flags} sub="Exposure flags" color="text-red-500" icon="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </div>
             )}
             <RenderGeminiInsights />
