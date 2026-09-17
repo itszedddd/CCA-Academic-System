@@ -79,12 +79,18 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     setLoading(true);
     setError('');
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
+
     try {
       const res = await fetch('/api/enrollment_forms/public-preregister', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+      
       const data = await res.json();
 
       if (res.ok) {
@@ -94,7 +100,11 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
         setError(data.detail || 'Failed to submit form.');
       }
     } catch (err) {
-      setError('Connection error. Server may be down.');
+      if (err.name === 'AbortError') {
+        setError('Server is taking too long to respond. Please try again.');
+      } else {
+        setError('Connection error. Server may be down.');
+      }
     } finally {
       setLoading(false);
     }

@@ -234,8 +234,8 @@ class EnrollmentFormBase(BaseModel):
     current_medications: Optional[str] = None
     physician_name: Optional[str] = None
     physician_contact: Optional[str] = None
-    waiver_agreed: Optional[bool] = None
-    consent_agreed: Optional[bool] = None
+    waiver_agreed: Optional[int] = None
+    consent_agreed: Optional[int] = None
     
     # Document Requirements checklist
     req_birth_cert: Optional[int] = 0
@@ -342,8 +342,8 @@ class PublicEnrollmentSubmit(BaseModel):
     current_medications: Optional[str] = None
     physician_name: Optional[str] = None
     physician_contact: Optional[str] = None
-    waiver_agreed: Optional[bool] = None
-    consent_agreed: Optional[bool] = None
+    waiver_agreed: Optional[int] = None
+    consent_agreed: Optional[int] = None
 
 class EnrollmentFormVerify(BaseModel):
     status: str
