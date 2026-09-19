@@ -1,0 +1,259 @@
+{
+  "sis": {
+    "students": [
+      "id",
+      "first_name",
+      "last_name",
+      "grade_level",
+      "enrollment_status"
+    ],
+    "enrollment_forms": [
+      "id",
+      "student_id",
+      "form_type",
+      "file_path",
+      "extracted_text",
+      "status"
+    ],
+    "academic_records": [
+      "id",
+      "student_id",
+      "subject",
+      "score",
+      "term"
+    ],
+    "users": [
+      "id",
+      "username",
+      "hashed_password",
+      "role",
+      "is_active"
+    ],
+    "payments": [
+      "id",
+      "student_id",
+      "amount",
+      "transaction_date",
+      "status",
+      "receipt_number",
+      "recorded_by"
+    ]
+  },
+  "cca": {
+    "sqlite_sequence": [
+      "name",
+      "seq"
+    ],
+    "students": [
+      "id",
+      "first_name",
+      "last_name",
+      "grade_level",
+      "school_year",
+      "section",
+      "contact_email",
+      "profile_image",
+      "enrollment_status",
+      "membership_type",
+      "is_archived",
+      "gender",
+      "date_of_birth",
+      "address",
+      "parent_name",
+      "contact_number",
+      "req_birth_cert",
+      "req_form_138",
+      "req_good_moral",
+      "req_pictures",
+      "req_hard_copy",
+      "account_username",
+      "initial_password"
+    ],
+    "academic_records": [
+      "id",
+      "student_id",
+      "subject",
+      "score",
+      "term",
+      "school_year"
+    ],
+    "tuition_payments": [
+      "id",
+      "student_id",
+      "reg_fee",
+      "tuition_fee",
+      "energy_fee",
+      "books_fee",
+      "esc_subsidy",
+      "discount",
+      "amount_due",
+      "amount_paid",
+      "term",
+      "status",
+      "risk_score"
+    ],
+    "student_clearance": [
+      "id",
+      "student_id",
+      "school_year",
+      "term",
+      "status"
+    ],
+    "users": [
+      "id",
+      "username",
+      "full_name",
+      "hashed_password",
+      "role",
+      "student_id",
+      "is_active",
+      "is_archived",
+      "section",
+      "profile_picture",
+      "schedule"
+    ],
+    "academic_warning_remarks": [
+      "id",
+      "student_id",
+      "subject",
+      "remarks"
+    ],
+    "attendance": [
+      "id",
+      "student_id",
+      "date",
+      "status",
+      "remarks",
+      "recorded_by"
+    ],
+    "enrollment_forms": [
+      "id",
+      "student_id",
+      "form_type",
+      "status",
+      "assessment_status",
+      "interview_status",
+      "assessment_remarks",
+      "interview_remarks",
+      "assessed_by",
+      "interviewed_by",
+      "sex",
+      "birth_date",
+      "birth_place",
+      "home_address",
+      "father_name",
+      "father_contact",
+      "father_occupation",
+      "father_employer",
+      "mother_name",
+      "mother_contact",
+      "mother_occupation",
+      "mother_employer",
+      "church_attended",
+      "church_member",
+      "pastor_name",
+      "previous_school",
+      "grade_applying_for",
+      "repeated_grade",
+      "expelled_dismissed",
+      "learning_disabilities",
+      "special_talents",
+      "how_heard",
+      "reason_selecting",
+      "siblings",
+      "middle_name",
+      "contact_number",
+      "nationality",
+      "religion",
+      "emergency_contact_name",
+      "emergency_contact_number",
+      "allergies",
+      "medical_conditions",
+      "current_medications",
+      "physician_name",
+      "physician_contact",
+      "waiver_agreed",
+      "consent_agreed",
+      "req_birth_cert",
+      "req_form_138",
+      "req_good_moral",
+      "req_pictures",
+      "req_hard_copy",
+      "file_path",
+      "remarks",
+      "submitted_by",
+      "date_submitted"
+    ],
+    "payment_records": [
+      "id",
+      "tuition_id",
+      "amount",
+      "or_number",
+      "date_recorded",
+      "recorded_by"
+    ],
+    "payment_schedules": [
+      "id",
+      "tuition_id",
+      "due_date",
+      "amount_due",
+      "amount_paid",
+      "status"
+    ],
+    "clearance_items": [
+      "id",
+      "clearance_id",
+      "department",
+      "status",
+      "remarks",
+      "cleared_by",
+      "date_cleared"
+    ],
+    "announcements": [
+      "id",
+      "title",
+      "content",
+      "author_id",
+      "author_role",
+      "created_at",
+      "is_pinned",
+      "target_section"
+    ],
+    "events": [
+      "id",
+      "title",
+      "description",
+      "event_date",
+      "event_time",
+      "location",
+      "created_by",
+      "target_section"
+    ],
+    "document_requests": [
+      "id",
+      "student_id",
+      "document_type",
+      "status",
+      "date_requested",
+      "date_processed",
+      "processed_by",
+      "remarks"
+    ],
+    "student_history": [
+      "id",
+      "student_id",
+      "action",
+      "description",
+      "date_recorded",
+      "recorded_by"
+    ],
+    "system_logs": [
+      "id",
+      "user_id",
+      "action",
+      "ip_address",
+      "timestamp",
+      "details"
+    ]
+  }
+}

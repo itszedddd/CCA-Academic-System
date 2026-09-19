@@ -10,17 +10,17 @@ CALENDAR = {
 
 # Section Config
 SECTIONS = {
-    "Kinder": {"name": "Love", "max_students": 32},
-    "Grade 1": {"name": "Peace", "max_students": 32},
-    "Grade 2": {"name": "Kindness", "max_students": 32},
-    "Grade 3": {"name": "Faithfulness", "max_students": 32},
-    "Grade 4": {"name": "Self-Control", "max_students": 32},
-    "Grade 5": {"name": "Understanding", "max_students": 32},
-    "Grade 6": {"name": "Fortitude", "max_students": 32},
-    "Grade 7": {"name": "Piety", "max_students": 32},
-    "Grade 8": {"name": "Charity", "max_students": 32},
-    "Grade 9": {"name": "Faith", "max_students": 32},
-    "Grade 10": {"name": "Prudence", "max_students": 32}
+    "Kindergarten": {"name": "Kindness", "max_students": 32},
+    "Grade 1": {"name": "Love", "max_students": 32},
+    "Grade 2": {"name": "Joyful", "max_students": 32},
+    "Grade 3": {"name": "Faith", "max_students": 32},
+    "Grade 4": {"name": "Grace", "max_students": 32},
+    "Grade 5": {"name": "Loyalty", "max_students": 32},
+    "Grade 6": {"name": "Obedience", "max_students": 32},
+    "Grade 7": {"name": "Meekness", "max_students": 32},
+    "Grade 8": {"name": "Courage", "max_students": 32},
+    "Grade 9": {"name": "Benevolence", "max_students": 32},
+    "Grade 10": {"name": "Perseverance", "max_students": 32}
 }
 
 # Subject Mapping per Grade Level

@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from .. import models, schemas
 from ..database import get_db
 from ..utils import validate_required_fields, check_duplicate_student
-from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights, generate_ai_report
+from ..ai_engine import analyze_grade_trend, predict_tuition_default, get_ai_model_summary, generate_dashboard_insights, generate_ai_report, generate_predictive_analytics
 from ..auth import get_password_hash, verify_password, create_access_token, get_current_active_user
 from ..school_config import TUITION_FEES
 
@@ -19,6 +19,18 @@ aesms_router = APIRouter()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+
+def recalculate_tuition_risk(db: Session, student_id: int):
+    all_student_payments = db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == student_id).all()
+    if not all_student_payments:
+        return
+    balances = [p.amount_due for p in all_student_payments]
+    payments = [p.amount_paid for p in all_student_payments]
+    statuses = [p.status for p in all_student_payments]
+    risk_data = predict_tuition_default(balances, payments, statuses)
+    for t in all_student_payments:
+        t.risk_score = risk_data["risk_score"]
+    db.commit()
 
 # ---------------------------------------------------------------------------
 # Students
@@ -81,6 +93,43 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
     db.add(new_user)
     db.commit()
     db.refresh(db_student)
+    
+    # Auto-generate a default TuitionPayment record for the new student
+    # so they immediately reflect on the Cashier's dashboard
+    try:
+        from ..fee_structure import compute_total_fees
+        fees = compute_total_fees(db_student.grade_level, db_student.membership_type, False, False)
+        base_tuition = sum(f["amount"] for f in fees) if fees else 35000.0
+    except Exception:
+        base_tuition = 35000.0
+
+    from datetime import datetime, timedelta
+    new_tuition = models.TuitionPayment(
+        student_id=db_student.id,
+        tuition_fee=base_tuition,
+        amount_due=base_tuition,
+        amount_paid=0.0,
+        term="SY 2026-2027",
+        status="Pending",
+        risk_score=0.1
+    )
+    db.add(new_tuition)
+    db.commit()
+    
+    # Auto-assign Academic Records (Subjects) based on Grade Level
+    from ..school_config import SUBJECTS
+    student_subjects = SUBJECTS.get(db_student.grade_level, [])
+    for subject in student_subjects:
+        for term in ["Term 1", "Term 2", "Term 3"]:
+            db_record = models.AcademicRecord(
+                student_id=db_student.id,
+                subject=subject,
+                score=0.0,
+                term=term,
+                school_year="2026-2027"
+            )
+            db.add(db_record)
+    db.commit()
     
     return db_student
 
@@ -245,6 +294,9 @@ def record_tuition_payment(tuition_id: int, payment: schemas.PaymentRecordCreate
         tuition.status = "Pending"
         
     db.commit()
+    
+    recalculate_tuition_risk(db, tuition.student_id)
+    
     db.refresh(db_pay)
     return db_pay
 
@@ -426,12 +478,11 @@ def get_tuition(db: Session = Depends(get_db), current_user: models.User = Depen
     )
     if current_user.role not in ["Principal", "Teacher", "Admission", "Cashier"]:
         return base_query.filter(models.TuitionPayment.student_id == current_user.student_id).all()
-    # Only return tuitions for non-archived, enrolled students (exclude orphaned seed/mock data)
+    # Only return tuitions for non-archived students (exclude orphaned seed/mock data)
     return (
         base_query
         .join(models.Student, models.TuitionPayment.student_id == models.Student.id)
-        .filter(models.Student.is_archived == 0)
-        .filter(models.Student.enrollment_status == "Enrolled")
+        .filter(models.Student.is_archived == False)
         .all()
     )
 
@@ -439,20 +490,12 @@ def get_tuition(db: Session = Depends(get_db), current_user: models.User = Depen
 def create_tuition(tuition: schemas.TuitionPaymentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Principal", "Cashier"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
-    
-    # Recalculate risk score via ML engine
-    all_student_payments = db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == tuition.student_id).all()
-    
-    balances = [p.amount_due for p in all_student_payments] + [tuition.amount_due]
-    payments = [p.amount_paid for p in all_student_payments] + [tuition.amount_paid]
-    statuses = [p.status for p in all_student_payments] + [tuition.status]
-    
-    risk_data = predict_tuition_default(balances, payments, statuses)
-    tuition.risk_score = risk_data["risk_score"]
-    
     db_tuition = models.TuitionPayment(**tuition.model_dump())
     db.add(db_tuition)
     db.commit()
+    
+    recalculate_tuition_risk(db, tuition.student_id)
+    
     db.refresh(db_tuition)
     return db_tuition
 
@@ -469,15 +512,8 @@ def update_tuition(tuition_id: int, tuition_update: schemas.TuitionPaymentCreate
         
     db.commit()
     
-    # Update risk for all future payments
-    all_student_payments = db.query(models.TuitionPayment).filter(models.TuitionPayment.student_id == tuition.student_id).all()
-    balances = [p.amount_due for p in all_student_payments]
-    payments = [p.amount_paid for p in all_student_payments]
-    statuses = [p.status for p in all_student_payments]
-    risk_data = predict_tuition_default(balances, payments, statuses)
-    tuition.risk_score = risk_data["risk_score"]
+    recalculate_tuition_risk(db, tuition.student_id)
     
-    db.commit()
     db.refresh(tuition)
     return tuition
 
@@ -490,6 +526,11 @@ def ai_model_summary():
     """Returns a detailed summary of all AI/ML models used in the system."""
     return get_ai_model_summary()
 
+
+@aesms_router.get("/ai/predictive-analytics")
+def get_predictive_analytics(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Returns predictive analytics data for the dashboard widget."""
+    return generate_predictive_analytics(db, current_user)
 
 # ---------------------------------------------------------------------------
 # AI Report Generation (Gemini LLM — Full Narrative Reports)
@@ -878,6 +919,7 @@ def create_enrollment_form(
             last_name=payload.student_last_name.strip(),
             grade_level=payload.grade_applying_for or "Pending",
             enrollment_status="Pending Validation",
+            enrollment_type="New Student",
             gender=payload.sex,
             date_of_birth=payload.birth_date,
             address=payload.home_address,
@@ -1031,6 +1073,7 @@ def public_preregister(
         last_name=payload.student_last_name.strip(),
         grade_level=payload.grade_applying_for or "Pending",
         enrollment_status="Pre-Registered",
+        enrollment_type="New Student",
         gender=payload.sex,
         date_of_birth=payload.birth_date,
         address=payload.home_address,
@@ -1743,7 +1786,8 @@ def student_submit_enrollment(
                 last_name=payload.student_last_name.strip(),
                 grade_level=payload.grade_applying_for or "Pending",
                 contact_email=payload.contact_email,
-                enrollment_status="Pending Validation"
+                enrollment_status="Pending Validation",
+                enrollment_type="New Student"
             )
             db.add(new_student)
             db.flush()
@@ -2201,14 +2245,8 @@ def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: model
     """Get dashboard stats specifically for the Registrar."""
     all_students = db.query(models.Student).filter(models.Student.is_archived == 0).all()
     
-    # Count old vs new students (based on enrollment forms/pre-registration)
-    new_student_forms = db.query(models.EnrollmentForm).filter(
-        models.EnrollmentForm.form_type.in_(["New Student", "Online Pre-Registration", "Pre-Registration Application"])
-    ).all()
-    new_student_ids = set(f.student_id for f in new_student_forms if f.student_id)
-    
-    old_students = [s for s in all_students if s.id not in new_student_ids]
-    new_students = [s for s in all_students if s.id in new_student_ids]
+    old_students = [s for s in all_students if s.enrollment_type != "New Student"]
+    new_students = [s for s in all_students if s.enrollment_type == "New Student"]
     
     # Incomplete requirements
     incomplete = [s for s in all_students if not (s.req_birth_cert and s.req_form_138 and s.req_good_moral and s.req_pictures)]
@@ -2230,7 +2268,7 @@ def registrar_dashboard_stats(db: Session = Depends(get_db), current_user: model
 # ---------------------------------------------------------------------------
 @aesms_router.get("/registrar/teachers", response_model=List[schemas.User])
 def get_registrar_teachers(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    if current_user.role not in ["Registrar", "Superadmin"]:
+    if current_user.role not in ["Registrar", "Superadmin", "Cashier", "Principal"]:
         raise HTTPException(status_code=403, detail="Not authorized.")
     return db.query(models.User).filter(models.User.role == "Teacher").all()
 
@@ -2244,19 +2282,46 @@ def create_registrar_teacher(payload: schemas.UserCreate, db: Session = Depends(
         raise HTTPException(status_code=400, detail="Username already exists")
 
     payload.role = "Teacher"
+    
+    # Auto-populate schedule based on assigned section
+    schedule_json = getattr(payload, 'schedule', '[]')
+    if getattr(payload, 'section', None) and schedule_json == '[]':
+        section_str = payload.section
+        grade_level = section_str.split(" - ")[0].strip() if " - " in section_str else section_str
+        from ..school_config import SUBJECTS
+        teacher_subjects = SUBJECTS.get(grade_level, [])
+        if teacher_subjects:
+            import json
+            auto_schedule = [{"subject": s, "time": ""} for s in teacher_subjects]
+            schedule_json = json.dumps(auto_schedule)
+    
     db_user = models.User(
         username=payload.username,
         full_name=payload.full_name,
         role=payload.role,
         is_active=getattr(payload, 'is_active', 1),
         section=getattr(payload, 'section', None),
-        schedule=getattr(payload, 'schedule', '[]'), # Used for Subjects JSON array
+        schedule=schedule_json, # Auto-assigned or manually set
         hashed_password=get_password_hash(payload.password)
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+@aesms_router.put("/registrar/teachers/{teacher_id}/schedule", response_model=schemas.User)
+def update_teacher_schedule(teacher_id: int, payload: ScheduleUpdateRequest, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    if current_user.role not in ["Registrar", "Superadmin", "Cashier", "Principal"]:
+        raise HTTPException(status_code=403, detail="Not authorized.")
+    
+    teacher = db.query(models.User).filter(models.User.id == teacher_id, models.User.role == "Teacher").first()
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+        
+    teacher.schedule = payload.schedule
+    db.commit()
+    db.refresh(teacher)
+    return teacher
 
 # ---------------------------------------------------------------------------
 # Superadmin Security Dashboard

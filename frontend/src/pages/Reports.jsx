@@ -227,24 +227,9 @@ export default function Reports({ API, authFetch }) {
           
           <div className="bg-white dark:bg-slate-700 p-4 border dark:border-slate-600 rounded shadow-sm md:col-span-2">
             <h3 className="font-semibold text-gray-700 dark:text-gray-200 mb-3 border-b dark:border-slate-600 pb-2">Student Academics</h3>
-            <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider font-bold">Percentage of students passing in each subject (Mock Data)</p>
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-bold text-brand-700 dark:text-brand-400 mb-2">SY: 2026-2027</h4>
-                <ul className="space-y-2 pl-4 border-l-2 border-brand-200 dark:border-brand-800">
-                  <li className="text-sm"><span className="font-semibold">Math:</span> 45% Students with 96-100 grade in this quarter</li>
-                  <li className="text-sm"><span className="font-semibold">English:</span> 55% Students with 96-100 grade in this quarter</li>
-                  <li className="text-sm"><span className="font-semibold">Science:</span> 40% Students with 96-100 grade in this quarter</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-700 dark:text-slate-400 mb-2">SY: 2025-2026</h4>
-                <ul className="space-y-2 pl-4 border-l-2 border-slate-200 dark:border-slate-600">
-                  <li className="text-sm"><span className="font-semibold">Math:</span> 30% Students with 96-100 grade in this quarter</li>
-                  <li className="text-sm"><span className="font-semibold">English:</span> 35% Students with 96-100 grade in this quarter</li>
-                  <li className="text-sm"><span className="font-semibold">Science:</span> 25% Students with 96-100 grade in this quarter</li>
-                </ul>
-              </div>
+            <p className="text-xs text-slate-500 mb-4 uppercase tracking-wider font-bold">Percentage of students passing in each subject</p>
+            <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm">
+               No academic analytics data available yet.
             </div>
           </div>
         </div>

@@ -1,8 +1,42 @@
 import { useState, useEffect } from 'react';
 import AIAssistantWidget from '../components/AIAssistantWidget';
+import PredictiveAnalyticsSection from '../components/PredictiveAnalyticsSection';
+
+export const StatCard = ({ label, value, sub, icon, color }) => (
+  <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between h-full">
+    <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none`}>
+      <svg className={`w-20 h-20 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
+    </div>
+    <div className="relative z-10">
+      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{label}</p>
+      <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white break-words">{value}</h3>
+    </div>
+    <p className="text-[11px] text-slate-400 mt-2 relative z-10">{sub}</p>
+  </div>
+);
+
+export const AIAssistantSidebar = ({ label, prompts = ["Summarize data", "Show recent activity"], contextData = null }) => (
+  <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col min-h-[400px]">
+    <div className="flex items-center mb-4">
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
+        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+      </div>
+      <div>
+        <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
+        <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
+      </div>
+    </div>
+
+    <div className="flex-1 min-h-0 relative">
+      <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" prompts={prompts} contextData={contextData} />
+    </div>
+  </div>
+);
 
 export default function Dashboard({ students, warnings, attendance, forms, setActiveTab, currentRole, user, authFetch, pendingRequestsCount }) {
   const [loadingReport, setLoadingReport] = useState(false);
+  const [predictiveAnalytics, setPredictiveAnalytics] = useState(null);
+  const [predictiveLoading, setPredictiveLoading] = useState(false);
   const [tuitions, setTuitions] = useState([]);
   const [reportData, setReportData] = useState(null);
   const [mySchedule, setMySchedule] = useState([]);
@@ -117,6 +151,14 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             setStudentPopulation(data.student_population || null);
           }
         }).catch(()=>{});
+
+      setPredictiveLoading(true);
+      authFetch('/api/ai/predictive-analytics', { cache: 'no-store' })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) setPredictiveAnalytics(data);
+        })
+        .finally(() => setPredictiveLoading(false));
     }
     authFetch('/api/events/').then(r => r?.ok ? r.json() : []).then(setEvents).catch(()=>{});
     authFetch('/api/announcements/').then(r => r?.ok ? r.json() : []).then(setAnnouncements).catch(()=>{});
@@ -254,18 +296,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
 
 
 
-  const StatCard = ({ label, value, sub, icon, color }) => (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between h-full">
-      <div className={`absolute top-0 right-0 p-5 opacity-[0.03] group-hover:opacity-[0.07] transition-opacity pointer-events-none`}>
-        <svg className={`w-20 h-20 ${color}`} fill="currentColor" viewBox="0 0 20 20"><path d={icon} /></svg>
-      </div>
-      <div className="relative z-10">
-        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-wider">{label}</p>
-        <h3 className="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white break-words">{value}</h3>
-      </div>
-      <p className="text-[11px] text-slate-400 mt-2 relative z-10">{sub}</p>
-    </div>
-  );
+
 
   // Helper components to avoid repetition
   const RenderGeminiInsights = () => (
@@ -373,23 +404,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     </div>
   );
 
-  const AIAssistantSidebar = ({ label, prompts = ["Summarize data", "Show recent activity"], contextData = null }) => (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 h-full flex flex-col min-h-[400px]">
-      <div className="flex items-center mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mr-3 shadow-lg">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-        </div>
-        <div>
-          <h3 className="text-lg font-black font-cinzel text-slate-800 dark:text-white tracking-wider">AI Assistant</h3>
-          <p className="text-[10px] font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-widest">Powered by Gemini</p>
-        </div>
-      </div>
 
-      <div className="flex-1 min-h-0 relative">
-        <AIAssistantWidget API_URL={window.location.origin + '/api'} token={localStorage.getItem('token')} mode="embedded" prompts={prompts} contextData={contextData} />
-      </div>
-    </div>
-  );
 
   const RenderModals = () => (
     <>
@@ -592,6 +607,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             )}
             {RenderEventsAndAnnouncements()}
             <RenderGeminiInsights />
+            <PredictiveAnalyticsSection analyticsData={predictiveAnalytics} loading={predictiveLoading} />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar 
@@ -624,6 +640,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <StatCard label="Rejected Students" value={rejectedCount} sub="Applications denied" color="text-red-500" icon="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </div>
             <RenderGeminiInsights />
+            <PredictiveAnalyticsSection analyticsData={predictiveAnalytics} loading={predictiveLoading} />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar 
@@ -660,6 +677,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               </div>
             )}
             <RenderGeminiInsights />
+            <PredictiveAnalyticsSection analyticsData={predictiveAnalytics} loading={predictiveLoading} />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar label="Principal" contextData={{ reportData, pendingRequestsCount }} />
@@ -759,6 +777,21 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
     const tPaid = tuitions.reduce((s,t) => s + t.amount_paid, 0);
     const tBal = tDue - tPaid;
     const oCount = tuitions.filter(t => t.status === 'Overdue').length;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayCollected = tuitions.reduce((sum, t) => {
+      if (!t.payments) return sum;
+      return sum + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).reduce((s, p) => s + (p.amount || 0), 0);
+    }, 0);
+    const todayTxCount = tuitions.reduce((count, t) => {
+      if (!t.payments) return count;
+      return count + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).length;
+    }, 0);
+    const overdueTotal = tuitions.filter(t => t.status === 'Overdue').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
+    const overdueStudents = tuitions.filter(t => t.status === 'Overdue').length;
+    const pendingRevenue = tuitions.filter(t => t.status !== 'Paid').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
+    const pendingStudents = tuitions.filter(t => t.status !== 'Paid').length;
+
     return (
       <div className="space-y-6">
         {user?.role === 'Principal' && (
@@ -776,21 +809,6 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
               <StatCard label="Deficit Balance" value={`₱${tBal.toLocaleString()}`} sub="Active remaining" color="text-amber-500" icon="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               <StatCard label="Alert Triggers" value={oCount} sub="Overdue accounts" color="text-red-500" icon="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </div>
-            {(() => {
-              const today = new Date().toISOString().slice(0, 10);
-              const todayCollected = tuitions.reduce((sum, t) => {
-                if (!t.payments) return sum;
-                return sum + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).reduce((s, p) => s + (p.amount || 0), 0);
-              }, 0);
-              const todayTxCount = tuitions.reduce((count, t) => {
-                if (!t.payments) return count;
-                return count + t.payments.filter(p => p.date_recorded && p.date_recorded.slice(0, 10) === today).length;
-              }, 0);
-              const overdueTotal = tuitions.filter(t => t.status === 'Overdue').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
-              const overdueStudents = tuitions.filter(t => t.status === 'Overdue').length;
-              const pendingRevenue = tuitions.filter(t => t.status !== 'Paid').reduce((s, t) => s + (t.amount_due - t.amount_paid), 0);
-              const pendingStudents = tuitions.filter(t => t.status !== 'Paid').length;
-              return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="bg-brand-50 border border-brand-100 rounded-xl p-5 shadow-sm dark:bg-brand-900/20 dark:border-brand-800">
                     <h4 className="font-bold text-brand-800 dark:text-brand-300 mb-1">Real-time Collections</h4>
@@ -808,14 +826,20 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
                     <p className="text-xs text-green-600 dark:text-green-400 mt-1">{pendingStudents} active account{pendingStudents !== 1 ? 's' : ''} with remaining balance</p>
                   </div>
                 </div>
-              );
-            })()}
+            
+            {/* Predictive Analytics for Cashier */}
+            <PredictiveAnalyticsSection analyticsData={predictiveAnalytics} loading={predictiveLoading} />
+            
             {RenderEventsAndAnnouncements()}
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar 
               label="Finance & Cashier" 
               prompts={["Outstanding balances", "Today's collection", "Generate payment report"]}
+              contextData={{ 
+                todayCollected, todayTxCount, overdueTotal, overdueStudents, 
+                pendingRevenue, pendingStudents, totalDue: tDue, totalPaid: tPaid 
+              }}
             />
           </div>
         </div>
@@ -912,6 +936,7 @@ export default function Dashboard({ students, warnings, attendance, forms, setAc
             </div>
 
             <RenderGeminiInsights />
+            <PredictiveAnalyticsSection analyticsData={predictiveAnalytics} loading={predictiveLoading} />
           </div>
           <div className="lg:col-span-1">
             <AIAssistantSidebar label="Teacher/Adviser" />

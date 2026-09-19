@@ -17,6 +17,9 @@ _is_sqlite = SQLALCHEMY_DATABASE_URL.startswith("sqlite")
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    pool_size=50,
+    max_overflow=50,
+    pool_timeout=60,
     **({"connect_args": {"check_same_thread": False}} if _is_sqlite else {})
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

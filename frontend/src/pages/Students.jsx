@@ -181,8 +181,8 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
 
   const graphData = GRADES.map(grade => {
     const gradeStudents = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
-    const oldStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled').length;
-    const newStudents = gradeStudents.length - oldStudents;
+    const oldStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled' && s.enrollment_type === 'Old Student').length;
+    const newStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled' && s.enrollment_type === 'New Student').length;
     return { name: grade, 'Old Students': oldStudents, 'New Students': newStudents };
   });
 
@@ -197,7 +197,7 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
               <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">STUDENT STATUS</th>
               <th className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">DATE SUBMITTED</th>
               {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
-                <th className="px-6 py-4 text-right border-b border-slate-200 dark:border-slate-700">ACTIONS</th>
+                <th className="px-6 py-4 text-right border-b border-slate-200 dark:border-slate-700 print:hidden">ACTIONS</th>
               )}
             </tr>
           </thead>
@@ -210,13 +210,13 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
                   <div className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-0.5">{s.grade_level} {s.section || ''}</div>
                 </td>
                 <td className="px-6 py-4 text-sm">
-                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{s.enrollment_status === 'Enrolled' ? 'Old Student' : 'New Student'}</span>
+                  <span className="text-slate-700 dark:text-slate-300 font-semibold">{s.enrollment_type || 'New Student'}</span>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">
                    {new Date().toLocaleDateString('en-US', { year:'numeric', month:'2-digit', day:'2-digit'})}
                 </td>
                 {['Teacher', 'Registrar', 'Admission', 'Principal', 'Cashier'].includes(currentRole) && (
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-4 text-right print:hidden">
                     <div className="flex flex-col sm:flex-row gap-2 justify-end">
                       <button type="button" onClick={() => { handleView(s.id); setShowStudentModal(true); setActiveModalTab(null); }} className="text-xs font-bold bg-slate-100 dark:bg-slate-700 hover:bg-brand-500 hover:text-white px-4 py-2 rounded-lg text-brand-700 dark:text-brand-300 transition-colors w-full sm:w-auto">View</button>
                       {['Registrar', 'Principal'].includes(currentRole) && (
@@ -302,6 +302,15 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
                 );
               })}
             </div>
+
+            {currentRole === 'Registrar' && (
+              <div className="mt-8 flex justify-end print:hidden">
+                <button onClick={() => setShowEndYearConfirm(true)} className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-8 py-3 rounded-xl uppercase tracking-wider transition-transform hover:scale-105 shadow-md flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  End School Year
+                </button>
+              </div>
+            )}
           </div>
         </div>
         )
@@ -619,9 +628,6 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
               <div className="p-6 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 mt-auto">
                 <div className="flex gap-3 w-full justify-center">
 
-                {currentRole === 'Registrar' && (
-                  <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setShowEndYearConfirm(true); }} className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-[11px] px-5 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">End School Year</button>
-                )}
                 {['Registrar', 'Principal'].includes(currentRole) && (
                   <>
                     <button onClick={() => { setShowStudentModal(false); setActiveModalTab(null); setEditingStudent(selectedStudent); setShowEdit(true); }} className="bg-brand-800 hover:bg-brand-900 text-white font-bold text-[11px] px-8 py-2.5 rounded-full uppercase tracking-wider transition-transform hover:scale-105 shadow-sm">Edit</button>

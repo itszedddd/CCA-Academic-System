@@ -15,6 +15,7 @@ class Student(Base):
     contact_email = Column(String, nullable=True)    # Parent/Guardian email
     profile_image = Column(String, nullable=True)    # External URL mapping
     enrollment_status = Column(String, default="Pending")  # Enrolled, Pending, Dropped, Hold: Incomplete Req
+    enrollment_type = Column(String, default="Old Student") # Old Student, New Student
     membership_type = Column(String, default="Non-Member") # CBC Member, Non-Member
     is_archived = Column(Integer, default=0) # 0 for false, 1 for true
     

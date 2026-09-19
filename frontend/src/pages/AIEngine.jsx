@@ -7,7 +7,7 @@ export default function AIEngine({ authFetch, API, currentRole }) {
 
   useEffect(() => {
     // We can fetch this directly since we made it public, but using authFetch works too
-    authFetch(`${API}/ai/model_summary`)
+    authFetch(`${API}/ai/model_summary`, { cache: 'no-store' })
       .then(res => {
         if (!res?.ok) throw new Error('Failed to fetch AI diagnostics');
         return res.json();

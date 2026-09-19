@@ -40,6 +40,7 @@ class StudentBase(BaseModel):
     contact_number: Optional[str] = None
     profile_image: Optional[str] = None
     enrollment_status: Optional[str] = "Pending"
+    enrollment_type: Optional[str] = "Old Student"
     req_birth_cert: Optional[int] = 0
     req_form_138: Optional[int] = 0
     req_good_moral: Optional[int] = 0

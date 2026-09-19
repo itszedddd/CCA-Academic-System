@@ -37,7 +37,7 @@ def _auto_seed():
         print(f"[CCA] Auto-seed skipped or failed: {e}")
         db.close()
 
-_auto_seed()
+# _auto_seed()
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
 

@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react';
 
 export default function FacultyMembers({ API, token, currentRole, setActiveTab, authFetch }) {
   const [teachers, setTeachers] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [editSubjectsMode, setEditSubjectsMode] = useState(false);
+  const [tempSubjects, setTempSubjects] = useState([]);
   
   const [form, setForm] = useState({
     username: '',
@@ -32,8 +35,42 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
   ];
 
   useEffect(() => {
-    if (currentRole === 'Registrar') fetchTeachers();
+    if (['Registrar', 'Cashier', 'Principal', 'Superadmin'].includes(currentRole)) {
+      fetchTeachers();
+      fetchStudents();
+    }
   }, [currentRole]);
+
+  const fetchStudents = async () => {
+    try {
+      const res = await authFetch(`${API}/students/`);
+      if (res.ok) {
+        const data = await res.json();
+        setStudents(data);
+      }
+    } catch (e) {
+      console.error("Error fetching students:", e);
+    }
+  };
+
+  const handleSaveSubjects = async () => {
+    try {
+      const res = await authFetch(`${API}/registrar/teachers/${selectedTeacher.id}/schedule`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schedule: JSON.stringify(tempSubjects) })
+      });
+      if (res.ok) {
+        setEditSubjectsMode(false);
+        fetchTeachers();
+        setSelectedTeacher({ ...selectedTeacher, schedule: JSON.stringify(tempSubjects) });
+      } else {
+        alert("Failed to update subjects");
+      }
+    } catch (e) {
+      alert("Error updating subjects");
+    }
+  };
 
   const fetchTeachers = async () => {
     setLoading(true);
@@ -91,6 +128,20 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
     section.includes("Grade 7") || section.includes("Grade 8") || section.includes("Grade 9") || section.includes("Grade 10") || section.includes("High School") ||
     section.includes("Meekness") || section.includes("Courage") || section.includes("Benevolence") || section.includes("Perseverance")
   );
+
+  const getFullSectionName = (sec) => {
+    if (!sec) return '';
+    const match = predefinedSections.find(p => p.includes(sec));
+    return match || sec;
+  };
+
+  const getGradeLevel = (sec) => {
+    const full = getFullSectionName(sec);
+    if (full.includes(' - ')) {
+      return full.split(' - ')[0];
+    }
+    return '';
+  };
   
   const kinderTeachers = teachers.filter(t => isKinder(t.section));
   const highSchoolTeachers = teachers.filter(t => isHighSchool(t.section));
@@ -129,10 +180,17 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
             <svg className="w-10 h-10 text-slate-400 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
           )}
         </div>
-        <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-white text-center transition-colors">{t.full_name || t.username}</h4>
+        <h4 className="font-bold text-slate-800 dark:text-white group-hover:text-white text-center transition-colors">
+          {t.full_name || t.username}
+          {t.section && getGradeLevel(t.section) && (
+            <span className="ml-1.5 text-xs text-slate-400 font-normal">
+              ({getGradeLevel(t.section)})
+            </span>
+          )}
+        </h4>
         {t.section && (
           <p className="text-xs text-brand-600 dark:text-brand-400 group-hover:text-white/80 transition-colors mt-1">
-            {t.section} Adviser
+            {t.section.includes('-') ? t.section.split('-')[1].trim() : t.section} Adviser
           </p>
         )}
         <div className="mt-3 flex flex-wrap justify-center gap-1">
@@ -259,7 +317,7 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
           <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
             <div className="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-[#022868]">
               <h3 className="font-bold text-lg text-white uppercase tracking-wider font-cinzel">Teacher Profile</h3>
-              <button onClick={() => setSelectedTeacher(null)} className="text-white/70 hover:text-white"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              <button onClick={() => { setSelectedTeacher(null); setEditSubjectsMode(false); }} className="text-white/70 hover:text-white"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             <div className="p-6">
               <div className="flex items-center space-x-4 mb-6">
@@ -271,7 +329,14 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
                   )}
                 </div>
                 <div>
-                  <h4 className="font-bold text-xl text-slate-800 dark:text-white">{selectedTeacher.full_name || selectedTeacher.username}</h4>
+                  <h4 className="font-bold text-xl text-slate-800 dark:text-white">
+                    {selectedTeacher.full_name || selectedTeacher.username}
+                    {selectedTeacher.section && getGradeLevel(selectedTeacher.section) && (
+                      <span className="ml-2 text-sm text-slate-400 font-normal">
+                        ({getGradeLevel(selectedTeacher.section)})
+                      </span>
+                    )}
+                  </h4>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{isHighSchool(selectedTeacher.section) ? 'Junior High School' : isKinder(selectedTeacher.section) ? 'Kindergarten' : 'Elementary'} Department</p>
                 </div>
               </div>
@@ -279,33 +344,72 @@ export default function FacultyMembers({ API, token, currentRole, setActiveTab, 
               <div className="space-y-4">
                 <div>
                   <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Advisory Class</h5>
-                  <p className="text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-700 p-2 rounded-lg">{selectedTeacher.section || 'None'}</p>
+                  <p className="text-sm text-slate-800 dark:text-white bg-slate-50 dark:bg-slate-700 p-2 rounded-lg">{getFullSectionName(selectedTeacher.section) || 'None'}</p>
                 </div>
                 <div>
-                  <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assigned Subjects</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {parseSubjects(selectedTeacher.schedule).length > 0 ? (
-                      parseSubjects(selectedTeacher.schedule).map((s, idx) => (
-                        <span key={idx} className="px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 text-xs rounded-md font-medium">
-                          {s}
-                        </span>
-                      ))
-                    ) : (
-                      <p className="text-sm text-slate-400">No subjects assigned</p>
-                    )}
+                  <div className="flex justify-between items-center mb-1">
+                    <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Assigned Subjects</h5>
+                    <button onClick={() => {
+                      if (editSubjectsMode) {
+                        handleSaveSubjects();
+                      } else {
+                        setTempSubjects(parseSubjects(selectedTeacher.schedule));
+                        setEditSubjectsMode(true);
+                      }
+                    }} className="text-xs text-brand-600 hover:text-brand-800 font-bold">
+                      {editSubjectsMode ? 'Save' : 'Edit'}
+                    </button>
                   </div>
+                  {editSubjectsMode ? (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {availableSubjects.map(subj => (
+                        <label key={subj} className={`px-2 py-1 rounded-md text-xs font-bold cursor-pointer transition-colors border ${tempSubjects.includes(subj) ? 'bg-[#022868] text-white border-[#022868]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300'}`}>
+                          <input type="checkbox" className="hidden" checked={tempSubjects.includes(subj)} onChange={() => {
+                            if (tempSubjects.includes(subj)) {
+                              setTempSubjects(tempSubjects.filter(s => s !== subj));
+                            } else {
+                              setTempSubjects([...tempSubjects, subj]);
+                            }
+                          }} />
+                          {subj}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {parseSubjects(selectedTeacher.schedule).length > 0 ? (
+                        parseSubjects(selectedTeacher.schedule).map((s, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300 text-xs rounded-md font-medium">
+                            {s}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm text-slate-400">No subjects assigned</p>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Attendance Tracking</h5>
-                  <div className="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-lg border border-emerald-100 dark:border-emerald-800/30 flex justify-between items-center">
-                    <span className="text-sm font-medium text-emerald-800 dark:text-emerald-400">Current Status</span>
-                    <span className="px-2 py-1 bg-emerald-500 text-white text-[10px] font-bold uppercase rounded-full tracking-wider">Present</span>
+                  <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Students Handled</h5>
+                  <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-800/50 max-h-40 overflow-y-auto">
+                    {students.filter(s => selectedTeacher.section && s.section && (s.section === selectedTeacher.section || s.section.includes(selectedTeacher.section) || selectedTeacher.section.includes(s.section))).length > 0 ? (
+                      <ul className="space-y-1">
+                        {students.filter(s => selectedTeacher.section && s.section && (s.section === selectedTeacher.section || s.section.includes(selectedTeacher.section) || selectedTeacher.section.includes(s.section))).map(student => (
+                          <li key={student.id} className="text-sm text-slate-700 dark:text-slate-300 flex justify-between items-center">
+                            <span>{student.first_name} {student.last_name}</span>
+                            <span className="text-xs text-slate-400 font-mono">{student.student_id}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-slate-400 text-center py-2">No students handled currently</p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
             <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex justify-end">
-              <button onClick={() => setSelectedTeacher(null)} className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-bold">Close</button>
+              <button onClick={() => { setSelectedTeacher(null); setEditSubjectsMode(false); }} className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-white rounded-lg text-sm font-bold">Close</button>
             </div>
           </div>
         </div>

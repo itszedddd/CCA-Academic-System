@@ -1,6 +1,6 @@
 import os
 from google import genai
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Configure Gemini using the new google-genai SDK
 api_key = os.environ.get("GEMINI_API_KEY")
@@ -27,17 +27,28 @@ Available Features:
 Guidelines:
 1. Be polite, helpful, and kind.
 2. IMPORTANT: Always reply in simple, easy-to-understand English. Your audience includes staff, teachers, and parents, so keep a warm, respectful tone. Avoid corporate jargon or complex terms.
-3. Keep it conversational. If a user asks for a summary or data that you don't have access to in your context, DO NOT generate a template with placeholders like "[System Count]". Instead, politely explain that you don't have direct access to the database numbers right now, and gently guide them to check the dashboard or the specific page for that information.
-4. If asked about fees, briefly mention that rates depend on Grade Level and Membership Type (CBC Member vs Non-Member).
-5. If asked about enrollment, politely guide them to the Digital Forms or Enrollment section.
-6. Keep responses concise, clear, and easy to read. Do not hallucinate URLs that don't exist.
-7. If you do not know the answer, politely advise them to ask the Registrar or Principal's office.
-8. Format your responses clearly. Use bullet points when helpful, but keep it simple.
+3. You have REAL-TIME ACCESS to the school database. When a user asks about student counts, enrollment numbers, grades, attendance, tuition, or any school data, use the LIVE SCHOOL DATA section below to answer with actual numbers. Do NOT say you don't have access — you DO.
+4. When asked to generate a report or summary, create a clear, well-formatted report using the live data provided. Use bullet points, tables, and sections to organize the information.
+5. If asked about fees, briefly mention that rates depend on Grade Level and Membership Type (CBC Member vs Non-Member). Use the actual tuition data if available.
+6. If asked about enrollment, use the real enrollment numbers from the data, and also mention they can go to the Digital Forms or Enrollment section for actions.
+7. Keep responses concise, clear, and easy to read. Do not hallucinate URLs that don't exist.
+8. If the data doesn't contain information for a specific question, politely say the data isn't available for that specific query and advise them to ask the Registrar or Principal's office.
+9. Format your responses clearly. Use bullet points when helpful, but keep it simple.
+10. When presenting peso amounts, format them with the ₱ symbol and comma separators (e.g., ₱50,000.00).
+11. When presenting percentages, round to one decimal place.
 """
 
 
-def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, Any] = None, model: str = "gemini-3.5-flash-lite") -> str:
-    """Sends a message to the AI assistant and returns the response."""
+def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, Any] = None, model: str = "gemini-3.5-flash-lite", db_snapshot: Optional[str] = None) -> str:
+    """Sends a message to the AI assistant and returns the response.
+    
+    Args:
+        message: The user's chat message
+        user_role: The role of the current user (Principal, Teacher, etc.)
+        user_context: Optional additional context from the frontend page
+        model: The Gemini model to use
+        db_snapshot: A pre-built text summary of live school database data
+    """
     
     if not client:
         return "I am currently running in offline mode. Please contact the administrator to enable AI features by configuring the GEMINI_API_KEY environment variable."
@@ -46,9 +57,14 @@ def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, An
         # Build context for the AI
         context_str = f"User Role: {user_role}\n"
         if user_context:
-            context_str += f"Context: {user_context}\n"
+            context_str += f"Page Context: {user_context}\n"
+        
+        # Inject the live database snapshot
+        data_section = ""
+        if db_snapshot:
+            data_section = f"\n=== LIVE SCHOOL DATA (Real-Time from Database) ===\n{db_snapshot}\n=== END OF LIVE DATA ===\n"
             
-        full_prompt = f"{SYSTEM_PROMPT}\n\n{context_str}\nUser: {message}\nAssistant:"
+        full_prompt = f"{SYSTEM_PROMPT}\n\n{context_str}{data_section}\nUser: {message}\nAssistant:"
         
         response = client.models.generate_content(
             model=model,

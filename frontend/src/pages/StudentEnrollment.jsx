@@ -293,7 +293,7 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                     Enrollment Details
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <SelectField label="Course / Track" field="course" required options={['Basic Education', 'JHS', 'SHS - STEM', 'SHS - ABM', 'SHS - HUMSS']} formData={formData} setFormData={setFormData} />
+                    <SelectField label="Course / Track" field="course" required options={['Basic Education', 'JHS']} formData={formData} setFormData={setFormData} />
                     <SelectField label="Term / School Year" field="term" required options={['Full Year', 'Term 1', 'Term 2', 'Term 3']} formData={formData} setFormData={setFormData} />
                     <SelectField label="Grade Level" field="grade_applying_for" required options={gradeOptions} formData={formData} setFormData={setFormData} />
                     <SelectField label="Payment Term" field="payment_term" required options={['Full Payment', 'Semi-Annual', 'Quarterly', 'Monthly']} formData={formData} setFormData={setFormData} />

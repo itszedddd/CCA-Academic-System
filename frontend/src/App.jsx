@@ -196,7 +196,11 @@ export default function App() {
     ) : [],
   };
 
-  const sharedProps = { API, students, isStudentsLoading, fetchStudents, warnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery, fetchRequestsCount, pendingRequestsCount };
+  const filteredStudents = currentRole === 'Teacher' ? students.filter(s => s.section === user?.section) : students;
+  const filteredWarnings = currentRole === 'Teacher' ? warnings.filter(w => filteredStudents.some(s => s.id === w.student_id)) : warnings;
+
+  const sharedProps = { API, students: filteredStudents, isStudentsLoading, fetchStudents, warnings: filteredWarnings, fetchWarnings, attendance, fetchAttendance, forms, fetchForms, uploading, fileInputRef, handleFileUpload, currentRole, token, authFetch, user, handleLogout, searchQuery, setSearchQuery, fetchRequestsCount, pendingRequestsCount };
+
 
   if (isAuthLoading) return <div className={`min-h-screen flex items-center justify-center ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`}>Loading...</div>;
   if (isPreRegistrationMode) return <PreRegistrationPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} onNavigateHome={() => setIsPreRegistrationMode(false)} />;
@@ -226,7 +230,7 @@ export default function App() {
             setIsDarkMode={setIsDarkMode}
             isAccessibleMode={isAccessibleMode}
             setIsAccessibleMode={setIsAccessibleMode}
-            warnings={warnings}
+            warnings={filteredWarnings}
             showNotifications={showNotifications}
             setShowNotifications={setShowNotifications}
             setActiveTab={(tab) => {

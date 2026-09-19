@@ -105,7 +105,22 @@ export default function TuitionML({ currentRole, authFetch }) {
       {viewMode === 'Sections' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {(() => {
+            const allSections = [
+              "Kindergarten Kindness",
+              "Grade 1 Love",
+              "Grade 2 Joyful",
+              "Grade 3 Faith",
+              "Grade 4 Grace",
+              "Grade 5 Loyalty",
+              "Grade 6 Obedience",
+              "Grade 7 Meekness",
+              "Grade 8 Courage",
+              "Grade 9 Benevolence",
+              "Grade 10 Perseverance"
+            ];
             const sections = new Map();
+            allSections.forEach(sec => sections.set(sec, 0));
+
             students.forEach(s => {
               if (s.enrollment_status === 'Enrolled' && s.grade_level) {
                 const key = `${s.grade_level} ${s.section || ''}`.trim();
@@ -392,8 +407,7 @@ export default function TuitionML({ currentRole, authFetch }) {
                      }
                    }} className="px-4 py-2 bg-brand-600 text-white text-sm font-bold rounded-md hover:bg-brand-700 transition">Save Payment & Record O.R.</button>
                  </div>
-                 
-                 {/* Transaction History Log inside modal */}
+                             {/* Transaction History Log inside modal */}
                  {editingTuition.payments && editingTuition.payments.length > 0 && (
                    <div className="mt-4 pt-3 border-t border-brand-200/50 dark:border-brand-800/50">
                      <h4 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Transaction Log</h4>
@@ -412,16 +426,8 @@ export default function TuitionML({ currentRole, authFetch }) {
                  )}
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Status Pipeline</label>
-                <select className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-brand-500 font-bold" value={editingTuition.status} onChange={e => setEditingTuition({...editingTuition, status:e.target.value})}>
-                  {['Paid','Pending','Overdue'].map(s => <option key={s}>{s}</option>)}
-                </select>
-              </div>
-              
               <div className="flex justify-end space-x-3 pt-4">
-                <button type="button" onClick={() => setEditingTuition(null)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition">Cancel</button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow transition">Commit Update</button>
+                <button type="button" onClick={() => setEditingTuition(null)} className="px-4 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition">Close</button>
               </div>
             </form>
           </div>
