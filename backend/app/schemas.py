@@ -441,6 +441,8 @@ class StudentEnrollmentSubmit(BaseModel):
     student_first_name: str
     student_last_name: str
     grade_applying_for: Optional[str] = None
+    form_type: Optional[str] = None
+    remarks: Optional[str] = None
 
     # Student info
     sex: Optional[str] = None
@@ -518,6 +520,23 @@ class StudentHistory(StudentHistoryBase):
     id: int
     date_recorded: str
     recorded_by: Optional[int] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ---------------------------------------------------------------------------
+# System Settings
+# ---------------------------------------------------------------------------
+class SystemSettingsBase(BaseModel):
+    key: str
+    value: str
+
+class SystemSettingsCreate(SystemSettingsBase):
+    pass
+
+class SystemSettings(SystemSettingsBase):
+    id: int
 
     class Config:
         from_attributes = True

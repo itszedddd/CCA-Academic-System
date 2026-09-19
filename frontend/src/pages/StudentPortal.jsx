@@ -359,6 +359,53 @@ export default function StudentPortal({ students, attendance, currentRole, user,
                         </span>
                       </td>
                     </tr>
+                    <tr className="bg-slate-50/30 dark:bg-slate-900/10">
+                      <td colSpan="5" className="px-6 py-4 border-t border-slate-100 dark:border-slate-800">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center">
+                          <svg className="w-3 h-3 mr-1 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                          Fee Breakdown
+                        </div>
+                        {(() => {
+                          const amt = t.amount_paid || 0;
+                          const reg = t.reg_fee || 0;
+                          const bks = t.books_fee || 0;
+                          const nrg = t.energy_fee || 0;
+                          const tui = t.tuition_fee || 0;
+                          const CheckIcon = () => <svg className="w-3 h-3 text-green-500 inline ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>;
+                          
+                          return (
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700 mt-2">
+                              <ul className="space-y-1.5 ml-2">
+                                <li className="flex items-center text-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-400 mr-2"></span>
+                                  <span className="w-32 font-medium text-slate-600 dark:text-slate-400">Registration:</span>
+                                  <span className="font-black text-slate-700 dark:text-slate-300">₱{reg.toLocaleString()}</span>
+                                  {amt >= reg && <CheckIcon/>}
+                                </li>
+                                <li className="flex items-center text-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-400 mr-2"></span>
+                                  <span className="w-32 font-medium text-slate-600 dark:text-slate-400">Books/Modules:</span>
+                                  <span className="font-black text-slate-700 dark:text-slate-300">₱{bks.toLocaleString()}</span>
+                                  {amt >= reg + bks && <CheckIcon/>}
+                                </li>
+                                <li className="flex items-center text-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-400 mr-2"></span>
+                                  <span className="w-32 font-medium text-slate-600 dark:text-slate-400">Energy:</span>
+                                  <span className="font-black text-slate-700 dark:text-slate-300">₱{nrg.toLocaleString()}</span>
+                                  {amt >= reg + bks + nrg && <CheckIcon/>}
+                                </li>
+                                <li className="flex items-center text-sm">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-brand-400 mr-2"></span>
+                                  <span className="w-32 font-medium text-slate-600 dark:text-slate-400">Tuition:</span>
+                                  <span className="font-black text-slate-700 dark:text-slate-300">₱{tui.toLocaleString()}</span>
+                                  {amt >= reg + bks + nrg + tui && <CheckIcon/>}
+                                </li>
+                              </ul>
+                            </div>
+                          );
+                        })()}
+                      </td>
+                    </tr>
                     {t.payments && t.payments.length > 0 && (
                       <tr className="bg-slate-50/50 dark:bg-slate-900/20">
                         <td colSpan="5" className="px-6 py-4 border-t border-slate-100 dark:border-slate-800">

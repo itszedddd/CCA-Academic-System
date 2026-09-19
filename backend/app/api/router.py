@@ -217,6 +217,41 @@ async def upload_student_image(
 
 
 # ---------------------------------------------------------------------------
+# System Settings
+# ---------------------------------------------------------------------------
+
+@aesms_router.get("/settings/{key}", response_model=schemas.SystemSettings)
+def get_setting(key: str, db: Session = Depends(get_db)):
+    setting = db.query(models.SystemSettings).filter(models.SystemSettings.key == key).first()
+    if not setting:
+        # Default for enrollment_open if not found
+        if key == "enrollment_open":
+            return models.SystemSettings(id=0, key="enrollment_open", value="true")
+        raise HTTPException(status_code=404, detail="Setting not found")
+    return setting
+
+@aesms_router.put("/settings/{key}", response_model=schemas.SystemSettings)
+def update_setting(
+    key: str, 
+    payload: schemas.SystemSettingsBase, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(get_current_active_user)
+):
+    if current_user.role not in ["Superadmin", "Registrar"]:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+    
+    setting = db.query(models.SystemSettings).filter(models.SystemSettings.key == key).first()
+    if not setting:
+        setting = models.SystemSettings(key=key, value=payload.value)
+        db.add(setting)
+    else:
+        setting.value = payload.value
+    db.commit()
+    db.refresh(setting)
+    return setting
+
+
+# ---------------------------------------------------------------------------
 # Academic Records
 # ---------------------------------------------------------------------------
 
@@ -975,33 +1010,6 @@ def get_my_forms(db: Session = Depends(get_db), current_user: models.User = Depe
         return []
     return db.query(models.EnrollmentForm).filter(models.EnrollmentForm.student_id == current_user.student_id).order_by(models.EnrollmentForm.id.desc()).all()
 
-@aesms_router.post("/enrollment_forms/student-submit", response_model=schemas.EnrollmentForm)
-def student_submit_form(payload: schemas.PublicEnrollmentSubmit, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    """Submit an enrollment form for the currently logged in student."""
-    if current_user.role not in ["Student", "Parent"]:
-        raise HTTPException(status_code=403, detail="Only students or parents can submit via this endpoint")
-    if not current_user.student_id:
-        raise HTTPException(status_code=400, detail="User account is not linked to a student record")
-    
-    # Update student status to pre-registered if they were just pending
-    student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
-    if student and student.enrollment_status == "Pending":
-        student.enrollment_status = "Pre-Registered"
-        
-    db_form = models.EnrollmentForm(
-        date_submitted=datetime.utcnow().isoformat(),
-        student_id=current_user.student_id,
-        form_type="Online Enrollment",
-        status="Needs Review",
-        assessment_status="Pending",
-        interview_status="Pending",
-        **payload.model_dump()
-    )
-    db.add(db_form)
-    db.commit()
-    db.refresh(db_form)
-    return db_form
-
 
 @aesms_router.post("/enrollment_forms/{form_id}/upload_document")
 async def upload_enrollment_document(
@@ -1148,6 +1156,7 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     from ..school_config import SECTIONS, TUITION_FEES
+    from ..fee_structure import get_tuition_yearly, get_energy_fee, BOOKS_PRICES
     
     # Generate GRADE_SECTION_MAP from SECTIONS in config
     GRADE_SECTION_MAP = {grade: info["name"] for grade, info in SECTIONS.items()}
@@ -1185,8 +1194,24 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
 
                 if payload.status == "Success":
                     student.enrollment_status = "Enrolled"
+                    # Archive transition if old student
+                    old_grade = student.grade_level
+                    grade = form.grade_applying_for or ''
+                    
+                    if old_grade and old_grade != grade and old_grade != 'Pending':
+                        history_log = models.StudentHistory(
+                            student_id=student.id,
+                            action="Grade Level Transition",
+                            description=f"Promoted/Transitioned from {old_grade} to {grade} for SY 2026-2027.",
+                            date_recorded=datetime.utcnow().isoformat(),
+                            recorded_by=current_user.id
+                        )
+                        db.add(history_log)
+                        
+                    student.grade_level = grade
+                    student.school_year = "2026-2027"
+
                     # Auto-assign section based on grade level
-                    grade = student.grade_level or (form.grade_applying_for or '')
                     if grade in GRADE_SECTION_MAP:
                         student.section = GRADE_SECTION_MAP[grade]
                         
@@ -1199,20 +1224,27 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
                         ).first()
                         
                         if not existing_tuition:
-                            base_tuition = TUITION_FEES[grade]
+                            membership = student.membership_type or "Non-Member"
+                            reg_fee = 5700.0
+                            tuition_fee = float(get_tuition_yearly(grade, membership))
+                            energy_fee = float(get_energy_fee(grade))
+                            books_fee = float(BOOKS_PRICES.get(grade, 8500.0))
+                            
+                            total_due = reg_fee + tuition_fee + energy_fee + books_fee
+                            
                             new_tuition = models.TuitionPayment(
                                 student_id=student.id,
-                                tuition_fee=base_tuition,
-                                reg_fee=0.0,
-                                energy_fee=0.0,
-                                books_fee=0.0,
+                                reg_fee=reg_fee,
+                                tuition_fee=tuition_fee,
+                                energy_fee=energy_fee,
+                                books_fee=books_fee,
                                 esc_subsidy=0.0,
                                 discount=0.0,
-                                amount_due=base_tuition,
+                                amount_due=total_due,
                                 amount_paid=0.0,
                                 term="SY 2026-2027",
                                 status="Pending",
-                                risk_score=0.0
+                                risk_score=0.1
                             )
                             db.add(new_tuition)
                             
@@ -1793,35 +1825,24 @@ def student_submit_enrollment(
             db.flush()
             student_id = new_student.id
 
+
+    if current_user.student_id:
+        student = db.query(models.Student).filter(models.Student.id == current_user.student_id).first()
+        if student and student.enrollment_status == "Pending":
+            student.enrollment_status = "Pre-Registered"
+            
+    # Extract payload to dictionary, excluding fields not in EnrollmentForm model
+    payload_dict = payload.model_dump(exclude_unset=True)
+    # These fields are in the schema but NOT columns on EnrollmentForm
+    for key in ["student_first_name", "student_last_name", "contact_email"]:
+        payload_dict.pop(key, None)
+    
     db_form = models.EnrollmentForm(
         date_submitted=datetime.utcnow().isoformat(),
         student_id=student_id,
-        form_type="Online Pre-Registration",
         status="Needs Review",
-        sex=payload.sex,
-        birth_date=payload.birth_date,
-        birth_place=payload.birth_place,
-        home_address=payload.home_address,
-        father_name=payload.father_name,
-        father_contact=payload.father_contact,
-        father_occupation=payload.father_occupation,
-        father_employer=payload.father_employer,
-        mother_name=payload.mother_name,
-        mother_contact=payload.mother_contact,
-        mother_occupation=payload.mother_occupation,
-        mother_employer=payload.mother_employer,
-        church_attended=payload.church_attended,
-        church_member=payload.church_member,
-        pastor_name=payload.pastor_name,
-        previous_school=payload.previous_school,
-        grade_applying_for=payload.grade_applying_for,
-        repeated_grade=payload.repeated_grade,
-        expelled_dismissed=payload.expelled_dismissed,
-        learning_disabilities=payload.learning_disabilities,
-        special_talents=payload.special_talents,
-        how_heard=payload.how_heard,
-        reason_selecting=payload.reason_selecting,
         submitted_by=current_user.id,
+        **payload_dict
     )
     db.add(db_form)
     db.commit()
@@ -1838,6 +1859,17 @@ def get_my_enrollment_forms(db: Session = Depends(get_db), current_user: models.
     return db.query(models.EnrollmentForm).filter(
         models.EnrollmentForm.submitted_by == current_user.id
     ).order_by(models.EnrollmentForm.id.desc()).all()
+
+
+@aesms_router.get("/enrollment_forms/my-latest-approved", response_model=Optional[schemas.EnrollmentForm])
+def get_my_latest_approved_enrollment_form(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    """Returns the most recent successfully enrolled form for the current student."""
+    if current_user.student_id:
+        return db.query(models.EnrollmentForm).filter(
+            models.EnrollmentForm.student_id == current_user.student_id,
+            models.EnrollmentForm.status == "Success"
+        ).order_by(models.EnrollmentForm.id.desc()).first()
+    return None
 
 
 # ---------------------------------------------------------------------------

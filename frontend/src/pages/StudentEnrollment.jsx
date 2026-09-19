@@ -41,14 +41,21 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
   const [errorMsg, setErrorMsg] = useState('');
   const [myForms, setMyForms] = useState([]);
   const [activeView, setActiveView] = useState('form'); // 'form' or 'status'
+  const [enrollmentOpen, setEnrollmentOpen] = useState(true);
+  const [latestApproved, setLatestApproved] = useState(null);
 
   const myStudent = students?.find(s => s.id === user?.student_id);
 
   const [formData, setFormData] = useState({
-    course: 'Basic Education',
     term: 'Full Year',
     grade_applying_for: '',
     payment_term: 'Full Payment',
+    home_address: '',
+    contact_email: '',
+    father_name: '',
+    father_contact: '',
+    mother_name: '',
+    mother_contact: '',
   });
 
   const fetchMyForms = async () => {
@@ -61,11 +68,47 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
     } catch { }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const res = await authFetch(`${API}/settings/enrollment_open`);
+      if (res?.ok) {
+        const data = await res.json();
+        setEnrollmentOpen(data.value === 'true');
+      }
+    } catch {}
+  };
+
+  const fetchLatestApproved = async () => {
+    try {
+      const res = await authFetch(`${API}/enrollment_forms/my-latest-approved`);
+      if (res?.ok) {
+        const data = await res.json();
+        if (data && typeof data === 'object') {
+          setLatestApproved(data);
+        }
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     fetchMyForms();
+    fetchSettings();
+    fetchLatestApproved();
   }, []);
 
-  // Removed auto-fill useEffect since we don't need those fields anymore
+  const handleAutofill = () => {
+    if (latestApproved) {
+      setFormData(prev => ({
+        ...prev,
+        home_address: latestApproved.home_address || '',
+        contact_email: latestApproved.contact_email || '',
+        father_name: latestApproved.father_name || '',
+        father_contact: latestApproved.father_contact || '',
+        mother_name: latestApproved.mother_name || '',
+        mother_contact: latestApproved.mother_contact || '',
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,7 +121,13 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
         student_last_name: myStudent?.last_name || user?.full_name?.split(' ').slice(1).join(' ') || 'Unknown',
         grade_applying_for: formData.grade_applying_for,
         form_type: 'Enrollment Application',
-        remarks: `Course: ${formData.course} | Term: ${formData.term} | Payment Term: ${formData.payment_term}`,
+        remarks: `Term: ${formData.term} | Payment Term: ${formData.payment_term}`,
+        home_address: formData.home_address,
+        contact_email: formData.contact_email,
+        father_name: formData.father_name,
+        father_contact: formData.father_contact,
+        mother_name: formData.mother_name,
+        mother_contact: formData.mother_contact,
       };
 
       const res = await authFetch(`${API}/enrollment_forms/student-submit`, {
@@ -105,8 +154,19 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
   const totalSteps = 2;
   const progressPct = Math.round((step / totalSteps) * 100);
 
-  const gradeOptions = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6',
-    'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+  const allGradeOptions = ['Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'];
+  let gradeOptions = allGradeOptions;
+  if (myStudent?.grade_level && myStudent.grade_level !== 'Pending') {
+    const currentIndex = allGradeOptions.indexOf(myStudent.grade_level);
+    if (currentIndex !== -1) {
+      gradeOptions = allGradeOptions.slice(currentIndex + 1);
+    }
+  } else if (latestApproved?.grade_applying_for) {
+    const currentIndex = allGradeOptions.indexOf(latestApproved.grade_applying_for);
+    if (currentIndex !== -1) {
+      gradeOptions = allGradeOptions.slice(currentIndex + 1);
+    }
+  }
 
   const statusColors = {
     'Needs Review': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
@@ -257,6 +317,14 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                 View Application Status
               </button>
             </div>
+          ) : !enrollmentOpen ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center">
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </div>
+              <h3 className="font-bold text-red-800 dark:text-red-300 text-lg">Enrollment is Closed</h3>
+              <p className="text-red-700 dark:text-red-400 text-sm mt-1">Please wait for the registrar to open the enrollment period.</p>
+            </div>
           ) : (
             <form onSubmit={handleSubmit}>
               {/* Progress Bar */}
@@ -288,15 +356,62 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
               {/* Step 1: Enrollment Details */}
               {step === 1 && (
                 <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-5 animate-fade-in">
-                  <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
-                    <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    Enrollment Details
-                  </h3>
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center">
+                      <svg className="w-5 h-5 mr-2 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                      Enrollment Details
+                    </h3>
+                    {latestApproved && (
+                      <button type="button" onClick={handleAutofill} className="px-3 py-1.5 text-xs font-bold text-brand-700 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition">
+                        Autofill from Previous
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <SelectField label="Course / Track" field="course" required options={['Basic Education', 'JHS']} formData={formData} setFormData={setFormData} />
                     <SelectField label="Term / School Year" field="term" required options={['Full Year', 'Term 1', 'Term 2', 'Term 3']} formData={formData} setFormData={setFormData} />
                     <SelectField label="Grade Level" field="grade_applying_for" required options={gradeOptions} formData={formData} setFormData={setFormData} />
                     <SelectField label="Payment Term" field="payment_term" required options={['Full Payment', 'Semi-Annual', 'Quarterly', 'Monthly']} formData={formData} setFormData={setFormData} />
+                    
+                    {latestApproved && (
+                      <>
+                        <div className="col-span-full border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
+                          <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center">
+                            <svg className="w-4 h-4 mr-2 text-brand-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Credentials / Documents on File
+                          </h4>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">The following documents are already submitted and verified from your previous enrollment.</p>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_birth_cert ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                              <span className="text-xl mb-1">{latestApproved.req_birth_cert ? '✅' : '❌'}</span>
+                              <span className="text-[10px] font-bold uppercase">Birth Cert</span>
+                            </div>
+                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_form_138 ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                              <span className="text-xl mb-1">{latestApproved.req_form_138 ? '✅' : '❌'}</span>
+                              <span className="text-[10px] font-bold uppercase">Form 138</span>
+                            </div>
+                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_good_moral ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                              <span className="text-xl mb-1">{latestApproved.req_good_moral ? '✅' : '❌'}</span>
+                              <span className="text-[10px] font-bold uppercase">Good Moral</span>
+                            </div>
+                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_pictures ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                              <span className="text-xl mb-1">{latestApproved.req_pictures ? '✅' : '❌'}</span>
+                              <span className="text-[10px] font-bold uppercase">Pictures</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="col-span-full border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
+                          <h4 className="font-bold text-slate-700 text-sm mb-3">Previous Details Verification</h4>
+                        </div>
+
+                        <InputField label="Home Address" field="home_address" formData={formData} setFormData={setFormData} />
+                        <InputField label="Contact Email" field="contact_email" type="email" formData={formData} setFormData={setFormData} />
+                        <InputField label="Father's Name" field="father_name" formData={formData} setFormData={setFormData} />
+                        <InputField label="Father's Contact" field="father_contact" formData={formData} setFormData={setFormData} />
+                        <InputField label="Mother's Name" field="mother_name" formData={formData} setFormData={setFormData} />
+                        <InputField label="Mother's Contact" field="mother_contact" formData={formData} setFormData={setFormData} />
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -316,7 +431,6 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      { label: 'Course / Track', value: formData.course },
                       { label: 'Term / School Year', value: formData.term },
                       { label: 'Grade Level', value: formData.grade_applying_for || 'N/A' },
                       { label: 'Payment Term', value: formData.payment_term },

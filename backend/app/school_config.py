@@ -121,24 +121,30 @@ SUBJECTS = {
 }
 
 # Tuition Fee Configuration (Total Amount Due for the School Year)
+# = Registration (5700) + Tuition (Non-Member Yearly) + Energy Fee (Monthly*10) + Books
 TUITION_FEES = {
-    "Kindergarten": 25000.0,
-    "Grade 1": 30000.0,
-    "Grade 2": 30000.0,
-    "Grade 3": 30000.0,
-    "Grade 4": 30000.0,
-    "Grade 5": 30000.0,
-    "Grade 6": 30000.0,
-    "Grade 7": 35000.0,
-    "Grade 8": 35000.0,
-    "Grade 9": 35000.0,
-    "Grade 10": 35000.0
+    "Kindergarten": 29760.0,   # 5700 + 17060 + 1500 + 5500
+    "Kinder": 29760.0,
+    "Grade 1": 33610.0,        # 5700 + 18010 + 3000 + 6900
+    "Grade 2": 33010.0,        # 5700 + 18010 + 3000 + 6300
+    "Grade 3": 33610.0,        # 5700 + 18010 + 3000 + 6900
+    "Grade 4": 35210.0,        # 5700 + 18010 + 3000 + 8500
+    "Grade 5": 35210.0,        # 5700 + 18010 + 3000 + 8500
+    "Grade 6": 35210.0,        # 5700 + 18010 + 3000 + 8500
+    "Grade 7": 37960.0,        # 5700 + 20060 + 3000 + 9200
+    "Grade 8": 37960.0,        # 5700 + 20060 + 3000 + 9200
+    "Grade 9": 37960.0,        # 5700 + 20060 + 3000 + 9200
+    "Grade 10": 37960.0        # 5700 + 20060 + 3000 + 9200
 }
 
 def get_school_config():
+    from .fee_structure import FEE_STRUCTURE, BOOKS_PRICES, ADMISSION_REQUIREMENTS
     return {
         "calendar": CALENDAR,
         "sections": SECTIONS,
         "subjects": SUBJECTS,
-        "tuition_fees": TUITION_FEES
+        "tuition_fees": TUITION_FEES,
+        "fee_structure": FEE_STRUCTURE,
+        "books_prices": BOOKS_PRICES,
+        "admission_requirements": ADMISSION_REQUIREMENTS,
     }

@@ -139,6 +139,8 @@ class EnrollmentForm(Base):
     submitted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     date_submitted = Column(String, nullable=True)
     
+    student = relationship("Student", back_populates="enrollment_forms")
+    
     student = relationship("Student", backref="enrollment_forms")
 
 
@@ -310,3 +312,10 @@ class SystemLog(Base):
 
     user = relationship("User")
 
+
+class SystemSettings(Base):
+    __tablename__ = "system_settings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, index=True)
+    value = Column(String)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PrintableAdmissionForm from '../components/PrintableAdmissionForm';
 
 const API = '/api';
@@ -21,6 +21,70 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
   const [formToArchive, setFormToArchive] = useState(null);
   const [isEditingForm, setIsEditingForm] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+
+  const [enrollmentOpen, setEnrollmentOpen] = useState(true);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await authFetch(`${API}/settings/enrollment_open`);
+      if (res?.ok) {
+        const data = await res.json();
+        setEnrollmentOpen(data.value === 'true');
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const [clearanceStatus, setClearanceStatus] = useState(null);
+  const [isFetchingClearance, setIsFetchingClearance] = useState(false);
+
+  useEffect(() => {
+    const fetchClearance = async () => {
+      if (view === 'evaluate' && selectedForm && selectedForm.form_type === 'Enrollment Application') {
+        setIsFetchingClearance(true);
+        try {
+          const res = await authFetch(`${API}/clearances/student/${selectedForm.student_id}`);
+          if (res?.ok) {
+            const data = await res.json();
+            // Find if any clearance record is 'Cleared'
+            const isCleared = data.some(c => c.status === 'Cleared');
+            setClearanceStatus(isCleared ? 'Cleared' : 'Pending');
+          } else {
+            setClearanceStatus('Pending');
+          }
+        } catch (err) {
+          console.error("Failed to fetch clearance:", err);
+          setClearanceStatus('Pending');
+        } finally {
+          setIsFetchingClearance(false);
+        }
+      } else {
+        setClearanceStatus(null);
+      }
+    };
+    fetchClearance();
+  }, [view, selectedForm, authFetch]);
+
+
+  const toggleEnrollment = async () => {
+    try {
+      const newValue = enrollmentOpen ? 'false' : 'true';
+      const res = await authFetch(`${API}/settings/enrollment_open`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'enrollment_open', value: newValue })
+      });
+      if (res?.ok) {
+        setEnrollmentOpen(!enrollmentOpen);
+        setAlertModal({ isOpen: true, title: 'Success', message: `Enrollment is now ${newValue === 'true' ? 'Open' : 'Closed'}.` });
+      }
+    } catch {
+      setAlertModal({ isOpen: true, title: 'Error', message: 'Failed to update enrollment settings.' });
+    }
+  };
 
   const gradeLevels = [
     'Kinder', 'Grade 1', 'Grade 2', 'Grade 3', 
@@ -193,14 +257,34 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
           <div className="relative z-10 group">
             <h2 className="text-2xl font-black font-cinzel text-brand-900 dark:text-brand-400 group-hover:text-blue-600 transition-colors tracking-widest uppercase mb-1 flex items-center">
               <svg className="w-7 h-7 mr-3 text-brand-600 dark:text-brand-400 group-hover:text-blue-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-              NEW STUDENTS ADMISSION
+              STUDENTS ADMISSION
+              {view === 'evaluate' && selectedForm && (
+                <span className={`ml-4 px-3 py-1 rounded-full text-xs font-bold tracking-wider ${selectedForm.form_type === 'Enrollment Application' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300'}`}>
+                  {selectedForm.form_type === 'Enrollment Application' ? 'OLD STUDENT' : 'NEW STUDENT'}
+                </span>
+              )}
             </h2>
             <p className="text-sm font-semibold text-brand-600 dark:text-brand-400/80 tracking-wider">
               {view === 'grades' ? 'Select a grade level to review pre-registered applications.' : 
                view === 'list' ? `Reviewing applicants for ${selectedGrade}` :
-               `Evaluating application: ${selectedForm?.student_first_name} ${selectedForm?.student_last_name}`}
+               `Evaluating application: ${selectedForm?.student?.first_name || selectedForm?.student_first_name} ${selectedForm?.student?.last_name || selectedForm?.student_last_name}`}
             </p>
           </div>
+          
+          {currentRole === 'Registrar' && view === 'grades' && (
+            <div className="relative z-10 flex items-center bg-slate-50 dark:bg-slate-900/50 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span className={`mr-3 text-sm font-bold uppercase tracking-wider ${enrollmentOpen ? 'text-green-600' : 'text-red-600'}`}>
+                {enrollmentOpen ? 'Enrollment Open' : 'Enrollment Closed'}
+              </span>
+              <button 
+                onClick={toggleEnrollment}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${enrollmentOpen ? 'bg-green-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${enrollmentOpen ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          )}
+
           <div className="absolute -right-10 -top-10 opacity-5">
             <svg className="w-64 h-64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
           </div>
@@ -483,6 +567,34 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                     <div className="absolute top-0 left-0 w-1 h-full bg-brand-500"></div>
                     <h3 className="text-xl font-black font-cinzel text-brand-900 dark:text-brand-400 mb-6">Assessment Decision</h3>
                     
+                    {selectedForm.form_type === 'Enrollment Application' && (
+                      <div className={`mb-6 p-4 rounded-xl border ${clearanceStatus === 'Cleared' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+                        <div className="flex items-center">
+                          {isFetchingClearance ? (
+                            <span className="text-sm font-bold text-slate-500">Checking clearance status...</span>
+                          ) : (
+                            <>
+                              <svg className={`w-5 h-5 mr-2 ${clearanceStatus === 'Cleared' ? 'text-green-600' : 'text-red-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {clearanceStatus === 'Cleared' ? (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                ) : (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                )}
+                              </svg>
+                              <div>
+                                <h4 className={`text-sm font-bold ${clearanceStatus === 'Cleared' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                                  {clearanceStatus === 'Cleared' ? 'Student is Cleared' : 'Missing Clearance'}
+                                </h4>
+                                <p className={`text-xs mt-0.5 ${clearanceStatus === 'Cleared' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                                  {clearanceStatus === 'Cleared' ? 'All previous requirements and balances are settled.' : 'This student must be cleared in the Clearance module before enrollment can proceed.'}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-5">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -523,8 +635,8 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
 
                       <button 
                         type="submit" 
-                        disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50"
+                        disabled={loading || isFetchingClearance || (selectedForm.form_type === 'Enrollment Application' && clearanceStatus !== 'Cleared')}
+                        className="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-800 hover:from-brand-700 hover:to-brand-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loading ? 'SAVING...' : 'RECORD DECISION'}
                       </button>
@@ -534,6 +646,35 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                   <form onSubmit={handleEnrollStudent} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-green-200 dark:border-green-900/30 shadow-lg relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
                     <h3 className="text-xl font-black font-cinzel text-green-700 dark:text-green-400 mb-6">Final Enrollment</h3>
+
+                    {selectedForm.form_type === 'Enrollment Application' && (
+                      <div className={`mb-6 p-4 rounded-xl border ${clearanceStatus === 'Cleared' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+                        <div className="flex items-center">
+                          {isFetchingClearance ? (
+                            <span className="text-sm font-bold text-slate-500">Checking clearance status...</span>
+                          ) : (
+                            <>
+                              <svg className={`w-5 h-5 mr-2 ${clearanceStatus === 'Cleared' ? 'text-green-600' : 'text-red-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                {clearanceStatus === 'Cleared' ? (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                ) : (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                )}
+                              </svg>
+                              <div>
+                                <h4 className={`text-sm font-bold ${clearanceStatus === 'Cleared' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                                  {clearanceStatus === 'Cleared' ? 'Student is Cleared' : 'Missing Clearance'}
+                                </h4>
+                                <p className={`text-xs mt-0.5 ${clearanceStatus === 'Cleared' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'}`}>
+                                  {clearanceStatus === 'Cleared' ? 'All previous requirements and balances are settled.' : 'This student must be cleared in the Clearance module before enrollment can proceed.'}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                       This student has passed the admission assessment. You can now enroll them to automatically assign their section and generate their tuition balance.
                     </p>
@@ -563,8 +704,8 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
 
                       <button 
                         type="submit" 
-                        disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50"
+                        disabled={loading || isFetchingClearance || (selectedForm.form_type === 'Enrollment Application' && clearanceStatus !== 'Cleared')}
+                        className="w-full py-4 bg-gradient-to-r from-green-600 to-green-800 hover:from-green-700 hover:to-green-900 text-white rounded-xl font-black tracking-widest text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loading ? 'ENROLLING...' : 'ENROLL STUDENT'}
                       </button>
