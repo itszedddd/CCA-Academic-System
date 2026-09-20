@@ -36,13 +36,10 @@ def recalculate_tuition_risk(db: Session, student_id: int):
 # Students
 # ---------------------------------------------------------------------------
 
-@aesms_router.get("/students/", response_model=List[schemas.Student])
-def read_students(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    # Use selectinload to prevent N+1 query problem when serializing relationships
-    base_query = db.query(models.Student).options(
-        selectinload(models.Student.academic_records),
-        selectinload(models.Student.tuition_payments)
-    )
+@aesms_router.get("/students/", response_model=List[schemas.StudentLite])
+def read_students(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+    # Fetch base student records without eagerly loading heavy relationships
+    base_query = db.query(models.Student)
     
     if current_user.role == "Teacher":
         # Teachers only see students in their assigned section
@@ -368,7 +365,7 @@ def create_attendance(attendance: schemas.AttendanceCreate, db: Session = Depend
     return db_record
 
 @aesms_router.get("/attendance/", response_model=List[schemas.Attendance])
-def get_attendance(skip: int = 0, limit: int = 500, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def get_attendance(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     query = db.query(models.Attendance)
     if current_user.role not in ["Principal", "Teacher", "Registrar", "Admission"]:
         query = query.filter(models.Attendance.student_id == current_user.student_id)
@@ -1047,7 +1044,7 @@ async def upload_enrollment_document(
     return {"detail": "Document uploaded", "file_path": file_path}
 
 @aesms_router.get("/enrollment_forms/", response_model=List[schemas.EnrollmentForm])
-def read_enrollment_forms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
+def read_enrollment_forms(skip: int = 0, limit: int = 10000, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     if current_user.role not in ["Principal", "Registrar", "Admission"]:
         raise HTTPException(status_code=403, detail="Not enough permissions")
     return db.query(models.EnrollmentForm).order_by(models.EnrollmentForm.id.desc()).offset(skip).limit(limit).all()

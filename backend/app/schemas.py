@@ -59,6 +59,12 @@ class Student(StudentBase):
     class Config:
         from_attributes = True
 
+class StudentLite(StudentBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
 
 # ---------------------------------------------------------------------------
 # Attendance
