@@ -10,6 +10,7 @@ CALENDAR = {
 
 # Section Config
 SECTIONS = {
+    "Kinder": {"name": "Kindness", "max_students": 32},
     "Kindergarten": {"name": "Kindness", "max_students": 32},
     "Grade 1": {"name": "Love", "max_students": 32},
     "Grade 2": {"name": "Joyful", "max_students": 32},
@@ -25,6 +26,7 @@ SECTIONS = {
 
 # Subject Mapping per Grade Level
 SUBJECTS = {
+    "Kinder": [], # No subjects for Kinder
     "Kindergarten": [], # No subjects for Kindergarten
     "Grade 1": [
         "Language",

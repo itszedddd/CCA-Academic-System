@@ -181,8 +181,8 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
 
   const graphData = GRADES.map(grade => {
     const gradeStudents = visibleStudents.filter(s => s.grade_level === grade && !['Archived','Graduated','Dropped','Transferred','Rejected'].includes(s.enrollment_status));
-    const oldStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled' && s.enrollment_type === 'Old Student').length;
-    const newStudents = gradeStudents.filter(s => s.enrollment_status === 'Enrolled' && s.enrollment_type === 'New Student').length;
+    const oldStudents = gradeStudents.filter(s => s.enrollment_type === 'Old Student').length;
+    const newStudents = gradeStudents.filter(s => s.enrollment_type === 'New Student' || !s.enrollment_type).length;
     return { name: grade, 'Old Students': oldStudents, 'New Students': newStudents };
   });
 
@@ -547,18 +547,22 @@ export default function Students({ students, attendance, isStudentsLoading, fetc
                   <h4 className="font-bold text-slate-800 dark:text-white uppercase text-sm border-b pb-2 mb-4 border-slate-200 dark:border-slate-700">Requirements Submitted</h4>
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
                     <ul className="space-y-3">
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Form 138 (Report Card)</span>
-                        {selectedStudent.req_form_138 ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
-                      </li>
+                      {!['Kinder', 'Kindergarten', 'Pre-K', 'Pre-Kinder'].includes(selectedStudent.grade_level) && (
+                        <li className="flex justify-between items-center text-sm">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Form 138 (Report Card)</span>
+                          {selectedStudent.req_form_138 ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                        </li>
+                      )}
                       <li className="flex justify-between items-center text-sm">
                         <span className="font-semibold text-slate-700 dark:text-slate-300">PSA Birth Certificate</span>
                         {selectedStudent.req_birth_cert ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
                       </li>
-                      <li className="flex justify-between items-center text-sm">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Certificate of Good Moral</span>
-                        {selectedStudent.req_good_moral ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
-                      </li>
+                      {!['Kinder', 'Kindergarten', 'Pre-K', 'Pre-Kinder'].includes(selectedStudent.grade_level) && (
+                        <li className="flex justify-between items-center text-sm">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">Certificate of Good Moral</span>
+                          {selectedStudent.req_good_moral ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}
+                        </li>
+                      )}
                       <li className="flex justify-between items-center text-sm">
                         <span className="font-semibold text-slate-700 dark:text-slate-300">2x2 Pictures</span>
                         {selectedStudent.req_pictures ? <span className="text-green-600 font-black">✓</span> : <span className="text-red-500 font-bold text-xs uppercase">Pending</span>}

@@ -89,6 +89,19 @@ def get_fee_category(grade_level: str) -> str:
         return "Grade 7-10"
     return "Grade 1-6"  # Default
 
+def get_energy_fee(grade_level: str) -> float:
+    if grade_level in ["Kindergarten", "Kinder", "Pre-K", "Pre-Kinder"]:
+        return 1500.0
+    return 3000.0
+
+def get_tuition_yearly(grade_level: str, membership_type: str = "Non-Member") -> float:
+    if grade_level in ["Kindergarten", "Kinder", "Pre-K", "Pre-Kinder"]:
+        return 16060.0 if membership_type == "CBC Member" else 17060.0
+    elif grade_level in ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]:
+        return 17010.0 if membership_type == "CBC Member" else 18010.0
+    else:
+        return 19060.0 if membership_type == "CBC Member" else 20060.0
+
 
 def get_books_price(grade_level: str) -> float:
     return BOOKS_PRICES.get(grade_level, 8500)

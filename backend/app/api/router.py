@@ -1171,6 +1171,12 @@ def verify_form(form_id: int, payload: schemas.EnrollmentFormVerify, db: Session
         form.status = payload.status
     if payload.remarks:
         form.remarks = payload.remarks
+
+    form.req_birth_cert = payload.req_birth_cert
+    form.req_form_138 = payload.req_form_138
+    form.req_good_moral = payload.req_good_moral
+    form.req_pictures = payload.req_pictures
+    form.req_hard_copy = payload.req_hard_copy
     
     if payload.status in ["Success", "Hold", "Approved Incomplete"]:
         if payload.status == "Success":

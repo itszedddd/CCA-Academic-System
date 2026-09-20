@@ -228,7 +228,7 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
         body: JSON.stringify({ 
           status: enrollmentStatus, 
           remarks: enrollmentRemarks,
-          req_birth_cert: 1, req_form_138: 1, req_good_moral: 1, req_pictures: 1
+          req_birth_cert: 1, req_form_138: 1, req_good_moral: 1, req_pictures: 1, req_hard_copy: requirements.req_hard_copy
         })
       });
       if (res?.ok) {
@@ -542,12 +542,16 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                     <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
                       <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_birth_cert === 1} onChange={e => setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)
                     </label>
-                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_form_138 === 1} onChange={e => setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)
-                    </label>
-                    <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_good_moral === 1} onChange={e => setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate
-                    </label>
+                    {!['Kinder', 'Kindergarten', 'Pre-K', 'Pre-Kinder'].includes(selectedForm.grade_applying_for) && (
+                      <>
+                        <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_form_138 === 1} onChange={e => setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)
+                        </label>
+                        <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_good_moral === 1} onChange={e => setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate
+                        </label>
+                      </>
+                    )}
                     <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
                       <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_pictures === 1} onChange={e => setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures
                     </label>
