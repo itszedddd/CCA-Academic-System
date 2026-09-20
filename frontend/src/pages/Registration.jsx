@@ -542,8 +542,12 @@ export default function Registration({ forms, fetchForms, authFetch, currentRole
                    <div>
                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Requirements Checklist (Check if received)</label>
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_birth_cert} onChange={e=>setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)</label>
-                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_form_138} onChange={e=>setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)</label>
-                     <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_good_moral} onChange={e=>setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate</label>
+                     {formData.grade_applying_for !== 'Kinder' && (
+                       <>
+                         <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_form_138} onChange={e=>setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)</label>
+                         <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_good_moral} onChange={e=>setRequirements({...requirements, req_good_moral: e.target.checked?1:0})} /> Good Moral Certificate</label>
+                       </>
+                     )}
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_pictures} onChange={e=>setRequirements({...requirements, req_pictures: e.target.checked?1:0})} /> 2x2 ID Pictures</label>
                      <label className="flex items-center text-sm mb-1 text-slate-800 dark:text-slate-200"><input type="checkbox" className="mr-2" checked={requirements.req_hard_copy} onChange={e=>setRequirements({...requirements, req_hard_copy: e.target.checked?1:0})} /> Received Hard Copy</label>
                    </div>

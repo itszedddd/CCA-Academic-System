@@ -385,14 +385,18 @@ export default function StudentEnrollment({ authFetch, user, currentRole, studen
                               <span className="text-xl mb-1">{latestApproved.req_birth_cert ? '✅' : '❌'}</span>
                               <span className="text-[10px] font-bold uppercase">Birth Cert</span>
                             </div>
-                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_form_138 ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
-                              <span className="text-xl mb-1">{latestApproved.req_form_138 ? '✅' : '❌'}</span>
-                              <span className="text-[10px] font-bold uppercase">Form 138</span>
-                            </div>
-                            <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_good_moral ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
-                              <span className="text-xl mb-1">{latestApproved.req_good_moral ? '✅' : '❌'}</span>
-                              <span className="text-[10px] font-bold uppercase">Good Moral</span>
-                            </div>
+                            {student?.grade !== 'Kinder' && (
+                              <>
+                                <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_form_138 ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                                  <span className="text-xl mb-1">{latestApproved.req_form_138 ? '✅' : '❌'}</span>
+                                  <span className="text-[10px] font-bold uppercase">Form 138</span>
+                                </div>
+                                <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_good_moral ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
+                                  <span className="text-xl mb-1">{latestApproved.req_good_moral ? '✅' : '❌'}</span>
+                                  <span className="text-[10px] font-bold uppercase">Good Moral</span>
+                                </div>
+                              </>
+                            )}
                             <div className={`p-3 rounded-xl border flex flex-col items-center justify-center text-center ${latestApproved.req_pictures ? 'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-800 dark:border-slate-700'}`}>
                               <span className="text-xl mb-1">{latestApproved.req_pictures ? '✅' : '❌'}</span>
                               <span className="text-[10px] font-bold uppercase">Pictures</span>

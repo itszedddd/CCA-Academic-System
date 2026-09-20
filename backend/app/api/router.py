@@ -1134,6 +1134,8 @@ def record_assessment(form_id: int, payload: schemas.AdmissionUpdatePayload, db:
     form.assessment_status = payload.status
     if payload.remarks:
         form.assessment_remarks = payload.remarks
+    if payload.req_hard_copy is not None:
+        form.req_hard_copy = payload.req_hard_copy
     form.assessed_by = current_user.id
     
     db.commit()
@@ -1151,6 +1153,8 @@ def record_interview(form_id: int, payload: schemas.AdmissionUpdatePayload, db: 
     form.interview_status = payload.status
     if payload.remarks:
         form.interview_remarks = payload.remarks
+    if payload.req_hard_copy is not None:
+        form.req_hard_copy = payload.req_hard_copy
     form.interviewed_by = current_user.id
     
     db.commit()

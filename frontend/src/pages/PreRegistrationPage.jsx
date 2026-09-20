@@ -117,10 +117,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     } catch (err) {
       if (err.name === 'AbortError') {
         setError('Server is taking too long to respond. Please try again.');
-      } else if (err.message === 'ServerWakingUp') {
-        setError('The server is currently waking up. Please wait about 30 seconds and try submitting again.');
+      } else if (err.message === 'ServerWakingUp' || err.name === 'TypeError' || err.message === 'InvalidJSON') {
+        setError('The server is currently waking up or unavailable. Please wait about 30 seconds and try submitting again.');
       } else {
-        setError('Connection error. Server may be down or waking up. Please try again in a few seconds.');
+        setError('Connection error. Please check your internet connection and try again.');
       }
     } finally {
       setLoading(false);
@@ -152,10 +152,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
         setError('Application not found. Please check your reference number.');
       }
     } catch (err) {
-      if (err.message === 'ServerWakingUp') {
+      if (err.message === 'ServerWakingUp' || err.name === 'TypeError' || err.message === 'InvalidJSON') {
         setError('The server is currently waking up. Please wait about 30 seconds and try again.');
       } else {
-        setError('Connection error. Server may be down or waking up. Please try again in a few seconds.');
+        setError('Connection error. Please check your internet connection and try again.');
       }
     } finally {
       setLoading(false);

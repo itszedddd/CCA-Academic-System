@@ -308,6 +308,7 @@ class EnrollmentFormCreate(BaseModel):
 class AdmissionUpdatePayload(BaseModel):
     status: str
     remarks: Optional[str] = None
+    req_hard_copy: Optional[int] = None
 
 class PublicEnrollmentSubmit(BaseModel):
     """Schema for the public pre-registration form."""

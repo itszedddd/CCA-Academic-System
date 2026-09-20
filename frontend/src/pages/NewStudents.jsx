@@ -194,12 +194,20 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
       await authFetch(`${API}/enrollment_forms/${selectedForm.id}/assessment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: admissionStatus, remarks: admissionRemarks })
+        body: JSON.stringify({ 
+          status: admissionStatus, 
+          remarks: admissionRemarks,
+          req_hard_copy: requirements.req_hard_copy
+        })
       });
       await authFetch(`${API}/enrollment_forms/${selectedForm.id}/interview`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: interviewStatus, remarks: admissionRemarks })
+        body: JSON.stringify({ 
+          status: interviewStatus, 
+          remarks: admissionRemarks,
+          req_hard_copy: requirements.req_hard_copy
+        })
       });
       await authFetch(`${API}/enrollment_forms/${selectedForm.id}/verify`, {
         method: 'PUT',
@@ -235,7 +243,12 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
         fetchForms();
         setView('list');
       } else {
-        setAlertModal({ isOpen: true, message: 'Failed to enroll student. Please check if the assessment is passed.', title: 'Enrollment Error' });
+        const errorData = await res.json().catch(() => null);
+        setAlertModal({ 
+            isOpen: true, 
+            message: errorData?.detail || 'Failed to enroll student. Please ensure all requirements (like Interview) are passed.', 
+            title: 'Enrollment Error' 
+        });
       }
     } finally {
       setLoading(false);
@@ -540,9 +553,9 @@ export default function NewStudents({ forms, fetchForms, authFetch, currentRole 
                   <h3 className="text-sm font-black font-cinzel text-slate-800 dark:text-white mb-4">Requirements Checklist</h3>
                   <div className="space-y-2">
                     <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_birth_cert === 1} onChange={e => setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> Birth Certificate (PSA)
+                      <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_birth_cert === 1} onChange={e => setRequirements({...requirements, req_birth_cert: e.target.checked?1:0})} /> PSA Birth Certificate
                     </label>
-                    {!['Kinder', 'Kindergarten', 'Pre-K', 'Pre-Kinder'].includes(selectedForm.grade_applying_for) && (
+                    {selectedForm?.grade_applying_for !== 'Kinder' && (
                       <>
                         <label className="flex items-center text-sm font-medium text-slate-700 dark:text-slate-300">
                           <input type="checkbox" className="mr-3 w-4 h-4 text-brand-600 rounded" checked={requirements.req_form_138 === 1} onChange={e => setRequirements({...requirements, req_form_138: e.target.checked?1:0})} /> Form 138 (Report Card)
