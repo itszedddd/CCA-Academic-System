@@ -2,11 +2,8 @@ import os
 from google import genai
 from typing import Dict, Any, Optional
 
-# Configure Gemini using the new google-genai SDK
-api_key = os.environ.get("GEMINI_API_KEY")
+# We will initialize the client dynamically to ensure env vars are loaded
 client = None
-if api_key:
-    client = genai.Client(api_key=api_key)
 
 # System prompt to give the AI its persona and context
 SYSTEM_PROMPT = """
@@ -50,6 +47,12 @@ def chat_with_assistant(message: str, user_role: str, user_context: Dict[str, An
         db_snapshot: A pre-built text summary of live school database data
     """
     
+    global client
+    if not client:
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if api_key:
+            client = genai.Client(api_key=api_key)
+            
     if not client:
         return "I am currently running in offline mode. Please contact the administrator to enable AI features by configuring the GEMINI_API_KEY environment variable."
         

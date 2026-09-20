@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PrintableAdmissionForm from '../components/PrintableAdmissionForm';
 
 export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavigateHome }) {
@@ -10,6 +10,11 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
   // Status check state
   const [statusCheckId, setStatusCheckId] = useState('');
   const [statusResult, setStatusResult] = useState(null);
+
+  // Ping backend to wake it up if it's on a free tier (Render)
+  useEffect(() => {
+    fetch('/api/health').catch(() => {});
+  }, []);
 
   const [formData, setFormData] = useState({
     student_first_name: '',
@@ -91,7 +96,17 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
       });
       clearTimeout(timeoutId);
       
-      const data = await res.json();
+      const resText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(resText);
+      } catch (e) {
+        // Vercel returns HTML for 504 Gateway Timeout if Render is asleep
+        if (res.status === 504 || res.status === 502) {
+            throw new Error('ServerWakingUp');
+        }
+        throw new Error('InvalidJSON');
+      }
 
       if (res.ok) {
         setReferenceId(data.id);
@@ -102,8 +117,10 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
     } catch (err) {
       if (err.name === 'AbortError') {
         setError('Server is taking too long to respond. Please try again.');
+      } else if (err.message === 'ServerWakingUp') {
+        setError('The server is currently waking up. Please wait about 30 seconds and try submitting again.');
       } else {
-        setError('Connection error. Server may be down.');
+        setError('Connection error. Server may be down or waking up. Please try again in a few seconds.');
       }
     } finally {
       setLoading(false);
@@ -118,7 +135,16 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
 
     try {
       const res = await fetch(`/api/enrollment_forms/check-status/${statusCheckId}`);
-      const data = await res.json();
+      const resText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(resText);
+      } catch (e) {
+        if (res.status === 504 || res.status === 502) {
+          throw new Error('ServerWakingUp');
+        }
+        throw new Error('InvalidJSON');
+      }
 
       if (res.ok) {
         setStatusResult(data);
@@ -126,7 +152,11 @@ export default function PreRegistrationPage({ isDarkMode, setIsDarkMode, onNavig
         setError('Application not found. Please check your reference number.');
       }
     } catch (err) {
-      setError('Connection error.');
+      if (err.message === 'ServerWakingUp') {
+        setError('The server is currently waking up. Please wait about 30 seconds and try again.');
+      } else {
+        setError('Connection error. Server may be down or waking up. Please try again in a few seconds.');
+      }
     } finally {
       setLoading(false);
     }

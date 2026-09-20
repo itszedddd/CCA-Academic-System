@@ -81,6 +81,7 @@ export default function App() {
 
   const handleLogin = (t) => {
     setToken(t);
+    setActiveTab('Dashboard');
     fetchProfile(t);
   };
 
@@ -89,6 +90,12 @@ export default function App() {
     setToken(null);
     setUser(null);
     setCurrentRole('Guest');
+    setActiveTab('Dashboard');
+    setStudents([]);
+    setWarnings([]);
+    setAttendance([]);
+    setForms([]);
+    setSearchQuery('');
   };
 
   const fetchStudents = () => {

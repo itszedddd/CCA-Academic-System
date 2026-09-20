@@ -559,10 +559,20 @@ def ai_model_summary():
     return get_ai_model_summary()
 
 
+import time
+_predictive_cache = {}
+
 @aesms_router.get("/ai/predictive-analytics")
 def get_predictive_analytics(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     """Returns predictive analytics data for the dashboard widget."""
-    return generate_predictive_analytics(db, current_user)
+    global _predictive_cache
+    role = current_user.role
+    if role in _predictive_cache and time.time() - _predictive_cache[role]["timestamp"] < 300:
+        return _predictive_cache[role]["data"]
+        
+    data = generate_predictive_analytics(db, current_user)
+    _predictive_cache[role] = {"data": data, "timestamp": time.time()}
+    return data
 
 # ---------------------------------------------------------------------------
 # AI Report Generation (Gemini LLM — Full Narrative Reports)
@@ -1678,9 +1688,14 @@ def delete_event(event_id: int, db: Session = Depends(get_db), current_user: mod
 # Dashboard Widgets (AI Insights, Enrollment Trends, Student Population)
 # ---------------------------------------------------------------------------
 
+_widgets_cache = {"data": None, "timestamp": 0}
+
 @aesms_router.get("/dashboard/widgets")
 def get_dashboard_widgets(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
     """Returns comprehensive dashboard widget data including Gemini AI insights."""
+    global _widgets_cache
+    if _widgets_cache["data"] and time.time() - _widgets_cache["timestamp"] < 300:
+        return _widgets_cache["data"]
 
     students = db.query(models.Student).all()
     tuitions = db.query(models.TuitionPayment).all()
@@ -1759,7 +1774,7 @@ def get_dashboard_widgets(db: Session = Depends(get_db), current_user: models.Us
 
     ai_insights = generate_dashboard_insights(school_data)
 
-    return {
+    result = {
         "ai_insights": ai_insights,
         "student_population": grade_dist,
         "enrollment_trends": monthly_enrollments,
@@ -1776,6 +1791,10 @@ def get_dashboard_widgets(db: Session = Depends(get_db), current_user: models.Us
             "high_risk_tuition": high_risk,
         }
     }
+    _widgets_cache["data"] = result
+    _widgets_cache["timestamp"] = time.time()
+    
+    return result
 
 
 # ---------------------------------------------------------------------------
